@@ -1,0 +1,6 @@
+.env
+.env.*
+target/
+*.jar
+application-prod.properties
+application-local.properties
