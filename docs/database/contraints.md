@@ -207,6 +207,12 @@ Trip     → lo que realmente pasó
 UNIQUE (route_id, order_index)
 ```
 
+### RouteStopFare Special Table
+
+
+
+
+
 ---
 
 ### Separación de responsabilidades
