@@ -209,10 +209,18 @@ UNIQUE (route_id, order_index)
 
 ### RouteStopFare Special Table
 
+Prototipo UI
 
+```
+Empresa: Turrialba Bus S.A.
+Ruta: Cartago → Orosi
 
-
-
+Parada          Precio actual    Nuevo precio
+Cartago         ₡900             ₡1050
+Paraíso         ₡700             ₡850
+Cervantes       ₡600             ₡750
+```
+Se daría en guardar y el backend ejecuta el UPDATE + INSERT.
 ---
 
 ### Separación de responsabilidades
