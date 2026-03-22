@@ -1,0 +1,74 @@
+# ============================================================================
+# DOCKER COMPOSE: DESARROLLO SOLAMENTE
+# ============================================================================
+# Use this file for LOCAL development
+# 
+# QUICK START:
+#   docker-compose up -d
+#
+# FOR TESTING:
+#   docker-compose -f docker-compose.test.yml up -d
+#
+# VIEW LOGS:
+#   docker-compose logs -f postgres-dev
+#
+# STOP CONTAINERS:
+#   docker-compose down
+# ============================================================================
+
+version: '3.8'
+
+services:
+  # ========================================================================
+  # POSTGRES DEVELOPMENT
+  # ========================================================================
+  # Port: 5432
+  # Database: bustracking_dev
+  # User: bustracking_user
+  # Password: (see .env)
+  postgres-dev:
+    image: postgres:16-alpine
+    container_name: bustracking-postgres-dev
+    
+    # Environment variables (read from .env)
+    env_file:
+      - .env
+    
+    # Exposed ports (host:container)
+    ports:
+      - "5432:5432"
+    
+    # Volume: Persist data on disk
+    volumes:
+      # Datos de la BD
+      - postgres_dev_data:/var/lib/postgresql/data
+      
+      # Script SQL ejecutado al iniciar (SOLO docker-entrypoint-initdb.d/)
+      - ./backend/src/main/resources/db/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+    
+    # Red privada entre contenedores
+    networks:
+      - bustracking-network
+    
+    # Health check (opcional pero recomendado)
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+
+# ============================================================================
+# VOLÚMENES (almacenamiento persistente)
+# ============================================================================
+volumes:
+  postgres_dev_data:
+    driver: local
+
+# ============================================================================
+# REDES (comunicación entre contenedores)
+# ============================================================================
+networks:
+  bustracking-network:
+    driver: bridge

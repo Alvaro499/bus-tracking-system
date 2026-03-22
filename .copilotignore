@@ -1,5 +1,26 @@
-.env
-.env.*
-*.properties
+# ============================================================================
+# COPILOT IGNORE: Files that Copilot should NOT read/edit
+# ============================================================================
+# This These files contain sensitive information: credentials, passwords, etc.
+# The .example and .test.example files are the only visible
+
+# CREDENTIALS (NEVER read these files)
+.env                    # Real credentials (development)
+.env.test               # Real credentials (testing)
+.env.production         # Real credentials (production)
+.env.local              # Local credentials
+
+# CONFIGURATION WITH PASSWORDS
+application.properties
+application-test.properties
+application-prod.properties
+
+# BINARIES AND BUILD
 *.jar
+*.class
 target/
+build/
+
+# DEPENDENCIES
+node_modules/
+.gradle/
