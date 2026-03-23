@@ -9,7 +9,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import com.bustracking.backend.config.TestConfiguration;
+import com.bustracking.backend.config.IntegrationTestConfig;
 
 /**
  * Base class for Integration Tests
@@ -29,7 +29,7 @@ import com.bustracking.backend.config.TestConfiguration;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
 @ActiveProfiles("test")   // Use application-test.properties for tests
-@Import(TestConfiguration.class)
+@Import(IntegrationTestConfig.class)
 public abstract class IntegrationTest {
 
     @Container
