@@ -1,136 +1,248 @@
-# Guia de E2E Tests
+# End-to-End (E2E) Tests Guide
 
-## Que son
+**Versión:** 1.0
 
-Un E2E Test prueba una API completa como si un cliente HTTP real estuviera haciendo peticiones. Se valida que el endpoint responde correctamente, que el status HTTP es el esperado, que los datos vuelven en el formato correcto.
+---
 
-## Donde van
+## 1. Propósito
 
-`src/test/java/e2e/[NombreAPITest].java`
+Este documento define los lineamientos para la implementación de **End-to-End (E2E) Tests** dentro del proyecto *Bus Tracking System*.
 
-Ejemplo: `src/test/java/e2e/BusTrackingE2ETest.java`
+Su objetivo es validar que el sistema completo funciona correctamente desde la perspectiva del usuario final, incluyendo la interacción entre frontend, backend y cualquier componente involucrado.
 
-## Estructura general
+---
 
-Un E2E test se ve asi:
+## 2. Alcance
 
+Los E2E Tests:
+
+* Validan flujos completos del sistema desde la interfaz de usuario
+* Simulan el comportamiento real de un usuario
+* Ejecutan el sistema en un entorno lo más cercano posible a producción
+* Verifican la integración entre frontend, backend y servicios externos
+
+No sustituyen:
+
+* Unit Tests
+* Integration Tests
+* Functional Tests
+* Acceptance Tests
+
+---
+
+## 3. Ubicación en el Proyecto
+
+Ruta establecida:
+
+```id="m2lq8s"
+src/test/java/com/bustracking/e2e/
 ```
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Testcontainers
-class MiAPIE2ETest {
-    
-    @LocalServerPort
-    private int port;
-    
-    @Autowired
-    private TestRestTemplate restTemplate;
-    
-    @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15");
-    
+
+Cada test debe representar un flujo completo del sistema desde la perspectiva del usuario.
+
+---
+
+## 4. Principios Generales
+
+### 4.1 Enfoque en el Usuario
+
+Los E2E Tests deben validar escenarios reales de uso del sistema, tal como los ejecutaría un usuario final a través de la interfaz.
+
+---
+
+### 4.2 Sistema Completo
+
+Estas pruebas deben involucrar:
+
+* Interfaz de usuario
+* Backend
+* Base de datos
+* Servicios externos (cuando aplique)
+
+El sistema debe tratarse como una unidad completa.
+
+---
+
+### 4.3 Independencia de Tecnología
+
+La implementación de los E2E Tests no está acoplada a una herramienta específica.
+
+Se pueden utilizar herramientas como:
+
+* Automatización de navegadores
+* Frameworks de testing frontend
+* Herramientas de simulación de usuario
+
+La elección dependerá de las necesidades del proyecto.
+
+---
+
+### 4.4 Validación de Comportamiento
+
+Los tests deben validar lo que el usuario percibe:
+
+* Navegación
+* Acciones disponibles
+* Resultados visibles en pantalla
+
+No deben centrarse en detalles internos del sistema.
+
+---
+
+## 5. Convenciones de Nombres
+
+### 5.1 Clases
+
+Formato recomendado:
+
+```id="xk2j9a"
+[Flujo][Accion][Resultado]E2ETest
+```
+
+Las clases deben representar un flujo completo del sistema.
+
+---
+
+### 5.2 Métodos
+
+Se recomienda el uso del patrón BDD:
+
+```id="g7w3pz"
+given[Contexto]_when[Accion]_then[Resultado]
+```
+
+El nombre debe describir claramente el escenario completo desde la perspectiva del usuario.
+
+---
+
+## 6. Estructura del Test
+
+Los E2E Tests deben seguir una estructura basada en tres fases:
+
+* **ARRANGE**: preparación del entorno y estado inicial
+* **ACT**: ejecución de acciones del usuario en la interfaz
+* **ASSERT**: validación del resultado visible
+
+### Esqueleto base:
+
+```java id="v9c1rn"
+class ExampleE2ETest {
+
     @Test
-    void testActualizarUbicacion_DatosValidos_RetornaOKYDatosGuardados() {
+    void givenContext_whenUserPerformsAction_thenExpectedOutcome() {
+
         // ARRANGE
-        String url = "http://localhost:" + port + "/api/buses/BUS-001/location";
-        GPSCoordinateDTO dto = new GPSCoordinateDTO(10.5, 20.3);
-        
+        // Configuración del entorno y estado inicial
+
         // ACT
-        ResponseEntity<BusDTO> response = restTemplate.postForEntity(url, dto, BusDTO.class);
-        
+        // Simulación de acciones del usuario (navegación, interacción)
+
         // ASSERT
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(10.5, response.getBody().getLatitude());
+        // Validación del comportamiento observable en la interfaz
     }
 }
 ```
 
-## Por que TestRestTemplate
+---
 
-TestRestTemplate es un cliente HTTP que simula peticiones reales. Hace un POST, GET, PUT, DELETE como lo haria cualquier aplicacion externa.
+## 7. Criterios de Validación
 
-Esto es importante porque todo el sistema debe funcionar correctamente "desde afuera". No basta que internamente funcione.
+Un E2E Test debe validar:
 
-## Patron AAA
+### 7.1 Flujos completos del usuario
 
-Exactamente igual:
+Escenarios reales que recorren múltiples capas del sistema.
 
-1. **Arrange:** Se preparan los datos y la URL
-2. **Act:** Se hace la peticion HTTP
-3. **Assert:** Se valida status, cuerpo de respuesta, etc
+---
 
-## Nombrado de tests
+### 7.2 Interacción con la interfaz
 
-El nombre explica el endpoint y que deberia suceder:
+Acciones como navegación, ingreso de datos y ejecución de operaciones.
 
-Ejemplos:
-- `testActualizarUbicacion_DatosValidos_Retorna200YActualizaBD`
-- `testRegistrarEmpresa_DatosIncompletos_Retorna400`
-- `testObtenerBuses_SinAutenticacion_Retorna401`
+---
 
-## Que validar
+### 7.3 Resultados visibles
 
-En un E2E test se valida:
+Cambios en la interfaz que confirman que la acción fue exitosa.
 
-1. **Status HTTP** (200, 400, 401, 500, etc)
-2. **Estructura de la respuesta** (tiene los campos esperados)
-3. **Valores en la respuesta** (son los valores correctos)
-4. **Headers** (Content-Type, etc)
-5. **Datos en la BD** (si fue una creacion o actualizacion)
+---
 
-## Que siempre se debe hacer
+### 7.4 Integración entre componentes
 
-1. **Usar TestRestTemplate** para hacer peticiones
-2. **Validar el status HTTP**
-3. **Seguir el patron AAA**
-4. **Probar casos de error** (no solo el caso feliz)
-5. **Validar datos en BD** si la operacion guarda datos
+Comunicación correcta entre frontend, backend y otros servicios.
 
-## Que nunca se debe hacer
+---
 
-1. **Mockejar los servicios** (todo debe ser real)
-2. **Testear logica interna** (eso es unit test)
-3. **Hacer tests tan complejos** que sean dificiles de mantener
-4. **Olvidar validar status HTTP** (es lo mas importante)
+## 8. Exclusiones
 
-## Casos a probar
+No deben incluirse en E2E Tests:
 
-Para cada endpoint se deben probar:
+* Validaciones de lógica interna
+* Verificación de estructuras internas de datos
+* Pruebas unitarias o de componentes aislados
+* Detalles técnicos no visibles para el usuario
 
-1. **Caso feliz:** Datos validos, todo sale bien
-2. **Validaciones:** Datos invalidos, el endpoint rechaza
-3. **Errores de autenticacion:** Sin token, con token invalido
-4. **Errores de autorizacion:** Usuario sin permisos
-5. **Recursos no encontrados:** ID que no existe
+---
 
-Ejemplo para DELETE /api/buses/123:
-- `testEliminarBus_IDValido_Retorna204`
-- `testEliminarBus_IDNoExiste_Retorna404`
-- `testEliminarBus_SinAutenticacion_Retorna401`
+## 9. Cantidad Recomendada
 
-## Velocidad
+Se recomienda mantener un número limitado de E2E Tests debido a su costo de ejecución.
 
-Son lentos. 500ms - 1s por test. Es porque hacen la peticion HTTP completa y tocan la BD.
+* Cubrir únicamente flujos críticos
+* Evitar duplicación de escenarios ya cubiertos en otros niveles de testing
 
-No se debe hacer un E2E test para cada endpoint. Solo para los mas importantes.
+---
 
-## Diferencia con Functional Tests
+## 10. Relación con Otros Tipos de Pruebas
 
-| Aspecto | Functional Test | E2E Test |
-|---------|-----------------|----------|
-| Peticiones HTTP | No | Si |
-| TestRestTemplate | No | Si |
-| Se prueba | Logica interna | API desde afuera |
-| Cliente | Codigo interno | Cliente HTTP real |
-| Que revisa | Datos en BD | Status HTTP + datos |
+| Tipo        | Enfoque                          |
+| ----------- | -------------------------------- |
+| Unit        | Lógica aislada                   |
+| Integration | Interacción entre componentes    |
+| Functional  | Casos de uso del sistema         |
+| Acceptance  | Validación del negocio (backend) |
+| E2E         | Flujo completo con interfaz      |
 
-## Diferencia con Integration Tests
+---
 
-Un Integration Test prueba un servicio con su BD.
+## 11. Buenas Prácticas
 
-Un E2E Test prueba un endpoint (controller + servicio + BD).
+* Mantener los tests enfocados en flujos críticos
+* Priorizar estabilidad sobre cantidad
+* Reducir dependencias innecesarias
+* Diseñar tests resistentes a cambios menores en la interfaz
+* Asegurar entornos de prueba consistentes
 
-E2E es mas "externo". Va desde el endpoint hasta la BD.
+---
 
-## Referencias
+## 12. Anti-Patrones
 
-Basado en Spring Boot Documentation y principios de testing de APIs.
+* Tests frágiles dependientes de detalles visuales irrelevantes
+* Cobertura excesiva de escenarios no críticos
+* Uso de E2E para validar lógica interna
+* Falta de aislamiento entre pruebas
+* Dependencia fuerte de datos no controlados
+
+---
+
+## 13. Consideraciones de Ejecución
+
+Los E2E Tests:
+
+* Tienen mayor tiempo de ejecución que otros tipos de pruebas
+* Son más propensos a fallos por factores externos
+* Deben ejecutarse en entornos controlados
+
+Se recomienda su ejecución en pipelines de integración continua en etapas avanzadas.
+
+---
+
+## 14. Rol dentro del Proyecto
+
+Los E2E Tests cumplen un rol de validación integral:
+
+* Verifican que el sistema funciona correctamente como producto final
+* Detectan fallos en la integración entre capas
+* Garantizan que el usuario puede completar flujos críticos
+
+---

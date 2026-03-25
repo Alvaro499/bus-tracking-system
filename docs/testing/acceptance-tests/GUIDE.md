@@ -1,155 +1,229 @@
-# Guia de Acceptance Tests
 
-## Que son
+# Acceptance Tests Guide
 
-Un Acceptance Test valida que la aplicacion cumple con los requisitos del negocio. Se escribe en lenguaje del negocio, no en lenguaje tecnico. Un gerente deberia entender que prueba un acceptance test.
+**Versión:** 1.0
 
-Ejemplos:
-- "Un conductor puede actualizar su ubicacion y esta aparece en el mapa en menos de 2 segundos"
-- "Un administrador puede aprobar una solicitud de empresa"
-- "Un usuario puede ver todos los buses en su ruta"
+---
 
-## Donde van
+## 1. Propósito
 
-`src/test/java/acceptance/[RequisitoDNegocioTest].java`
+Este documento define las convenciones y lineamientos para la implementación de **Acceptance Tests** dentro del proyecto *Bus Tracking System*.
 
-Ejemplo: `src/test/java/acceptance/BusDriverCanTrackLocationTest.java`
+Su objetivo es asegurar que los requisitos del negocio:
 
-## Estructura general
+* Sean verificables de forma automática
+* Sean comprensibles por perfiles no técnicos
+* Funcionen como documentación viva del sistema
 
-Un Acceptance test se ve como cualquier otro test, pero el nombre y los comentarios explican el requisito de negocio:
+---
+
+## 2. Alcance
+
+Los Acceptance Tests:
+
+* Validan comportamientos completos del sistema desde una perspectiva externa
+* Se ejecutan sobre la aplicación en funcionamiento (Spring Boot levantado)
+* Utilizan HTTP como medio de interacción principal
+* Cubren exclusivamente flujos críticos del negocio
+
+No sustituyen otros tipos de pruebas como:
+
+* Unit Tests
+* Integration Tests
+* Functional Tests
+* End-to-End Tests
+
+---
+
+## 3. Ubicación en el Proyecto
+
+Ruta establecida:
 
 ```
+src/test/java/com/bustracking/acceptance/
+```
+
+Cada test debe representar un requisito de negocio claramente identificable.
+
+---
+
+## 4. Principios Generales
+
+### 4.1 Lenguaje de Negocio
+
+Los Acceptance Tests deben utilizar terminología propia del dominio, evitando lenguaje técnico interno.
+
+Se prioriza que cualquier persona del negocio pueda comprender qué se está validando sin necesidad de conocimiento técnico.
+
+---
+
+### 4.2 Enfoque en Comportamiento
+
+Las pruebas deben centrarse en validar resultados observables del sistema, no detalles de implementación.
+
+El interés principal es verificar qué puede hacer el usuario y qué resultado obtiene.
+
+---
+
+### 4.3 Independencia de la Implementación
+
+Los tests deben tratar el sistema como una caja negra.
+No deben depender de clases internas, estructuras o decisiones de diseño.
+
+---
+
+### 4.4 Legibilidad
+
+Un Acceptance Test debe ser autoexplicativo.
+El nombre del test y su estructura deben permitir entender el escenario sin necesidad de documentación adicional.
+
+---
+
+## 5. Convenciones de Nombres
+
+### 5.1 Clases
+
+Formato recomendado:
+
+```
+[Actor][Accion][Resultado]Test
+```
+
+Las clases deben representar una capacidad del sistema desde la perspectiva del negocio.
+
+---
+
+### 5.2 Métodos
+
+Se debe utilizar el patrón BDD:
+
+```
+given[Contexto]_when[Accion]_then[Resultado]
+```
+
+El nombre del método debe describir claramente el escenario completo.
+
+---
+
+## 6. Estructura del Test
+
+Todos los Acceptance Tests deben seguir una estructura clara basada en tres fases:
+
+* **ARRANGE**: configuración del escenario
+* **ACT**: ejecución de la acción principal
+* **ASSERT**: validación del resultado observable
+
+### Esqueleto base:
+
+```java
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
-class BusDriverCanTrackLocationTest {
-    
-    @LocalServerPort
-    private int port;
-    
-    @Autowired
-    private TestRestTemplate restTemplate;
-    
-    @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15");
-    
+class ExampleAcceptanceTest {
+
     @Test
-    void givenBusDriver_whenSubmitsLocationUpdate_thenLocationAppearsInMapWithin2Seconds() {
-        // ARRANGE - Configurar escenario: conductor, autobus, ubicacion
-        String busId = "BUS-001";
-        GPSCoordinateDTO newLocation = new GPSCoordinateDTO(10.5, 20.3);
-        
-        // ACT - Conductor envia actualizacion de ubicacion
-        long startTime = System.currentTimeMillis();
-        restTemplate.postForEntity(
-            "http://localhost:" + port + "/api/buses/" + busId + "/location",
-            newLocation,
-            Void.class
-        );
-        
-        // ASSERT - Ubicacion debe aparecer en el mapa rapidamente
-        BusDTO busInMap = restTemplate.getForObject(
-            "http://localhost:" + port + "/api/map/buses/" + busId,
-            BusDTO.class
-        );
-        
-        long elapsedTime = System.currentTimeMillis() - startTime;
-        
-        assertEquals(10.5, busInMap.getLatitude());
-        assertTrue(elapsedTime < 2000, "Debe aparecer en menos de 2 segundos");
+    void givenContext_whenAction_thenExpectedResult() {
+
+        // ARRANGE
+        // Preparación del escenario de negocio
+
+        // ACT
+        // Ejecución de la acción del usuario
+
+        // ASSERT
+        // Validación del resultado esperado
     }
 }
 ```
 
-## Diferencia en el nombre
+---
 
-Los Acceptance tests usan nombres diferentes. Vienen de BDD (Behavior Driven Development):
+## 7. Criterios de Validación
 
-Patron: `given[Contexto]_when[Accion]_then[ResultadoEsperado]`
+Un Acceptance Test debe validar:
 
-Ejemplos:
-- `givenAdminLoggedIn_whenApprovesCompany_thenCompanyStatusChangesToApproved`
-- `givenBusWithValidGPS_whenLocationUpdated_thenMapRefreshesImmediately`
-- `givenEmployeeAccess_whenViewsRoute_thenSeesAllBusesOnRoute`
+### 7.1 Flujos principales del negocio
 
-## Lenguaje de negocio
+Escenarios que representan el uso real del sistema por parte de los usuarios.
 
-Los tests de aceptacion usan palabras del negocio:
+---
 
-- "conductor" en lugar de "usuario"
-- "autobus" en lugar de "entidad Bus"
-- "mapa" en lugar de "endpoint de visualizacion"
-- "aparecer" en lugar de "retornar respuesta"
+### 7.2 Resultados observables
 
-Esto es importante porque el negocio (gerentes, product owners) debe entender qué se está probando.
+Cambios visibles o verificables desde el exterior del sistema.
 
-## Que validar
+---
 
-En un Acceptance test se valida:
+### 7.3 Reglas de negocio críticas
 
-1. **El usuario puede hacer lo que necesita**
-2. **El resultado es el esperado desde la perspectiva del negocio**
-3. **Los tiempos son razonables** (si es importante para el negocio)
-4. **Los datos son correctos** desde el punto de vista del negocio
+Restricciones o condiciones relevantes para el dominio.
 
-## Que siempre se debe hacer
+---
 
-1. **Usar nombres tipo BDD** (given/when/then)
-2. **Lenguaje del negocio**, no lenguaje tecnico
-3. **Validar requisitos**, no detalles de implementacion
-4. **Documentar el contexto** en los comentarios ARRANGE
+### 7.4 Requisitos no funcionales (cuando aplique)
 
-## Que nunca se debe hacer
+Principalmente tiempos de respuesta u otros criterios definidos por el negocio.
 
-1. **Probar detalles tecnicos** (eso es para otros tests)
-2. **Usar nombres tecnicos** (eso confunde al negocio)
-3. **Hacer tests que solo entienden programadores**
-4. **Ignorar requisitos de performance** si son importantes
+---
 
-## Cuando escribir
+## 8. Exclusiones
 
-Se escribe un Acceptance test cuando:
-- Es un requisito importante del negocio
-- El usuario deberia poder verificar que funciona
-- Es algo que el gerente o product owner pidio
+No deben incluirse en Acceptance Tests:
 
-Ejemplos:
-- Rastrear ubicacion del autobus
-- Registrar una empresa
-- Aprobar una solicitud
-- Ver horarios de rutas
+* Detalles internos del sistema (servicios, repositorios, etc.)
+* Validaciones técnicas específicas
+* Casos borde sin impacto en el negocio
+* Verificaciones de estructura interna de datos
 
-No se escribe para:
-- Validaciones menores
-- Detalles de implementacion
-- Edge cases sin importancia para el negocio
+---
 
-## Velocidad
+## 9. Cantidad Recomendada
 
-Son lentos. 500ms - 1s por test. Esto es normal.
+Se recomienda mantener un número reducido de Acceptance Tests.
 
-Pero no deben ser muchos. Típicamente 5-10 Acceptance tests por proyecto pequeño. Representan los requisitos principales.
+* Proyecto pequeño: entre 5 y 10 tests
+* Cada test debe representar un flujo crítico del negocio
 
-## Diferencia con E2E Tests
+El objetivo es calidad y claridad, no cobertura exhaustiva.
 
-| Aspecto | E2E Test | Acceptance Test |
-|---------|----------|-----------------|
-| Lenguaje | Tecnico | Negocio |
-| Que valida | API techicamente correcta | Requisito del negocio |
-| Quien entiende | Solo programadores | Todos (negocios + dev) |
-| Que prueba | Status HTTP, campos | Comportamiento visible |
+---
 
-Ambos hacen peticiones HTTP, pero con propositos diferentes.
+## 10. Relación con Otros Tipos de Pruebas
 
-## Documentacion
+| Tipo        | Enfoque                       |
+| ----------- | ----------------------------- |
+| Unit        | Lógica aislada                |
+| Integration | Interacción entre componentes |
+| Functional  | Casos de uso del sistema      |
+| E2E         | Flujo completo con interfaz   |
+| Acceptance  | Validación del negocio        |
 
-Acceptance tests son autodocumentacion. Alguien que lee el test entiende:
-- Cual es el requisito
-- Como se valida
-- Que deberia pasar
+---
 
-Por eso los nombres y comentarios son tan importantes.
+## 11. Buenas Prácticas
 
-## Referencias
+* Utilizar nombres claros y descriptivos
+* Mantener los tests simples y enfocados
+* Evitar lógica compleja dentro de los tests
+* Priorizar la comprensión sobre la optimización
 
-Basado en BDD (Behavior Driven Development) y principios de "The Pragmatic Programmer".
+---
+
+## 12. Anti-Patrones
+
+* Uso de lenguaje técnico en lugar de lenguaje de negocio
+* Tests difíciles de interpretar
+* Cobertura excesiva con tests de aceptación
+* Validación de aspectos irrelevantes para el negocio
+
+---
+
+## 13. Rol dentro del Proyecto
+
+Los Acceptance Tests cumplen un rol estratégico:
+
+* Validan que el sistema cumple los requisitos del negocio
+* Funcionan como documentación ejecutable
+* Permiten detectar desviaciones entre implementación y expectativas
+
+---
+

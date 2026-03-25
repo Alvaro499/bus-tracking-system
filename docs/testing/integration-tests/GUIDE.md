@@ -1,124 +1,223 @@
-# Guia de Integration Tests
 
-## Que son
+# Integration Tests Guide
 
-Un Integration Test prueba un modulo completo de la aplicacion. A diferencia de unit tests, aqui SI se toca la base de datos real (pero en un contenedor aislado), SI se activa Spring Boot, SI se usan todas las dependencias reales.
+**Versión:** 1.0
 
-No se mockejan cosas. Todo es del verdad.
+---
 
-## Donde van
+## 1. Propósito
 
-`src/test/java/[modulo]/integration/[NombreTest].java`
+Un Integration Test prueba un **componente principal del sistema junto con sus dependencias reales**.
 
-Ejemplo: `src/test/java/com/bustracking/admin/integration/AdminServiceIntegrationTest.java`
+A diferencia de los Unit Tests:
 
-## Estructura general
+* Sí se utiliza base de datos real (aislada con contenedores)
+* Sí se levanta el contexto de Spring Boot
+* Sí se usan repositorios y servicios reales
 
-Un test de integracion se ve asi:
+El objetivo no es probar lógica aislada, sino verificar que una parte del sistema funciona correctamente cuando está conectada a su entorno real.
 
+---
+
+## 2. Alcance
+
+Un Integration Test:
+
+* Tiene un **componente principal** (generalmente un service o use case)
+* Incluye sus dependencias reales (repositorios, base de datos, etc.)
+* No cubre flujos completos del sistema
+* No utiliza HTTP ni interfaz de usuario
+
+No sustituye:
+
+* Unit Tests (lógica aislada)
+* Functional Tests (flujo entre múltiples componentes)
+* Acceptance Tests (validación vía API)
+* E2E Tests (flujo completo con UI)
+
+---
+
+## 3. Ubicación en el Proyecto
+
+Ruta establecida:
+
+```id="8x2mkl"
+src/test/java/com/bustracking/[modulo]/integration/
 ```
+
+Ejemplo:
+
+```id="p4d9hs"
+admin/integration/
+companies/integration/
+tracking/integration/
+```
+
+Cada test debe estar asociado a un módulo específico.
+
+---
+
+## 4. Estructura General
+
+Un Integration Test levanta el contexto de Spring y utiliza dependencias reales.
+
+### Esqueleto base:
+
+```java id="r9v2qw"
 @SpringBootTest
 @Testcontainers
-class MiServicioIntegrationTest {
-    
-    @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15")
-        .withDatabaseName("test_db")
-        .withUsername("test")
-        .withPassword("test");
-    
-    @Autowired
-    private MiServicio miServicio;
-    
-    @Autowired
-    private MiRepository miRepository;
-    
+class ExampleIntegrationTest {
+
     @Test
-    void testGuardarDato_DatoValido_DebePersistitEnBD() {
-        // ARRANGE - crear datos
-        Empresa empresa = new Empresa("Test", "Descripcion");
-        
-        // ACT - hacer la operacion
-        Empresa guardada = miServicio.guardar(empresa);
-        
-        // ASSERT - verificar que quedo en BD
-        Empresa obtenida = miRepository.findById(guardada.getId());
-        assertEquals("Test", obtenida.getNombre());
+    void givenValidData_whenActionExecuted_thenExpectedResult() {
+
+        // ARRANGE
+        // Preparación de datos
+
+        // ACT
+        // Ejecución de la operación
+
+        // ASSERT
+        // Validación del resultado y/o persistencia
     }
 }
 ```
 
-## TestContainers
+---
 
-TestContainers es una libreria que levanta contenedores Docker con bases de datos reales. Cada test:
+## 5. Uso de Testcontainers
 
-1. Levanta un contenedor de PostgreSQL
-2. Corre el test
-3. Destruye el contenedor
+Testcontainers permite levantar una base de datos real en un entorno aislado para cada ejecución.
 
-Esto es importante porque:
-- La base de datos no interfiere entre tests
-- Tests no se afectan unos con otros
-- Es exactamente igual que produccion (misma base de datos)
+Durante el test:
 
-## Patron AAA
+1. Se inicia un contenedor de base de datos
+2. Se ejecuta el test
+3. El contenedor se descarta
 
-Exactamente igual que en unit tests:
+Esto asegura:
 
-1. **Arrange:** Se preparan los datos iniciales
-2. **Act:** Se ejecuta lo que se quiere probar
-3. **Assert:** Se valida el resultado
+* Aislamiento entre tests
+* Consistencia en los resultados
+* Un entorno similar a producción
 
-## Nombrado de tests
+---
 
-Igual que unit tests:
-`test[QueHace]_[ConQueDatos]_[QueDebeOcurrir]`
+## 6. Patrón AAA
 
-Ejemplos:
-- `testGuardarEmpresa_EmpresaValida_DebeCrearRegistroEnBD`
-- `testActualizarEstado_EstadoRechazado_DebeGuardarMotivo`
+Todos los tests deben seguir el patrón:
 
-## Que siempre se debe hacer
+* **Arrange:** preparación de datos y contexto
+* **Act:** ejecución de la operación principal
+* **Assert:** validación del resultado
 
-1. **Usar @SpringBootTest** para activar el contexto completo de Spring
-2. **Usar @Testcontainers** para levantar la base de datos
-3. **Inyectar con @Autowired** los servicios y repositorios reales
+---
+
+## 7. Convenciones de Nombres
+
+Formato recomendado:
+
+```id="f3k8zt"
+test[Accion]_[Condicion]_[ResultadoEsperado]
+```
+
+Los nombres deben dejar claro:
+
+* Qué se está probando
+* En qué condiciones
+* Qué se espera que ocurra
+
+---
+
+## 8. Qué validar
+
+Un Integration Test debe validar:
+
+* Que el componente principal funciona correctamente
+* Que la interacción con la base de datos es correcta
+* Que los datos se persisten como se espera
+* Que las reglas básicas del flujo se cumplen
+
+---
+
+## 9. Qué siempre se debe hacer
+
+1. **Usar `@SpringBootTest`** para activar el contexto completo de Spring
+2. **Usar `@Testcontainers`** para levantar la base de datos
+3. **Inyectar con `@Autowired`** los servicios y repositorios reales
 4. **Verificar datos en la BD** con repositorios
-5. **Limpiar datos entre tests** si es necesario (aunque TestContainers lo hace)
+5. **Asegurar independencia entre tests** (datos limpios o aislados)
 
-## Que nunca se debe hacer
+---
+
+## 10. Qué nunca se debe hacer
 
 1. **Dejar basura en la BD** entre tests
 2. **Depender de otros tests** (cada test debe ser independiente)
-3. **Mockejar dependencias** (para eso estan unit tests, aqui todo es real)
-4. **Hacer pruebas muy complejas** (si es muy complejo, dividir en multiples tests)
+3. **Mockear dependencias** (para eso están los Unit Tests, aquí todo es real)
+4. **Hacer pruebas muy complejas** (si es necesario, dividir en múltiples tests)
 
-## Velocidad
+---
 
-Los integration tests son lento porque levantan Spring Boot y la base de datos. Esto es normal. Un test puede tardar 100-500ms. No es problema si hay pocos.
+## 11. Velocidad
 
-Por eso la piramide de tests dice: 45% unit (rapidos), 20% integration (lentos).
+Los Integration Tests son más lentos que los Unit Tests porque:
 
-## Cuando escribir
+* Levantan el contexto de Spring
+* Utilizan base de datos real
 
-Se escriben cuando:
-- Se necesita validar que el servicio funciona bien
-- Se necesita validar que la base de datos persiste datos correctamente
-- Se necesita validar que las transacciones son atomicas
+Esto es esperado. Por esa razón:
 
-No se escriben para probar logica pura. Eso es Unit Test.
+* Deben ser menos que los Unit Tests
+* Deben enfocarse en lo importante
 
-## Diferencia con Unit Tests
+---
 
-| Aspecto | Unit Test | Integration Test |
-|---------|-----------|-------------------|
-| BD | No toca | Toca (TestContainers) |
-| Spring | No necesita | Necesita |
-| Mocks | Si, muchos | No, nada mockeado |
-| Velocidad | Muy rapida | Lenta |
-| Cantidad | Muchos | Menos |
-| Que prueba | Logica de una clase | Todo un modulo |
+## 12. Cuándo escribirlos
 
-## Referencias
+Se recomienda escribir Integration Tests cuando:
 
-Basado en Spring Boot Documentation y principios de "Clean Code" de Robert C. Martin.
+* Se necesita validar que un servicio funciona correctamente
+* Se quiere verificar persistencia en base de datos
+* Se desea asegurar el comportamiento de transacciones
+* Se necesita comprobar integración real entre componentes cercanos
+
+No se deben usar para probar lógica pura o cálculos simples.
+
+---
+
+## 13. Diferencia con Unit Tests
+
+| Aspecto    | Unit Test           | Integration Test      |
+| ---------- | ------------------- | --------------------- |
+| BD         | No toca             | Toca (TestContainers) |
+| Spring     | No necesita         | Necesita              |
+| Mocks      | Sí, muchos          | No, nada mockeado     |
+| Velocidad  | Muy rápida          | Lenta                 |
+| Cantidad   | Muchos              | Menos                 |
+| Qué prueba | Lógica de una clase | Componente completo   |
+
+---
+
+## 14. Diferencia con Functional Tests
+
+| Aspecto     | Integration Test        | Functional Test    |
+| ----------- | ----------------------- | ------------------ |
+| Enfoque     | Un componente principal | Flujo completo     |
+| Servicios   | Uno principal           | Múltiples          |
+| Complejidad | Baja/Media              | Media/Alta         |
+| Flujo       | Una operación           | Secuencia de pasos |
+
+---
+
+## 15. Rol dentro del Proyecto
+
+Los Integration Tests permiten:
+
+* Detectar problemas entre lógica y persistencia
+* Validar que los componentes funcionan en un entorno real
+* Reducir riesgos antes de pruebas de mayor nivel
+
+Son un punto intermedio clave entre Unit Tests y pruebas más completas del sistema.
+
+---

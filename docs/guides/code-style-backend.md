@@ -95,7 +95,7 @@ Este documento está dirigido a todos los desarrolladores que contribuyen al pro
 
   **Justificación:** Usar nombres sustantivos claros y descriptivos mejora la legibilidad y la comprensión del propósito de cada clase dentro del sistema.
 
-  **Ejemplo:** `Usuario`, `ProductoServicio`, `PedidoControlador`
+**Ejemplo:** `Empresa`, `TrackingServicio`, `BusControlador`
 
   
 
@@ -117,7 +117,7 @@ Este documento está dirigido a todos los desarrolladores que contribuyen al pro
 
   
 
-  **Ejemplo:** `UsuarioRepositorio`, `ServicioAutenticacion`
+**Ejemplo:** `EmpresaRepositorio`, `ServicioTracking`
 
   
 
@@ -137,7 +137,7 @@ Este documento está dirigido a todos los desarrolladores que contribuyen al pro
 
   **Justificación:** Utilizar verbos o frases verbales que describan la acción que realiza el método hace que el código sea más intuitivo y fácil de entender
 
-  **Ejemplo:** `obtenerUsuarioPorId`, `guardarProducto`, `calcularTotal`
+**Ejemplo:** `obtenerEmpresaPorId`, `guardarBus`, `calcularETA`
 
   
 
@@ -153,7 +153,7 @@ Este documento está dirigido a todos los desarrolladores que contribuyen al pro
 
   **Justificación:** Los nombres descriptivos facilitan la comprensión del propósito de cada variable.
 
-  **Ejemplo:** `nombreUsuario`, `precioUnitario`, `cantidad`
+**Ejemplo:** `nombreEmpresa`, `latitudBus`, `velocidadPromedio`
 
   
 
@@ -405,69 +405,73 @@ if (condicion) {
 
 ```java
 
-public class Usuario {
+public class Empresa {
 
-    // 1. Campos estáticos
+    // 1. Campos estáticos
 
-    public static final int MAX_INTENTOS = 3;
+    public static final int MAX_BUSES = 100;
 
-    private static int contador;
-
-  
-
-    // 2. Campos de instancia
-
-    private String nombre;
-
-    protected int id;
+    private static int empresasRegistradas;
 
   
 
-    // 3. Constructores
+    // 2. Campos de instancia
 
-    public Usuario(String nombre) {
+    private String nombre;
 
-        this.nombre = nombre;
+    protected Long id;
 
-    }
-
-  
-
-    // 4. Métodos
-
-    public static int getContador() {
-
-        return contador;
-
-    }
+    private String estado;
 
   
 
-    public void login() {
+    // 3. Constructores
 
-        // lógica
+    public Empresa(String nombre) {
 
-    }
+        this.nombre = nombre;
 
-  
+        this.estado = "PENDIENTE";
 
-    // 5. Getters/Setters
-
-    public String getNombre() {
-
-        return nombre;
-
-    }
+    }
 
   
 
-    // 6. Métodos estándar
+    // 4. Métodos
 
-    @Override
+    public static int getEmpresasRegistradas() {
 
-    public String toString() {
+        return empresasRegistradas;
 
-        return "Usuario: " + nombre;
+    }
+
+  
+
+    public void aprobar() {
+
+        this.estado = "APROBADA";
+
+    }
+
+  
+
+    // 5. Getters/Setters
+
+    public String getNombre() {
+
+        return nombre;
+
+    }
+
+  
+
+    // 6. Métodos estándar
+
+    @Override
+
+    public String toString() {
+
+        return "Empresa: " + nombre + " (" + estado + ")";
 
     }
 
@@ -604,9 +608,9 @@ import org.springframework.stereotype.Service;
 
 import org.hibernate.annotations.Cache;
 
-  
+  bustracking.companies.domain.Empresa;
 
-// 4. Proyecto
+import com.bustracking.shared
 
 import com.tuempresa.app.model.User;
 
@@ -654,7 +658,7 @@ public class MiServicio {
 
 - Utilizar camelCase con la primera letra en minúscula del nombre de la clase.
 
-  
+**Ejemplo:** `empresaServicio` para la clase `EmpresaServicio`.
 
   **Justificación:** Utilizar camelCase con la primera letra en minúscula para los nombres de los beans sigue la convención estándar de nomenclatura de variables en Java y facilita la identificación de las instancias gestionadas por el contenedor de Spring, ayudando a mantener la coherencia en todo el proyecto.
 
@@ -678,19 +682,19 @@ public class MiServicio {
 
   **Ejemplo:**
 
-```java
-
-@Repository // Base de datos
-
-public class Repo { /*...*/ }
+```javaEmpresaRepository { /*...*/ }
 
   
 
 @Service // Lógica
 
-public class Service { /*...*/ }
+public class EmpresaService { /*...*/ }
 
   
+
+@RestController // API
+
+public class Empresa
 
 @RestController // API
 
@@ -716,7 +720,7 @@ public class Controller { /*...*/ }
 
   
 
-  **Ejemplo:** `/usuarios`, `/{productos-id}`, `/pedidos/nuevo`
+**Ejemplo:** `/empresas`, `/{buses-id}/ubicacion`, `/rastreo/actualizar`
 
 ## 6. Estándar de Manejo de Errores y Excepciones
 
@@ -764,47 +768,7 @@ class EmailService {
 }
 ```
 
-### 8.2 Single Responsibility con Patrón Result y CreateEventHandler
 
-El diseño del `CreateEventHandler` es un ejemplo práctico de cómo aplicar el principio de responsabilidad única (SRP), el cual indica que una clase o componente debe tener **una sola razón para cambiar**.
-
-- **Un solo método público**
-La interfaz `CreateEventHandler` define únicamente un método público:
-```java
-Result createEvent(Command command);
-```
-
-Este método concentra la entrada y salida del proceso principal: crear un evento. Toda la lógica interna de validación o creación concreta se encapsula en métodos privados, que pueden cambiar sin afectar a quien consume el handler.
-
-- **Separación clara de responsabilidades**
-	- `CreateEventHandler` solo **recibe y procesa comandos** relacionados con la creación de eventos.
-	- La conversión de datos (`DTO → Command`) y el manejo de errores se hace afuera, en el `Controller`, permitiendo que el handler **se enfoque solo en su lógica central**.
-
-- **Uso de `Result` como canal de comunicación**
-La interfaz devuelve un tipo `Result`, que está sellado usando `sealed interface`. Esto obliga a quien use el handler a contemplar **todos los posibles resultados** en un `switch` exhaustivo:
-```java
-sealed interface Result {
-    record Success(...) implements Result {}
-    record InvalidFields(...) implements Result {}
-    record Unauthorized(...) implements Result {}
-    record InvalidDate(...) implements Result {}
-}
-
-```
-
-Esto mejora la mantenibilidad y previene errores en tiempo de compilación al agregar nuevos tipos de resultado.
-
-- **Uso de `sealed` - Ventaja de Diseño**
-	- Controlar **cuáles clases pueden implementar `Result`**.
-	- **Forzar al compilador** a que cualquier `switch` sobre un `Result` sea completo.
-	- Hacer el código **más expresivo, seguro y fácil de testear**:
-
-- **Interfaz como contrato**
-	- Separar la **lógica de negocio** de su implementación.
-	- Facilitar **tests unitarios o mocks**, ya que permite cambiar la implementación sin alterar quien la usa.
-```java
-CreateEventHandler handler = command -> new Result.Success(201, "Creado");
-```
 ### 9. Clean-Code
 
 Clean Code es un conjunto de principios diseñados para mejorar la legibilidad, mantenibilidad y eficiencia del código. Aunque algunas prácticas pueden variar según el contexto o preferencias del equipo, existen reglas fundamentales ampliamente aceptadas que todo desarrollador debería seguir. A continuación, se presentan algunas de las más importantes, enfocadas en métodos y nombres, para ayudar a escribir código claro, consistente y fácil de entender.
@@ -862,30 +826,30 @@ function calculateDiscount(price: number, isMember: boolean, hasCoupon: boolean)
 ```
 
 
-```java
- //Forma adecuada
-const isAdultWithValidLicense = user.age > 18 && user.hasLicense;
-const isAccountInGoodStanding = !user.isSuspended && user.accountBalance > 0;
-
-if (isAdultWithValidLicense && isAccountInGoodStanding) {
-    allowDriving();
+public double calcularTarifa(double distancia, boolean esEstudiante, boolean tieneDescuento) {
+    if (esEstudiante) {
+        if (tieneDescuento) {
+            return distancia * 0.5; // 50% descuento
+        } else {
+            return distancia * 0.8; // 20% descuento
+        }
+    } else {
+        if (tieneDescuento) {
+            return distancia * 0.9; // 10% descuento
+        } else {
+            return distancia; // Sin descuento
+        }
+    }
 }
 ```
 
-
-- **Prefijos para booleanos (is, has, can) **
-
-
 ```java
- //Forma complicada
- if (user.valid) { } // ¿Qué significa "valid"?
-if (checkPermission()) { } // ¿Devuelve un booleano?
-```
-
-
-```java
- //Forma intuitiva
- if (user.isActive) { }
+//Forma Adecuada
+public double calcularTarifa(double distancia, boolean esEstudiante, boolean tieneDescuento) {
+    if (esEstudiante && tieneDescuento) return distancia * 0.5;
+    if (esEstudiante) return distancia * 0.8;
+    if (tieneDescuento) return distancia * 0.9;
+    return distanciave) { }
 if (user.hasLicense) { }
 if (user.canDrive) { }
 ```
@@ -895,7 +859,27 @@ if (user.canDrive) { }
 ### 10.1 Code Reviews
 * Todo el código subido durante cada Pull Request debe ser revisado y aprobado por al menos un miembro del equipo Backend. Y de ser posible, revisado por un miembro del equipo Frontend.
 
-* Las revisiones de código deben incluir la verificación del cumplimiento de esta guía de estilo.
+//Forma complicada
+if (bus.estado != null && bus.empresa.isAprobada && !bus.estaDeMantenimiento && bus.ubicacion != null) {
+    permiteRastreo();
+}
+```
 
-### 10.2 Integración Continua
-* Integrar herramientas de linting y formatting en el pipeline de CI/CD para asegurar el cumplimiento automático de la guía.
+
+```java
+//Forma adecuada
+boolean estaEnServicio = bus.estado != null && bus.empresa.isAprobada;
+boolean puedeRastrearse = !bus.estaDeMantenimiento && bus.ubicacion != null;
+
+if (estaEnServicio && puedeRastrearse) {
+    permiteRastreo();//Forma complicada
+if (empresa.activa) { } // ¿Qué significa "activa"?
+if (verificarBus(id)) { } // ¿Devuelve un booleano?
+```
+
+
+```java
+//Forma intuitiva
+if (empresa.isAprobada) { }
+if (bus.hasUbicacion) { }
+if (rastreo.canEnviarDatos) { }

@@ -1,129 +1,237 @@
-# Guia de Functional Tests
 
-## Que son
+# Functional Tests Guide
 
-Un Functional Test prueba un flujo completo de negocio. Multiples servicios trabajan juntos. La base de datos es real (TestContainers), pero no son peticiones HTTP. Se prueban comportamientos que el usuario o el negocio necesita.
+**Versión:** 1.0
+**Última actualización:** 2026-03-25
 
-## Donde van
+---
 
-`src/test/java/functional/[NombreFlujoTest].java`
+## 1. Propósito
 
-Ejemplo: `src/test/java/functional/CompanyRegistrationWorkflowTest.java`
+Este documento define los lineamientos para la implementación de **Functional Tests** dentro del proyecto *Bus Tracking System*.
 
-## Estructura general
+Su objetivo es validar que los **flujos de negocio** funcionan correctamente mediante la interacción de múltiples componentes del sistema.
 
-Un test funcional se ve asi:
+---
 
+## 2. Alcance
+
+Los Functional Tests:
+
+* Validan flujos completos de negocio a nivel de backend
+* Involucran múltiples servicios y componentes trabajando en conjunto
+* Utilizan una base de datos real para verificar persistencia
+* No utilizan HTTP ni interfaz de usuario
+
+No sustituyen:
+
+* Unit Tests
+* Integration Tests
+* Acceptance Tests
+* End-to-End Tests
+
+---
+
+## 3. Ubicación en el Proyecto
+
+Ruta establecida:
+
+```id="r4k9xp"
+src/test/java/com/bustracking/functional/
 ```
+
+Cada test debe representar un flujo de negocio relevante que involucre más de un componente del sistema.
+
+---
+
+## 4. Principios Generales
+
+### 4.1 Enfoque en Flujos de Negocio
+
+Los Functional Tests deben validar procesos completos que representen acciones reales del sistema, no operaciones aisladas.
+
+---
+
+### 4.2 Integración Interna
+
+Se espera que múltiples servicios, repositorios y componentes colaboren durante la ejecución del test.
+
+El objetivo es verificar que estas interacciones funcionan correctamente en conjunto.
+
+---
+
+### 4.3 Uso de Componentes Reales
+
+Todos los componentes deben ser reales:
+
+* Servicios
+* Repositorios
+* Base de datos
+
+No se deben utilizar mocks.
+
+---
+
+### 4.4 Nivel Intermedio de Abstracción
+
+Los Functional Tests operan en un nivel intermedio:
+
+* Más alto que Integration Tests
+* Más bajo que Acceptance o E2E Tests
+
+No prueban el sistema desde afuera, pero tampoco prueban unidades aisladas.
+
+---
+
+## 5. Convenciones de Nombres
+
+### 5.1 Clases
+
+Formato recomendado:
+
+```id="c8v2mz"
+[Flujo][Accion][Resultado]Test
+```
+
+Las clases deben representar un flujo de negocio completo.
+
+---
+
+### 5.2 Métodos
+
+Se recomienda el uso del patrón BDD:
+
+```id="y3n7ql"
+given[Contexto]_when[Accion]_then[Resultado]
+```
+
+El nombre debe describir claramente el flujo ejecutado.
+
+---
+
+## 6. Estructura del Test
+
+Los Functional Tests deben seguir el patrón:
+
+* **ARRANGE**: preparación del estado inicial
+* **ACT**: ejecución de los pasos del flujo
+* **ASSERT**: validación del estado final
+
+### Esqueleto base:
+
+```java id="w6t1zs"
 @SpringBootTest
 @Testcontainers
-class MiFlujoWorkflowTest {
-    
-    @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15")
-        .withDatabaseName("test_db");
-    
-    @Autowired
-    private Servicio1 servicio1;
-    
-    @Autowired
-    private Servicio2 servicio2;
-    
-    @Autowired
-    private Repository1 repo1;
-    
-    @Autowired
-    private Repository2 repo2;
-    
+class ExampleFunctionalTest {
+
     @Test
-    void testFlujoCompleto_RegistrarYAsignar_TodosLosServiciosTrabajanJuntos() {
+    void givenContext_whenBusinessFlowExecuted_thenExpectedState() {
+
         // ARRANGE
-        Empresa empresa = new Empresa("Test");
-        
-        // ACT - Paso 1: Registrar empresa
-        Empresa registrada = servicio1.registrar(empresa);
-        
-        // ACT - Paso 2: Asignar buses
-        servicio2.asignarBuses(registrada.getId(), 5);
-        
-        // ASSERT - Verificar que todo quedo bien
-        Empresa completa = repo1.findById(registrada.getId());
-        assertEquals(5, completa.getBuses().size());
+        // Preparación del escenario inicial
+
+        // ACT
+        // Ejecución de múltiples pasos del flujo
+
+        // ASSERT
+        // Validación del estado final del sistema
     }
 }
 ```
 
-## Diferencia con Integration Tests
+---
 
-Un Integration Test prueba un modulo (servicio + BD).
+## 7. Criterios de Validación
 
-Un Functional Test prueba varios modulos trabajando juntos.
+Un Functional Test debe validar:
 
-| Aspecto | Integration Test | Functional Test |
-|---------|------------------|-----------------|
-| Modulos | 1 modulo | 2 o mas modulos |
-| Servicios | 1 servicio | Multiples servicios |
-| Complejidad | Preparacion simple | Flujo paso a paso |
-| Que prueba | Modulo aislado | Modulos interactuando |
+### 7.1 Flujo completo
 
-## Patron AAA
+Ejecución de múltiples pasos que representen un proceso del negocio.
 
-Exactamente igual que los otros tests:
+---
 
-1. **Arrange:** Se preparan datos iniciales
-2. **Act:** Se ejecutan los pasos del flujo
-3. **Assert:** Se valida que el resultado es correcto
+### 7.2 Interacción entre componentes
 
-## Nombrado de tests
+Colaboración correcta entre servicios, repositorios y otras capas.
 
-El nombre debe explicar el flujo completo:
+---
 
-Ejemplos:
-- `testRegistrarEmpresaYAsignarBuses_DatosValidos_TodosPersistenEnBD`
-- `testAprobarSolicitudYNotificarAllAdministrador_FlujoCompleto_TodoSaleBien`
-- `testActualizarUbicacionYCalcularETA_GPSValido_MapaActualizado`
+### 7.3 Estado final del sistema
 
-## Que siempre se debe hacer
+Persistencia y consistencia de los datos después del flujo.
 
-1. **Usar multiples servicios** que trabajen juntos
-2. **Inyectar repositorios** para validar datos guardados
-3. **Seguir el patron AAA**
-4. **Documentar cada paso** con comentarios si el flujo es complejo
-5. **Verificar el estado final** de la BD
+---
 
-## Que nunca se debe hacer
+## 8. Exclusiones
 
-1. **Probar un solo servicio** (eso es Integration Test)
-2. **Hacer tests tan complejos** que sean dificiles de debugguear
-3. **Olvidar limpiar datos** entre tests
-4. **Mockejar servicios** (aqui todo debe ser real)
+No deben incluirse en Functional Tests:
 
-## Cuando escribir
+* Pruebas de un solo servicio
+* Validaciones aisladas de lógica
+* Llamadas HTTP
+* Interacción con interfaz de usuario
 
-Se escribe un Functional Test cuando:
-- El flujo requiere 2 o mas servicios
-- Es un flujo importante del negocio
-- Necesita validar que los servicios trabajan bien juntos
+---
 
-Ejemplos reales:
-- Registrar empresa, crear buses, asignarlo a ruta
-- Conducir GPS, calcular ETA, actualizar mapa
-- Crear solicitud, aprobarla, notificar empresa
+## 9. Cantidad Recomendada
 
-## Velocidad
+Se recomienda mantener una cantidad controlada de Functional Tests:
 
-Son lentos. Pueden tardar 500ms - 1s por test. Esto es normal porque tocan la BD y activan multiples servicios.
+* Cubrir únicamente flujos relevantes
+* Evitar duplicar pruebas ya cubiertas en otros niveles
 
-Por eso no hay que exagerar. Se escriben solo para flujos realmente importantes.
+---
 
-## Diferencia con E2E Tests
+## 10. Relación con Otros Tipos de Pruebas
 
-Un Functional Test no hace peticiones HTTP.
+| Tipo        | Enfoque                           |
+| ----------- | --------------------------------- |
+| Unit        | Lógica aislada                    |
+| Integration | Un componente con dependencias    |
+| Functional  | Flujo entre múltiples componentes |
+| Acceptance  | Validación del negocio (API)      |
+| E2E         | Flujo completo con interfaz       |
 
-Un E2E Test si hace peticiones HTTP, como si fuera un cliente real.
+---
 
-Un Functional Test es mas "interno", prueba la logica. Un E2E Test es mas "externo", prueba la API.
+## 11. Buenas Prácticas
 
-## Referencias
+* Mantener los tests enfocados en flujos claros
+* Evitar complejidad innecesaria
+* Verificar siempre el estado final del sistema
+* Documentar pasos cuando el flujo sea complejo
+* Asegurar consistencia de datos entre ejecuciones
 
-Basado en principios de "The Pragmatic Programmer" y BDD (Behavior Driven Development).
+---
+
+## 12. Anti-Patrones
+
+* Uso de mocks
+* Tests que prueban un solo componente
+* Flujos excesivamente largos o difíciles de mantener
+* Dependencia de estados no controlados
+* Falta de validación del resultado final
+
+---
+
+## 13. Consideraciones de Ejecución
+
+Los Functional Tests:
+
+* Tienen mayor tiempo de ejecución que los Integration Tests
+* Requieren inicialización de múltiples componentes
+* Deben ejecutarse en entornos controlados
+
+---
+
+## 14. Rol dentro del Proyecto
+
+Los Functional Tests permiten:
+
+* Validar que los componentes internos trabajan correctamente en conjunto
+* Detectar fallos en la lógica de negocio distribuida
+* Asegurar la consistencia de flujos críticos del sistema
+
+---
+

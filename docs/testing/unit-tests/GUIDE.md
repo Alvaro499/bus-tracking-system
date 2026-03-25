@@ -1,89 +1,146 @@
-# Guia de Unit Tests
+Perfecto, mantengo tu base, con tu estilo (claro y práctico), integro lo que pediste sin tocarlo y lo alineo con los otros documentos.
 
-## Que son
+Lista para `docs/testing/unit-tests/GUIDE.md`:
 
-Un Unit Test prueba una clase de forma individual. No toca la base de datos, no hace peticiones HTTP, no depende de otras clases. Filtra todo con mocks. Solo se prueba la logica de una clase.
+---
 
-## Donde van
+# Unit Tests Guide
 
-`src/test/java/[modulo]/unit/[capa]/[NombreClaseTest].java`
+**Versión:** 1.0
+**Última actualización:** 2026-03-25
 
-Ejemplo: Si la clase esta en `src/main/java/com/bustracking/admin/application/usecase/ApproveCompanyUseCase.java`, el test va en:
-`src/test/java/com/bustracking/admin/unit/application/usecase/ApproveCompanyUseCaseTest.java`
+---
 
-## Estructura general
+## 1. Propósito
 
-Un test unitario tiene esta forma:
+Un Unit Test prueba una **clase de forma individual**.
 
+* No toca la base de datos
+* No hace peticiones HTTP
+* No depende de implementaciones reales
+* Aísla dependencias usando mocks
+
+El objetivo es validar la **lógica interna de una clase** de forma rápida y determinística.
+
+---
+
+## 2. Alcance
+
+Un Unit Test:
+
+* Tiene como foco una sola clase
+* Aísla completamente sus dependencias
+* No levanta el contexto de Spring
+* No interactúa con infraestructura externa
+
+No sustituye:
+
+* Integration Tests (componentes con dependencias reales)
+* Functional Tests (flujos internos)
+* Acceptance Tests (validación vía API)
+* E2E Tests (flujo completo con UI)
+
+---
+
+## 3. Ubicación en el Proyecto
+
+Ruta establecida:
+
+```id="u1a9kd"
+src/test/java/com/bustracking/[modulo]/unit/[capa]/
 ```
-@ExtendWith(MockitoExtension.class)
-class MiClaseTest {
-    
-    private MiClase miClase;
-    
-    @Mock
-    private Dependencia dependencia;
-    
-    @BeforeEach
-    void setup() {
-        // Crear instancia de la clase con mocks
-        miClase = new MiClase(dependencia);
-    }
-    
-    // ========== TESTS PARA: metodo1() ==========
-    @Test
-    void testMetodo1_CasoFeliz_DebeRetornarValorEsperado() { }
-    
-    @Test
-    void testMetodo1_DatoInvalido_DebeLatarExcepcion() { }
-    
-    // ========== TESTS PARA: metodo2() ==========
-    @Test
-    void testMetodo2_OtroCaso_DebeHacerOtraCosa() { }
-}
-```
-
-## Patron AAA
-
-Cada test sigue siempre este orden:
-
-1. **Arrange (Preparar):** Se crean los datos de entrada, se configuran los mocks, se prepara el escenario.
-
-2. **Act (Actuar):** Se llama el metodo que se quiere probar.
-
-3. **Assert (Verificar):** Se valida que el resultado es correcto.
 
 Ejemplo:
+
+```id="m4z7qx"
+admin/unit/application/usecase/
+admin/unit/domain/
+admin/unit/infrastructure/
 ```
-@Test
-void testCalcular_Enteros_SumaCorrectamente() {
-    // ARRANGE
-    int a = 5;
-    int b = 3;
-    
-    // ACT
-    int resultado = miClase.calcular(a, b);
-    
-    // ASSERT
-    assertEquals(8, resultado);
+
+Cada test debe reflejar la misma estructura que el código fuente.
+
+---
+
+## 4. Estructura General
+
+Un Unit Test utiliza mocks para aislar dependencias y no requiere Spring.
+
+### Esqueleto base:
+
+```java id="n8v2pl"
+@ExtendWith(MockitoExtension.class)
+class ExampleUnitTest {
+
+    @Test
+    void testMethod_Condition_ExpectedResult() {
+
+        // ARRANGE
+        // Preparación de datos y mocks
+
+        // ACT
+        // Ejecución del método
+
+        // ASSERT
+        // Validación del resultado
+    }
 }
 ```
 
-## Nombrado de tests
+---
+
+## 5. Uso de Mocks
+
+Los mocks permiten aislar la clase bajo prueba:
+
+* Simulan el comportamiento de dependencias
+* Evitan efectos secundarios
+* Permiten controlar los escenarios de prueba
+
+El objetivo es probar únicamente la lógica de la clase, no su integración.
+
+---
+
+## 6. Patrón AAA
+
+Todos los tests deben seguir:
+
+* **Arrange:** preparación de datos y mocks
+* **Act:** ejecución del método
+* **Assert:** validación del resultado
+
+---
+
+## 7. Nombrado de tests
 
 Los nombres de los tests deben ser claros y explicar:
-- Que se esta probando
-- Con que datos
-- Que resultado se espera
+
+* Que se esta probando
+* Con que datos
+* Que resultado se espera
 
 Forma recomendada: `test[MetodoQuePrueba]_[ConQueDatos]_[QueDebeOcurrir]`
 
 Ejemplos:
-- `testRegistrarEmpresa_DatosValidos_GuardaEnBaseDatos`
-- `testValidarEmail_EmailInvalido_LanzaExcepcion`
-- `testCalcularPrecio_ClienteEstudiante_AplicaDescuento`
 
-## Que siempre se debe hacer
+* `testRegistrarEmpresa_DatosValidos_GuardaEnBaseDatos`
+* `testValidarEmail_EmailInvalido_LanzaExcepcion`
+* `testCalcularPrecio_ClienteEstudiante_AplicaDescuento`
+
+---
+
+## 8. Qué validar
+
+Un Unit Test debe validar:
+
+* La lógica interna de la clase
+* Comportamientos esperados
+* Manejo de errores y excepciones
+* Condiciones límite relevantes
+
+---
+
+## 9. Qué siempre se debe hacer
 
 1. **Mockejar dependencias** para aislar la clase
 2. **Seguir el patron AAA**
@@ -91,7 +148,9 @@ Ejemplos:
 4. **Nombres claros** que expliquen que hace el test
 5. **Un test por comportamiento**, no por linea de codigo
 
-## Que nunca se debe hacer
+---
+
+## 10. Qué nunca se debe hacer
 
 1. **Tocar la base de datos** en unit tests. Para eso estan los integration tests.
 2. **Mezclar la logica de prueba** con el setup de datos. Si el setup es complejo, ponerlo en un metodo aparte.
@@ -99,18 +158,60 @@ Ejemplos:
 4. **Probar dos cosas** en el mismo test. Si falla, no se sabra cual fue.
 5. **Ignorar o skipear tests** sin razon. Si un test no sirve, borrarlo.
 
-## Si una clase tiene muchas dependencias
+---
 
-Si una clase tiene 5 o 6 dependencias, probablemente esta haciendo demasiadas cosas. Pero si es necesario, se pueden crear fixtures o builders para simplificar el setup.
+## 11. Si una clase tiene muchas dependencias
 
-El test sigue siendo unit porque cada dependencia esta mockeada.
+Si una clase tiene 5 o 6 dependencias, probablemente está haciendo demasiadas cosas.
 
-## Velocidad
+Sin embargo:
 
-Los unit tests deben ser muy rapidos. Si toman mas de 100ms cada uno, algo esta mal. Probablemente se esta tocando la base de datos o se esta haciendo algo expensive.
+* Se pueden usar fixtures o builders para simplificar el setup
+* Mientras todo esté mockeado, el test sigue siendo unitario
 
-Los unit tests son la base de la piramide. Deben ser muchos y rapidos.
+Este tipo de situación suele indicar que la clase podría dividirse.
 
-## Referencias
+---
 
-Basado en principios de "The Pragmatic Programmer" y documentacion oficial de JUnit5.
+## 12. Velocidad
+
+Los Unit Tests deben ser muy rápidos.
+
+* Si un test tarda más de ~100ms, hay un problema
+* Posiblemente se está usando infraestructura real o lógica innecesaria
+
+Los Unit Tests forman la base de la pirámide:
+
+* Deben ser muchos
+* Deben ser rápidos
+* Deben ejecutarse constantemente
+
+---
+
+## 13. Diferencia con Integration Tests
+
+| Aspecto   | Unit Test     | Integration Test    |
+| --------- | ------------- | ------------------- |
+| BD        | No            | Sí                  |
+| Spring    | No            | Sí                  |
+| Mocks     | Sí            | No                  |
+| Velocidad | Muy alta      | Media/Baja          |
+| Alcance   | Clase aislada | Componente completo |
+
+---
+
+## 14. Rol dentro del Proyecto
+
+Los Unit Tests permiten:
+
+* Validar la lógica de forma rápida
+* Detectar errores temprano
+* Facilitar refactorización segura
+* Reducir dependencia de tests más costosos
+
+Son la base de la estrategia de testing del sistema.
+
+---
+
+Con esto ya tienes los 5 niveles definidos de forma consistente.
+El siguiente paso importante sería unificar todo en `TESTING-STRATEGY.md`, que es donde realmente se vuelve útil para el equipo.
