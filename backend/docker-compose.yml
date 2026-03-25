@@ -44,7 +44,7 @@ services:
       - postgres_dev_data:/var/lib/postgresql/data
       
       # Script SQL ejecutado al iniciar (SOLO docker-entrypoint-initdb.d/)
-      - ./backend/src/main/resources/db/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./src/main/resources/db/init.sql:/docker-entrypoint-initdb.d/01-init.sql
     
     # Red privada entre contenedores
     networks:

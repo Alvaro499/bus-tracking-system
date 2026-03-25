@@ -2,7 +2,7 @@
 
 ## Por que existe esta estrategia
 
-Esta documentacion existe para que todos los miembros del equipo, presentes y futuros, entiendan como se deben escribir y organizar los tests. Un proyecto sin estrategia de testing clara es un proyecto que va a gastar tiempo valioso buscando donde van las pruebas, como escribirlas, o peor aun, duplicando trabajo.
+Esta documentacion existe para que los miembros del proyecto, presentes y futuros, entiendan como se deben escribir y organizar los tests. Un proyecto sin estrategia de testing clara es un proyecto que va a gastar tiempo valioso buscando donde van las pruebas, como escribirlas, o peor aun, duplicando trabajo.
 
 ## Estructura de carpetas
 
@@ -168,5 +168,3 @@ Esta estrategia se basa en principios establecidos en:
 - "Clean Code" de Robert C. Martin
 - "The Test Pyramid" de Mike Cohn
 - Documentacion oficial de Spring Boot Testing
-
-Estos libros y referencias son usados por equipos de desarrollo en todo el mundo.

@@ -31,10 +31,10 @@ WORKDIR /app
 
 # Copiar archivos de configuración del proyecto
 # COPY <desde tu máquina> <hacia el contenedor>
-COPY backend/pom.xml .
+COPY pom.xml .
 
 # Copiar código fuente
-COPY backend/src ./src
+COPY src ./src
 
 # ¿QUÉ PASA AQUÍ?
 # Maven descarga dependencias (puede ser lento la primera vez)
