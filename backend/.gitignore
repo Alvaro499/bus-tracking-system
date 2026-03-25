@@ -1,17 +1,16 @@
-
-.env                    # Credenciales reales (NUNCA commitear)
-.env.test               # Credenciales test (NUNCA commitear)
-.env.local              # Credenciales locales personales
-.env.production         # Credenciales producción
+.env
+.env.test
+.env.local
+.env.production
 
 # ============================================================================
 # BUILD AND DEPENDENCIES
 # ============================================================================
-target/                 # Maven build output
-build/                  # Gradle build output
-*.jar                   # JARs compilados
-*.class                 # Bytecode compilado
-.gradle/                # Gradle cache
+target/
+build/
+*.jar
+*.class
+.gradle/
 
 # ============================================================================
 # IDE AND EDITOR
@@ -21,8 +20,8 @@ build/                  # Gradle build output
 *.swp
 *.swo
 *~
-.DS_Store               # macOS
-Thumbs.db               # Windows
+.DS_Store
+Thumbs.db
 
 # ============================================================================
 # LOGS AND TEMPORARY FILES

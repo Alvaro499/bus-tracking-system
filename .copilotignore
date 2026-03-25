@@ -5,10 +5,10 @@
 # The .example and .test.example files are the only visible
 
 # CREDENTIALS (NEVER read these files)
-.env                    # Real credentials (development)
-.env.test               # Real credentials (testing)
-.env.production         # Real credentials (production)
-.env.local              # Local credentials
+.env
+.env.test
+.env.production
+.env.local
 
 # CONFIGURATION WITH PASSWORDS
 application.properties
