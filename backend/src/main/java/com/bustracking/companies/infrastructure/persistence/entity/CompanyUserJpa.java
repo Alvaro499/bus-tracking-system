@@ -3,8 +3,6 @@ package com.bustracking.companies.infrastructure.persistence.entity;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import com.bustracking.admin.infrastructure.persistence.entity.UserJpa;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -18,7 +16,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
-import com.bustracking.admin.infrastructure.persistence.entity.UserJpa;
 import com.bustracking.companies.domain.enums.Role;
 
 import lombok.AllArgsConstructor;
@@ -39,9 +36,8 @@ public class CompanyUserJpa {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private UserJpa user;
+    @Column(name = "user_id", nullable = false)
+    private UUID userId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "company_id", nullable = false)

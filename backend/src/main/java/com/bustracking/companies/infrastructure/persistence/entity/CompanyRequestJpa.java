@@ -3,8 +3,6 @@ package com.bustracking.companies.infrastructure.persistence.entity;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import com.bustracking.admin.infrastructure.persistence.entity.UserJpa;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -37,9 +35,8 @@ public class CompanyRequestJpa {
     @JoinColumn(name = "company_id", nullable = false)
     private CompanyJpa company;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "reviewed_by", nullable = true)
-    private UserJpa reviewedBy;
+    @Column(name = "reviewed_by", nullable = true)
+    private UUID reviewedById;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -51,7 +48,7 @@ public class CompanyRequestJpa {
     @Column(name = "requested_at", nullable = false, updatable = false)
     private LocalDateTime requestedAt;
 
-    //By the momento we don't store a history of the reviews, so we only store the last review date.
+    //By the moment we don't store a history of the reviews, so we only store the last review date.
     @Column(name = "reviewed_at", nullable = true)
     private LocalDateTime reviewedAt;
 }
