@@ -7,14 +7,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 
 import com.bustracking.companies.domain.enums.Role;
 
@@ -24,8 +18,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "company_user",
-       uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "company_id"}))
+@Table(name = "company_user")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -33,15 +26,13 @@ import lombok.Setter;
 public class CompanyUserJpa {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "company_id", nullable = false)
-    private CompanyJpa company;
+    @Column(name = "company_id", nullable = false)
+    private UUID companyId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
