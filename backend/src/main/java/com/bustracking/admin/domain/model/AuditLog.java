@@ -3,7 +3,8 @@ package com.bustracking.admin.domain.model;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.*;
+import com.bustracking.admin.domain.enums.Action;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,7 +19,7 @@ public class AuditLog {
     private UUID userId;
     private String entityType;
     private UUID entityId;
-    private String action;
+    private Action action;
     private JsonNode oldValues;
     private JsonNode newValues;
     private LocalDateTime occurredAt;

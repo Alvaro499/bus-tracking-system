@@ -10,6 +10,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import com.bustracking.companies.domain.enums.Status;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -47,11 +49,6 @@ public class CompanyJpa {
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
-
-    public enum Status {
-        ACTIVE,
-        INACTIVE
-    }
 
     @Override
     public boolean equals(Object o) {

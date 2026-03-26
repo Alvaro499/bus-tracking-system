@@ -13,6 +13,8 @@ import jakarta.persistence.Table;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import com.bustracking.admin.domain.enums.Action;
+
 import tools.jackson.databind.*;
 
 import lombok.AllArgsConstructor;
@@ -54,12 +56,4 @@ public class AuditLogJpa {
 
     @Column(name = "occurred_at", nullable = false, updatable = false)
     private LocalDateTime occurredAt;
-
-    public enum Action {
-        CREATE,
-        UPDATE,
-        DELETE,
-        ASSIGN,
-        REASSIGN
-    }
 }

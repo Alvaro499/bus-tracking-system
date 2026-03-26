@@ -17,6 +17,10 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+
+import com.bustracking.admin.infrastructure.persistence.entity.UserJpa;
+import com.bustracking.companies.domain.enums.Role;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -49,9 +53,4 @@ public class CompanyUserJpa {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-
-    public enum Role {
-        OWNER,
-        ADMIN
-    }
 }

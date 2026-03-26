@@ -33,7 +33,7 @@ import com.bustracking.backend.config.IntegrationTestConfig;
 public abstract class IntegrationTest {
 
     @Container
-    protected static PostgreSQLContainer<?> postgres = 
+    protected static final PostgreSQLContainer<?> postgres = 
         new PostgreSQLContainer<>("postgres:16-alpine")
             .withDatabaseName("bustracking_db_test")
             .withUsername("bustracking_test_user")

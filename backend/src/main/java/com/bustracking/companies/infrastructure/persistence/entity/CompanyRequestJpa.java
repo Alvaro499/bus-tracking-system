@@ -14,6 +14,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+
+import com.bustracking.companies.domain.enums.RequestStatus;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -51,10 +54,4 @@ public class CompanyRequestJpa {
     //By the momento we don't store a history of the reviews, so we only store the last review date.
     @Column(name = "reviewed_at", nullable = true)
     private LocalDateTime reviewedAt;
-
-    public enum RequestStatus {
-        PENDING,
-        APPROVED,
-        REJECTED
-    }
 }

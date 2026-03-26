@@ -3,6 +3,8 @@ package com.bustracking.companies.domain.model;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.bustracking.companies.domain.enums.Status;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,7 +19,7 @@ public class Company {
     private String name;
     private String email;
     private String phone;
-    private String status;
+    private Status status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

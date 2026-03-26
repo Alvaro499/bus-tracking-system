@@ -10,6 +10,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import com.bustracking.admin.domain.enums.GlobalRole;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -41,9 +43,4 @@ public class UserJpa {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-
-    public enum GlobalRole {
-        PLATFORM_ADMIN,
-        COMPANY_USER
-    }
 }
