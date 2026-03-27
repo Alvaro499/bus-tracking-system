@@ -139,6 +139,7 @@ CREATE TABLE route_stop_fare (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     route_stop_id UUID NOT NULL REFERENCES route_stop(id) ON DELETE RESTRICT,
     price DECIMAL(10,2) NOT NULL CHECK (price >= 0),
+    is_active BOOLEAN DEFAULT TRUE,
     start_date DATE NOT NULL,
     end_date DATE NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -147,7 +148,7 @@ CREATE TABLE route_stop_fare (
 );
 
 -- ============================================================================
--- ÍNDICES (mejoran performance en queries frecuentes)
+-- ÍNDICES
 -- ============================================================================
 CREATE INDEX idx_company_user_user_id ON company_user(user_id);
 CREATE INDEX idx_company_user_company_id ON company_user(company_id);

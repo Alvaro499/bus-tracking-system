@@ -43,16 +43,44 @@ src/
 │   ├── controller/
 │   ├── service/
 │   └── repository/
-│
-├── visualizacion/     ← lo que ve el usuario público
-│   ├── controller/
-│   └── service/
-│
 └── admin/             ← aprobaciones, gestión global
     ├── controller/
     └── service/
 ```
 
+#### Justificación
+
+La separación de la arquitectura en módulos separados es buen acercamiento al problema general del proyecto
+
+###### Governance vs Operations 
+
+Aquí entra en juego el rol del usuario, y más si se tienen varios de ellos como en este proyecto.
+
+Admin:
+
+* Principal guardian central de la plataforma
+* Decide quién puede formar empresa y quién no (APRUEBA/RECHAZA)
+* Tiene visibilidad global y poder total
+* Acciones: controlar, vigilar, permitir/negar
+
+Companies:
+
+* Es la gestión operacional distribuida
+* Cada empresa manage sus usuarios y datos internos
+* Acceso limitado a su empresa (COMPANY_USER no ve otras empresas)
+* Acciones: operación y administración intra-empres
+
+Por lo tanto si no estuvieran separados habría más chances de cometer errores de seguridad a causa de la convivencia de código que debe tener limites.
+
+###### Escalabilidad futura
+
+###### Tracking: Lógica de Tiempo Real
+
+El módulo de tracking está separado porque su naturaleza y requisitos son distintos a los de gestión administrativa de la compañia y de la plataforma:
+
+* **Consume datos maestros** de Companies (Bus, Route, Schedule, Stop)
+* **Suma lógica runtime**: trips en ejecución, ubicación actual, consultas de geolocalización
+* **Acceso de lectura optimizada** para responder rápidas consultas del cliente
 
 ### Arquitectura (Arquitectura Interna)
 
