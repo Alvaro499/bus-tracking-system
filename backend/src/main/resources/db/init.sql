@@ -148,13 +148,21 @@ CREATE TABLE route_stop_fare (
 );
 
 -- ============================================================================
--- ÍNDICES
+-- Non-Clustered Indexes for Performance
 -- ============================================================================
-CREATE INDEX idx_company_user_user_id ON company_user(user_id);
-CREATE INDEX idx_company_user_company_id ON company_user(company_id);
-CREATE INDEX idx_route_company_id ON route(company_id);
-CREATE INDEX idx_stop_company_id ON stop(company_id);
-CREATE INDEX idx_bus_company_id ON bus(company_id);
-CREATE INDEX idx_bus_location_bus_id ON bus_location(bus_id);
-CREATE INDEX idx_audit_log_user_id ON audit_log(user_id);
-CREATE INDEX idx_audit_log_entity ON audit_log(entity_type, entity_id);
+CREATE INDEX idx_CompanyUser_UserId ON company_user(user_id);
+CREATE INDEX idx_CompanyUser_CompanyId ON company_user(company_id);
+CREATE INDEX idx_Route_CompanyId ON route(company_id);
+CREATE INDEX idx_Route_Name ON route(name);
+CREATE INDEX idx_Stop_CompanyId ON stop(company_id);
+CREATE INDEX idx_Bus_CompanyId ON bus(company_id);
+
+-- when user open the app, it will need to know which buses are active for a trip, so index on bus status
+-- app will update the system every X secondsto refresh which buses are still active:
+CREATE INDEX idx_Trip_StatusDate ON trip(status, trip_date);
+
+-- for management of schedules and trips, and for uers when they want to see a schedule's details
+CREATE INDEX idx_Trip_ScheduleId ON trip(schedule_id);
+CREATE INDEX idx_AuditLog_UserId ON audit_log(user_id);
+CREATE INDEX idx_AuditLog_EntityTypeId ON audit_log(entity_type, entity_id);
+CREATE INDEX idx_AuditLog_OccurredAt ON audit_log(occurred_at);
