@@ -27,5 +27,6 @@ public enum ErrorCode {
     FORBIDDEN,
 
     // GENERIC
+    EXTERNAL_ERROR,
     INTERNAL_ERROR
 }
