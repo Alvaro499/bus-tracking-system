@@ -14,4 +14,16 @@ public class ErrorResponse {
         this.code = code;
         this.timestamp = System.currentTimeMillis();
     }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
+    }
 }
