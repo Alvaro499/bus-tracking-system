@@ -7,7 +7,7 @@
 -- ============================================================================
 
 CREATE TABLE "user" (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     email VARCHAR(150) UNIQUE NOT NULL,
     password VARCHAR(12) NOT NULL,
     global_role VARCHAR(20) NOT NULL CHECK (global_role IN ('PLATFORM_ADMIN', 'COMPANY_USER')),
@@ -16,7 +16,7 @@ CREATE TABLE "user" (
 );
 
 CREATE TABLE company(
-	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+	id UUID PRIMARY KEY,
 	tax_id VARCHAR(20) UNIQUE NOT NULL,
 	name VARCHAR(255) NOT NULL,
 	email VARCHAR(150) UNIQUE NOT NULL,
@@ -27,7 +27,7 @@ CREATE TABLE company(
 );
 
 CREATE TABLE company_user(
-	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+	id UUID PRIMARY KEY,
 	user_id UUID NOT NULL REFERENCES "user"(id) ON DELETE RESTRICT,
 	company_id UUID NOT NULL REFERENCES company(id) ON DELETE RESTRICT,
 	role VARCHAR(20) NOT NULL CHECK (role IN ('OWNER', 'ADMIN')),
@@ -36,7 +36,7 @@ CREATE TABLE company_user(
 );
 
 CREATE TABLE company_request(
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     company_id UUID NOT NULL REFERENCES company(id) ON DELETE CASCADE,
     reviewed_by UUID NULL REFERENCES "user"(id) ON DELETE SET NULL,
     status VARCHAR(20) NOT NULL CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
@@ -46,7 +46,7 @@ CREATE TABLE company_request(
 );
 
 CREATE TABLE audit_log(
-	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+	id UUID PRIMARY KEY,
 	user_id UUID REFERENCES "user"(id) ON DELETE SET NULL,
 	entity_type VARCHAR(50) NOT NULL,
 	entity_id UUID NOT NULL,
@@ -57,7 +57,7 @@ CREATE TABLE audit_log(
 );
 
 CREATE TABLE route (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     company_id UUID NOT NULL REFERENCES company(id) ON DELETE RESTRICT,
     name VARCHAR(150) NOT NULL,
     origin VARCHAR(150) NOT NULL,
@@ -68,7 +68,7 @@ CREATE TABLE route (
 );
 
 CREATE TABLE stop (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     company_id UUID NOT NULL REFERENCES company(id) ON DELETE RESTRICT,
     name VARCHAR(150) NOT NULL,
     latitude DECIMAL(9,6) NOT NULL,
@@ -79,7 +79,7 @@ CREATE TABLE stop (
 );
 
 CREATE TABLE route_stop (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     route_id UUID NOT NULL REFERENCES route(id) ON DELETE RESTRICT,
     stop_id UUID NOT NULL REFERENCES stop(id) ON DELETE RESTRICT,
     order_index INTEGER NOT NULL,
@@ -89,7 +89,7 @@ CREATE TABLE route_stop (
 );
 
 CREATE TABLE bus (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     company_id UUID NOT NULL REFERENCES company(id) ON DELETE RESTRICT,
     plate VARCHAR(20) NOT NULL UNIQUE,
     internal_number VARCHAR(20),
@@ -107,7 +107,7 @@ CREATE TABLE bus_location (
 );
 
 CREATE TABLE schedule (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     route_id UUID NOT NULL REFERENCES route(id) ON DELETE RESTRICT,
     departure_time TIME NOT NULL,
     day_of_week SMALLINT NOT NULL CHECK (day_of_week BETWEEN 1 AND 7),
@@ -121,7 +121,7 @@ CREATE TABLE schedule (
 );
 
 CREATE TABLE trip (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     schedule_id UUID NOT NULL REFERENCES schedule(id) ON DELETE RESTRICT,
     bus_id UUID NULL REFERENCES bus(id) ON DELETE SET NULL,
     trip_date DATE NOT NULL,
@@ -136,7 +136,7 @@ CREATE TABLE trip (
 );
 
 CREATE TABLE route_stop_fare (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     route_stop_id UUID NOT NULL REFERENCES route_stop(id) ON DELETE RESTRICT,
     price DECIMAL(10,2) NOT NULL CHECK (price >= 0),
     is_active BOOLEAN DEFAULT TRUE,
