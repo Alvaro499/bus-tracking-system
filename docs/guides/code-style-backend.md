@@ -724,14 +724,178 @@ public class Controller { /*...*/ }
 
 ## 6. Estándar de Manejo de Errores y Excepciones
 
-Esta sección será documentada en futuras versiones del proyecto.
+### 6.1 Jerarquía de Excepciones
+
+El proyecto utiliza una jerarquía definida de excepciones para manejar diferentes tipos de errores de forma consistente:
+
+- **`ApplicationException`** (abstracta, extiende `RuntimeException`): Clase base de todas las excepciones del proyecto. Contiene tres campos inmutables:
+  - `errorCode`: Código de error que actúa como contrato entre backend y frontend.
+  - `userMessage`: Mensaje legible para el usuario final.
+  - `devMessage`: Mensaje técnico con detalles para logs del servidor.
+
+- **`NotFoundException`**: Se lanza cuando un recurso solicitado no existe en la base de datos.
+
+- **`ValidationException`**: Se lanza cuando los datos enviados por el cliente no cumplen las validaciones requeridas.
+
+- **`BusinessRuleException`**: Se lanza cuando ocurre una violación de las reglas de negocio de la aplicación. No se incluye "cause" al ser reglas de negocio.
+
+- **`ExternalServiceException`**: Se lanza cuando falla la comunicación con servicios externos (APIs de terceros, integraciones, etc.). Es la única excepción que captura la causa raíz (`Throwable cause`).
+
+**Justificación:** Una jerarquía clara de excepciones permite manejar diferentes tipos de errores de forma específica en cada módulo, mejorando el control del flujo de excepciones y facilitando el debugging. Cada tipo de excepción comunica claramente qué tipo de problema ocurrió, lo que mejora tanto la experiencia del usuario como el mantenimiento del código.
+
+### 6.2 Separación de Mensajes: userMessage vs devMessage
+
+Uno de los principios clave en el manejo de errores es la **separación clara entre mensajes para el usuario y mensajes técnicos**:
+
+- **`userMessage`**: Mensaje legible y amigable para el usuario final. Está redactado en español y no contiene detalles técnicos. Es lo **único** que viaja en el JSON de respuesta HTTP hacia el cliente.
+
+- **`devMessage`**: Mensaje técnico detallado para los logs del servidor. Puede incluir valores de variables, IDs, queries, stack traces, etc. **Nunca se expone al cliente** por razones de seguridad y claridad.
+
+**Ejemplo de construcción:**
+
+```java
+throw new NotFoundException(
+    ErrorCode.USER_NOT_FOUND,
+    "El usuario solicitado no existe",  // userMessage
+    "Usuario con ID 42 no encontrado en la base de datos"  // devMessage
+);
+```
+
+**En los logs del servidor:**
+```
+WARN - Not found: Usuario con ID 42 no encontrado en la base de datos
+```
+
+**En la respuesta HTTP al cliente:**
+```json
 {
-  "message": "Internal Server Error", // Mensaje genérico
-  "code": 500
+  "code": "USER_NOT_FOUND",
+  "message": "El usuario solicitado no existe"
 }
 ```
 
-**_NOTA:_** queda total libertad de generar nuevos encapsulamientos de Excepciones. 
+### 6.3 Formato de Respuesta de Error al Cliente
+
+Todas las respuestas de error siguen un formato JSON consistente:
+
+```json
+{
+  "code": "VALIDATION_ERROR",
+  "message": "El email ingresado no es válido",
+  "timestamp": 1711612345000
+}
+```
+
+**Campos:**
+- `code`: Valor del `ErrorCode` enum (nunca cambia una vez definido).
+- `message`: El `userMessage` de la excepción.
+- `timestamp`: Timestamp Unix en milisegundos del momento en que ocurrió el error.
+
+### 6.4 Mapeo de HTTP Status Codes
+
+El `AdminExceptionHandler` (y similares en otros módulos) mapea cada tipo de excepción a un código HTTP específico:
+
+| Excepción | Código HTTP | Reason Phrase |
+|-----------|-------------|---------------|
+| `NotFoundException` | 404 | Not Found |
+| `ValidationException` | 400 | Bad Request |
+| `BusinessRuleException` | 422 | Unprocessable Entity |
+| `ExternalServiceException` | 502 | Bad Gateway |
+| `ApplicationException` (fallback) | 400 | Bad Request |
+| `Exception` (genérica) | 500 | Internal Server Error |
+
+**Justificación:** Cada código HTTP comunica claramente el tipo de error según el estándar RESTful, lo que permite al cliente frontend tomar decisiones informadas sobre cómo reaccionar ante cada tipo de error.
+
+### 6.5 Regla de Diseño de Subclases
+
+Todas las subclases de `ApplicationException` deben seguir esta regla de diseño:
+
+1. **Recibir obligatoriamente `userMessage` y `devMessage` como parámetros separados.**
+2. **No se permite un constructor con un único mensaje genérico.**
+
+Esto asegura que cada excepción siempre tenga un mensaje amigable para el usuario y un mensaje técnico para los desarrolladores.
+
+**Correcto:**
+```java
+public class NotFoundException extends ApplicationException {
+    public NotFoundException(ErrorCode errorCode, String userMessage, String devMessage) {
+        super(errorCode, userMessage, devMessage);
+    }
+}
+
+// Uso:
+throw new NotFoundException(
+    ErrorCode.ADMIN_NOT_FOUND,
+    "El administrador solicitado no existe",
+    "Admin con ID 123 no encontrado en tabla ADMINS"
+);
+```
+
+**Incorrecto (no permitido):**
+```java
+public class NotFoundException extends ApplicationException {
+    public NotFoundException(String message) {
+        super(ErrorCode.NOT_FOUND, message, message);  // ❌ Mismo mensaje para ambos
+    }
+}
+```
+
+### 6.6 El ErrorCode: Contrato entre Backend y Frontend
+
+El `ErrorCode` actúa como un **contrato inmutable entre el backend y el frontend**:
+
+- Cada código debe ser único y descriptivo (ej: `USER_NOT_FOUND`, `DUPLICATE_RESOURCE`).
+- **Una vez definido, nunca debe cambiar de nombre.** Cambiarlo rompe las aplicaciones clientes que dependen de ese código.
+- El `message` (userMessage) **sí puede cambiar** sin romper nada, ya que es solo para el usuario final.
+
+**Ejemplo de evolución segura:**
+```java
+// ✅ SEGURO - El código permanece igual
+ErrorCode.USER_NOT_FOUND
+// En v1.0: message = "Usuario no encontrado"
+// En v2.0: message = "El usuario solicitado no existe"  // Cambio seguro
+
+// ❌ PELIGROSO - Cambiar el código rompe clientes
+// USER_NOT_FOUND → USER_DOES_NOT_EXIST  // Rompe clientes que esperan USER_NOT_FOUND
+```
+
+### 6.7 Ejemplo Completo: Manejo en un Caso de Uso
+
+```java
+@Service
+public class ObtenerAdminService {
+    
+    public AdminResponse execute(Long adminId) {
+        Admin admin = adminRepository.findById(adminId)
+            .orElseThrow(() -> new NotFoundException(
+                ErrorCode.ADMIN_NOT_FOUND,
+                "El administrador solicitado no existe",
+                "Admin con ID " + adminId + " no encontrado en ADMINS"
+            ));
+        
+        if (!admin.isActive()) {
+            throw new BusinessRuleException(
+                ErrorCode.ADMIN_NOT_ACTIVE,
+                "Este administrador no está activo",
+                "Admin ID " + adminId + " tiene estado: " + admin.getStatus()
+            );
+        }
+        
+        return new AdminResponse(admin);
+    }
+}
+```
+
+**Flujo:**
+1. El servicio lanza una excepción con mensajes claros.
+2. El `AdminExceptionHandler` la captura.
+3. El handler loguea el `devMessage` en los logs del servidor.
+4. La respuesta HTTP solo incluye el `userMessage` en el JSON.
+5. El cliente recibe un código HTTP y un mensaje de usuario legible.
+
+**Nota:** Queda total libertad para generar nuevos encapsulamientos de excepciones específicas de cada módulo (ej: `CompanyNotFoundException`, `InvalidBusStateException`), siempre y cuando respeten la jerarquía y las reglas de diseño documentadas aquí.
+
+
 ### 8. SOLID
 Es una familia de cinco principios impulsados por Robert C. Martín. Estos principios establecen unos estándares útiles para construir tanto módulos individuales como una arquitectura más grande. Es importante mencionar que estos principios están mayormente pensados para el paradigma de POO (Programación Orientada a Objetos). Sin embargo, algunos de estos principios son aplicables en otros paradigmas.
 
