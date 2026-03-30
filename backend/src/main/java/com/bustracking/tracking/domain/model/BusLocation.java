@@ -8,6 +8,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.bustracking.shared.valueobjects.GpsCoordinate;
+
 /**
  * Domain Model that represents the GPS location of a bus.
  * 
@@ -21,10 +23,6 @@ import java.util.UUID;
 public class BusLocation {
 
     private UUID busId;
-
-    private BigDecimal lat;
-
-    private BigDecimal lng;
-
+    private GpsCoordinate gpsCoordinate;
     private LocalDateTime updatedAt;
 }

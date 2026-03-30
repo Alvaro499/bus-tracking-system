@@ -1,7 +1,5 @@
 package com.bustracking.admin.infrastructure.web.error;
 
-import jakarta.security.auth.message.callback.PrivateKeyCallback.Request;
-
 /*
 // Solo pafa visualizrar el uso de las excepciones en el controlador, no es un código real
 

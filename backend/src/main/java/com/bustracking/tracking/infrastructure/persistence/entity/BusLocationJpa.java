@@ -19,6 +19,7 @@ import java.util.UUID;
 public class BusLocationJpa {
 
     @Id
+    @Column(name = "bus_id")
     private UUID busId;
 
     @Column(nullable = false, precision = 9, scale = 6)
