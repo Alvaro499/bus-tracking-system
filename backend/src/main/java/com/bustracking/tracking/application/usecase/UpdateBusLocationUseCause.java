@@ -37,12 +37,10 @@ public class UpdateBusLocationUseCause{
         if (!busValidationRepository.existsById(busId)) {
             throw new NotFoundException(ErrorCode.BUS_NOT_FOUND, "Bus not found", "Bus with ID " + busId + " does not exist");
         }
-        
-        GpsCoordinate coordinate = new GpsCoordinate(lat,lng);
 
+        // Always create a new BusLocation instance (UPSERT handled by repository)
+        GpsCoordinate coordinate = new GpsCoordinate(lat, lng);
         BusLocation busLocation = new BusLocation(busId, coordinate, LocalDateTime.now());
-
         busLocationRepository.save(busLocation);
     }
-
 }

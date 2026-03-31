@@ -1,7 +1,6 @@
 package com.bustracking.tracking.domain.model;
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -11,21 +10,18 @@ import com.bustracking.shared.exception.ValidationException;
 import com.bustracking.shared.valueobjects.GpsCoordinate;
 
 /**
- * Domain Model that represents the GPS location of a bus.
+ * Value Object that represents the GPS location of a bus at a specific moment.
  * 
- * Contains essential real-time location information,
- * including coordinates and the timestamp of the last update.
- * This model is independent of persistence.
+ * Immutable by design: does not have its own identity, represents a snapshot
+ * of a bus's location at a point in time. To update a location, create a new instance.
  * 
- * Note: This is an immutable model. Use updateLocation() to modify coordinates.
  */
 @Getter
-@NoArgsConstructor
-public class BusLocation {
+public final class BusLocation {
 
-    private UUID busId;
-    private GpsCoordinate gpsCoordinate;
-    private LocalDateTime updatedAt;
+    private final UUID busId;
+    private final GpsCoordinate gpsCoordinate;
+    private final LocalDateTime updatedAt;
 
 
     public BusLocation(UUID busId, GpsCoordinate gpsCoordinate, LocalDateTime updatedAt) {
@@ -62,20 +58,5 @@ public class BusLocation {
         }
     }
 
-    /**
-     * Updates the location with new GPS coordinates.
-     * This is the only way to modify a BusLocation after creation.
-      */
-    public void updateLocation(GpsCoordinate newCoordinate) {
-        if (newCoordinate == null) {
-            throw new ValidationException(
-                ErrorCode.MISSING_REQUIRED_FIELD,
-                "GPS Coordinate is required",
-                "gpsCoordinate cannot be null in updateLocation"
-            );
-        }
-        this.gpsCoordinate = newCoordinate;
-        this.updatedAt = LocalDateTime.now();
-    }
 
 }
