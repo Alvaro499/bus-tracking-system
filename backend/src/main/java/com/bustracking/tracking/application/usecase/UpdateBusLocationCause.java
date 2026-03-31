@@ -4,10 +4,14 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import org.springframework.stereotype.Component;
+
+import com.bustracking.shared.exception.ErrorCode;
 import com.bustracking.shared.exception.NotFoundException;
 import com.bustracking.shared.valueobjects.GpsCoordinate;
 import com.bustracking.tracking.domain.model.BusLocation;
 import com.bustracking.tracking.domain.repository.BusLocationRepository;
+import com.bustracking.tracking.domain.repository.BusValidationRepository;
 
 /**
  * This class:
@@ -17,21 +21,21 @@ import com.bustracking.tracking.domain.repository.BusLocationRepository;
  */
 
 
-
+@Component
 public class UpdateBusLocationCause{
     
     private final BusLocationRepository busLocationRepository;
+    private final BusValidationRepository busValidationRepository;
 
-    public UpdateBusLocationCause(BusLocationRepository busLocationRepository) {
+    public UpdateBusLocationCause(BusLocationRepository busLocationRepository, BusValidationRepository busValidationRepository) {
         this.busLocationRepository = busLocationRepository;
+        this.busValidationRepository = busValidationRepository;
     }
 
     public void execute(UUID busId, BigDecimal lat, BigDecimal lng) {
 
-        var doesExist = busLocationRepository.findByBusId(busId);
-
-        if (doesExist == null || doesExist.isEmpty()) {
-            throw new NotFoundException(ErrorCode.BUS_NOT_FOUND, "Bus with ID " + busId + " does not exist");
+        if (!busValidationRepository.existsById(busId)) {
+            throw new NotFoundException(ErrorCode.BUS_NOT_FOUND, "Bus not found", "Bus with ID " + busId + " does not exist");
         }
         
         GpsCoordinate coordinate = new GpsCoordinate(lat,lng);
