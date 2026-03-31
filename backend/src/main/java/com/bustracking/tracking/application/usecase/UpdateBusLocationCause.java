@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import com.bustracking.shared.exception.ErrorCode;
 import com.bustracking.shared.exception.NotFoundException;
@@ -21,7 +21,7 @@ import com.bustracking.tracking.domain.repository.BusValidationRepository;
  */
 
 
-@Component
+@Service
 public class UpdateBusLocationCause{
     
     private final BusLocationRepository busLocationRepository;
