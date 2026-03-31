@@ -22,12 +22,12 @@ import com.bustracking.tracking.domain.repository.BusValidationRepository;
 
 
 @Service
-public class UpdateBusLocationCause{
+public class UpdateBusLocationUseCause{
     
     private final BusLocationRepository busLocationRepository;
     private final BusValidationRepository busValidationRepository;
 
-    public UpdateBusLocationCause(BusLocationRepository busLocationRepository, BusValidationRepository busValidationRepository) {
+    public UpdateBusLocationUseCause(BusLocationRepository busLocationRepository, BusValidationRepository busValidationRepository) {
         this.busLocationRepository = busLocationRepository;
         this.busValidationRepository = busValidationRepository;
     }

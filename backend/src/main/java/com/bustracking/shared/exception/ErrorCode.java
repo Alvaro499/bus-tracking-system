@@ -29,5 +29,5 @@ public enum ErrorCode {
 
     // GENERIC
     EXTERNAL_ERROR,
-    INTERNAL_ERROR,
+    INTERNAL_ERROR, BUS_LOCATION_NOT_FOUND,
 }
