@@ -9,33 +9,47 @@ import org.springframework.stereotype.Service;
 import com.bustracking.shared.exception.ErrorCode;
 import com.bustracking.shared.exception.NotFoundException;
 import com.bustracking.shared.valueobjects.GpsCoordinate;
+import com.bustracking.tracking.domain.contract.BusExistsById;
 import com.bustracking.tracking.domain.model.BusLocation;
 import com.bustracking.tracking.domain.repository.BusLocationRepository;
-import com.bustracking.tracking.domain.repository.BusValidationRepository;
 
 /**
- * This class:
+ * Use Case: Update Bus Location
+ * 
+ * Responsibilities:
  * - Receives data from the PWA (busId, latitude, longitude, timestamp)
- * - Validates if the bus exist
- * - Save the net location of the bus
+ * - Validates if the bus exists (via delegate)
+ * - Saves the bus location
+ * 
+ * Dependencies:
+ * - BusExistsById: Delegate from companies module (only does one thing)
+ * - BusLocationRepository: Internal repository for tracking data
+ * 
+ * Note: We depend on a delegate (single responsibility) instead of a full
+ * repository interface. This prevents the contract from growing with unrelated methods.
  */
-
-
 @Service
-public class UpdateBusLocationUseCause{
+public class UpdateBusLocationUseCause {
     
     private final BusLocationRepository busLocationRepository;
-    private final BusValidationRepository busValidationRepository;
+    private final BusExistsById busExistsById;
 
-    public UpdateBusLocationUseCause(BusLocationRepository busLocationRepository, BusValidationRepository busValidationRepository) {
+    public UpdateBusLocationUseCause(
+        BusLocationRepository busLocationRepository,
+        BusExistsById busExistsById
+    ) {
         this.busLocationRepository = busLocationRepository;
-        this.busValidationRepository = busValidationRepository;
+        this.busExistsById = busExistsById;
     }
 
     public void execute(UUID busId, BigDecimal lat, BigDecimal lng) {
 
-        if (!busValidationRepository.existsById(busId)) {
-            throw new NotFoundException(ErrorCode.BUS_NOT_FOUND, "Bus not found", "Bus with ID " + busId + " does not exist");
+        if (!busExistsById.check(busId)) {
+            throw new NotFoundException(
+                ErrorCode.BUS_NOT_FOUND,
+                "Bus not found",
+                "Bus with ID " + busId + " does not exist"
+            );
         }
 
         // Always create a new BusLocation instance (UPSERT handled by repository)
