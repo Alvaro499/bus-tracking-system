@@ -11,6 +11,7 @@ public enum ErrorCode {
     USER_NOT_FOUND,
     RESOURCE_NOT_FOUND,
     ADMIN_NOT_FOUND,
+    BUS_NOT_FOUND,
 
     // BUSINESS RULES
     ADMIN_NOT_ACTIVE,
@@ -28,5 +29,5 @@ public enum ErrorCode {
 
     // GENERIC
     EXTERNAL_ERROR,
-    INTERNAL_ERROR
+    INTERNAL_ERROR, BUS_LOCATION_NOT_FOUND,
 }

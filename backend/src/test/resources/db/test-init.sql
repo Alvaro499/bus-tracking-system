@@ -85,14 +85,14 @@ CREATE TABLE route_stop (
 );
 
 CREATE TABLE bus (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     company_id UUID NOT NULL REFERENCES company(id) ON DELETE RESTRICT,
     plate VARCHAR(20) NOT NULL UNIQUE,
     internal_number VARCHAR(20),
     has_ramp BOOLEAN DEFAULT FALSE,
     status VARCHAR(20) NOT NULL CHECK (status IN ('ACTIVE', 'INACTIVE', 'MAINTENANCE')),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL
 );
 
 CREATE TABLE bus_location (

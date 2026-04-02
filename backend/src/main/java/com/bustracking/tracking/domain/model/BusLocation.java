@@ -1,30 +1,77 @@
 package com.bustracking.tracking.domain.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.UUID;
 
+import com.bustracking.shared.exception.ErrorCode;
+import com.bustracking.shared.exception.ValidationException;
+import com.bustracking.shared.valueobjects.GpsCoordinate;
+
 /**
- * Domain Model that represents the GPS location of a bus.
+ * Value Object that represents the GPS location of a bus at a specific moment.
  * 
- * Contains essential real-time location information,
- * including coordinates and the timestamp of the last update.
- * This model is independent of persistence.
+ * Immutable by design: does not have its own identity, represents a snapshot
+ * of a bus's location at a point in time. To update a location, create a new instance.
+ * 
  */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class BusLocation {
+@Getter
+public final class BusLocation {
 
-    private UUID busId;
+    private final UUID busId;
+    private final GpsCoordinate gpsCoordinate;
+    private final LocalDateTime updatedAt;
 
-    private BigDecimal lat;
 
-    private BigDecimal lng;
+    public BusLocation(UUID busId, GpsCoordinate gpsCoordinate, LocalDateTime updatedAt) {
+        validate(busId, gpsCoordinate, updatedAt);
+        this.busId = busId;
+        //already validated in the GpsCoordinate value object
+        this.gpsCoordinate = gpsCoordinate;
+        this.updatedAt = updatedAt;
+    }
 
-    private LocalDateTime updatedAt;
+    private void validate(UUID busId, GpsCoordinate gpsCoordinate, LocalDateTime updatedAt) {
+        if (busId == null) {
+            throw new ValidationException(
+                ErrorCode.MISSING_REQUIRED_FIELD,
+                "Bus ID is required",
+                "busId cannot be null in BusLocation"
+            );
+        }
+        
+        if (gpsCoordinate == null) {
+            throw new ValidationException(
+                ErrorCode.MISSING_REQUIRED_FIELD,
+                "GPS Coordinate is required",
+                "gpsCoordinate cannot be null in BusLocation"
+            );
+        }
+        
+        if (updatedAt == null) {
+            throw new ValidationException(
+                ErrorCode.MISSING_REQUIRED_FIELD,
+                "Updated timestamp is required",
+                "updatedAt cannot be null in BusLocation"
+            );
+        }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof BusLocation)) return false;
+        BusLocation that = (BusLocation) o;
+        return Objects.equals(busId, that.busId) &&
+               Objects.equals(gpsCoordinate, that.gpsCoordinate) &&
+               Objects.equals(updatedAt, that.updatedAt);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(busId, gpsCoordinate, updatedAt);
+    }
 }
+
