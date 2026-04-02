@@ -75,6 +75,53 @@ public class BusLocationTest {
             new BusLocation(null, null, null)
         );
     }
+
+    // =========================================================
+    // Equals and HashCode
+    // =========================================================
+
+    @Test
+    void shouldBeEqualWhenSameValues() {
+        LocalDateTime timestamp = LocalDateTime.now();
+        UUID busId = UUID.randomUUID();
+        GpsCoordinate coordinate = new GpsCoordinate(new BigDecimal("9.934739"), new BigDecimal("-84.087502"));
+
+        BusLocation location1 = new BusLocation(busId, coordinate, timestamp);
+        BusLocation location2 = new BusLocation(busId, coordinate, timestamp);
+
+        assertEquals(location1, location2);
+        assertEquals(location1.hashCode(), location2.hashCode());
+    }
+
+    @Test
+    void shouldNotBeEqualWhenDifferentBusIds() {
+        BusLocation location1 = new BusLocation(UUID.randomUUID(), validCoordinate, validTimestamp);
+        BusLocation location2 = new BusLocation(UUID.randomUUID(), validCoordinate, validTimestamp);
+
+        assertNotEquals(location1, location2);
+    }
+
+    @Test
+    void shouldNotBeEqualWhenDifferentCoordinates() {
+        GpsCoordinate coordinate1 = new GpsCoordinate(new BigDecimal("9.934739"), new BigDecimal("-84.087502"));
+        GpsCoordinate coordinate2 = new GpsCoordinate(new BigDecimal("10.0"), new BigDecimal("-85.0"));
+
+        BusLocation location1 = new BusLocation(validBusId, coordinate1, validTimestamp);
+        BusLocation location2 = new BusLocation(validBusId, coordinate2, validTimestamp);
+
+        assertNotEquals(location1, location2);
+    }
+
+    @Test
+    void shouldNotBeEqualWhenDifferentTimestamps() {
+        LocalDateTime timestamp1 = LocalDateTime.now();
+        LocalDateTime timestamp2 = timestamp1.plusMinutes(1);
+
+        BusLocation location1 = new BusLocation(validBusId, validCoordinate, timestamp1);
+        BusLocation location2 = new BusLocation(validBusId, validCoordinate, timestamp2);
+
+        assertNotEquals(location1, location2);
+    }
 }
 
 

@@ -8,6 +8,7 @@ import com.bustracking.companies.domain.valueobjects.InternalNumber;
 import com.bustracking.companies.domain.valueobjects.Plate;
 import com.bustracking.shared.exception.BusinessRuleException;
 import com.bustracking.shared.exception.ErrorCode;
+import com.bustracking.shared.exception.ValidationException;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -33,13 +34,42 @@ public class Bus {
     private LocalDateTime updatedAt;
 
     public Bus(UUID companyId, String plate, String internalNumber, Boolean hasRamp){
+        validateCompanyId(companyId);
+        validateHasRamp(hasRamp);
+        
         this.id = UUID.randomUUID();
         this.companyId = companyId;
         this.plate = new Plate(plate);
         this.internalNumber = new InternalNumber(internalNumber);
          // every new bus is created as inactive
-        this.status = BusStatus.INACTIVE;
         this.hasRamp = hasRamp;
+        this.status = BusStatus.INACTIVE;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    private void validateCompanyId(UUID companyId) {
+        if (companyId == null) {
+            throw new ValidationException(
+                ErrorCode.MISSING_REQUIRED_FIELD,
+                "Company ID is required",
+                "Company ID cannot be null"
+            );
+        }
+    }
+
+    private void validateHasRamp(Boolean hasRamp) {
+        if (hasRamp == null) {
+            throw new ValidationException(
+                ErrorCode.MISSING_REQUIRED_FIELD,
+                "HasRamp flag is required",
+                "HasRamp cannot be null"
+            );
+        }
+    }
+
+    private void updateTimestamp() {
+        this.updatedAt = LocalDateTime.now();
     }
 
     public void activate() {
@@ -56,6 +86,8 @@ public class Bus {
             );
         }
         this.status = BusStatus.ACTIVE;
+        updateTimestamp();
+
     }
 
     public void deactivate() {
@@ -66,6 +98,8 @@ public class Bus {
             );
         }
         this.status = BusStatus.INACTIVE;
+        updateTimestamp();
+
     }
 
     public void sendToMaintenance() {
@@ -76,6 +110,8 @@ public class Bus {
             );
         }
         this.status = BusStatus.MAINTENANCE;
+        updateTimestamp();
+
     }
 
     public void finishMaintenance() {
@@ -84,7 +120,10 @@ public class Bus {
                 ErrorCode.INVALID_STATE,
                 "Bus is not in maintenance"
             );
+
         }
         this.status = BusStatus.INACTIVE;
+        updateTimestamp();
+
     }
 }

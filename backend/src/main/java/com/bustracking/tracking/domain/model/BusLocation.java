@@ -3,6 +3,7 @@ package com.bustracking.tracking.domain.model;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.UUID;
 
 import com.bustracking.shared.exception.ErrorCode;
@@ -58,5 +59,19 @@ public final class BusLocation {
         }
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof BusLocation)) return false;
+        BusLocation that = (BusLocation) o;
+        return Objects.equals(busId, that.busId) &&
+               Objects.equals(gpsCoordinate, that.gpsCoordinate) &&
+               Objects.equals(updatedAt, that.updatedAt);
+    }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(busId, gpsCoordinate, updatedAt);
+    }
 }
+
