@@ -1,5 +1,6 @@
-package com.bustracking.shared.config;
+package com.bustracking.shared.testinfrastructure;
 
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.ActiveProfiles;
 
 // Base for tests of CONTROLLER (HTTP + Spring, mocked DB)
