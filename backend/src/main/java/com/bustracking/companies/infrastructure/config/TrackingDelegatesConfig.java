@@ -48,12 +48,7 @@ public class TrackingDelegatesConfig {
         // Method reference: delegates to the repository's existsById method
         // 
         // This is equivalent to:
-        // busId -> busRepository.existsById(busId)
-        // 
-        // But using method reference syntax is cleaner and more functional.
-        // The repository is already autowired, so this returns a closure
-        // that captures the repository instance.
+        // BusExistsById delegate = (UUID busId) -> busRepository.existsById(busId);
         return busRepository::existsById;
     }
 }
-
