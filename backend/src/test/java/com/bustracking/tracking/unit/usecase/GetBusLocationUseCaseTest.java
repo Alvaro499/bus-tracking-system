@@ -29,6 +29,7 @@ public class GetBusLocationUseCaseTest {
     @Mock
     private BusLocationRepository busLocationRepository;
 
+    // Type of value given by @Bean using a contract (Functional Interface)
     @Mock
     private BusExistsById busExistsById;
 
