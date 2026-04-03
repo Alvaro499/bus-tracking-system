@@ -10,7 +10,23 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.containers.PostgreSQLContainer;
 
-// Base para tests de REPOSITORY (solo DB, sin HTTP)
+
+/**
+ 1. Testcontainers spin up and start PostgreSQL Docker container
+   
+2. spring.sql.init.schema-locations loads  init-test.sql
+    CREATE TABLE company, bus, bus_location, etc.
+   
+3. Test starts:
+   * @Sql loads fixtures-shared.sql
+   * @Sql loads tracking-fixtures.sql
+   * INSERT company, buses
+   
+4. Test runs with clean data
+   
+5. Automatically ROLLBACK
+ */
+
 @DataJpaTest
 @Testcontainers
 @ActiveProfiles("test")
