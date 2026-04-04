@@ -42,6 +42,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 public abstract class RepositoryIntegrationTest {
 
+    //static so there will be only one docker container for all tests
     @Container
     protected static final PostgreSQLContainer<?> postgres =
         new PostgreSQLContainer<>("postgres:16-alpine")
