@@ -2,14 +2,12 @@ package com.bustracking.shared.testinfrastructure;
 
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
-
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.containers.PostgreSQLContainer;
-
 
 /**
  1. Testcontainers spin up and start PostgreSQL Docker container
@@ -26,6 +24,17 @@ import org.testcontainers.containers.PostgreSQLContainer;
    
 5. Automatically ROLLBACK
  */
+
+
+/* 
+
+@DataJpaTest: starts only the persistence layer, including JPA, repositories, and transactions. No controllers, no security, and no services.
+@DataJpaTest + @Testcontainers: activates the Spring Context using a real database.
+
+@Import(BackendApplication.class):
+    - Ensures the BackendApplication configuration is loaded (it finds @SpringBootConfiguration).
+
+*/
 
 @DataJpaTest
 @Testcontainers

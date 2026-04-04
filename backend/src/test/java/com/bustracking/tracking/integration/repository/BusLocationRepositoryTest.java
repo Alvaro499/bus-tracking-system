@@ -45,6 +45,7 @@ class BusLocationRepositoryTest extends RepositoryIntegrationTest {
     private static final UUID BUS_ID_1 = UUID.fromString("650e8400-e29b-41d4-a716-446655440001");
     private static final UUID BUS_ID_2 = UUID.fromString("650e8400-e29b-41d4-a716-446655440002");
 
+
     @BeforeEach
     void setUp() {
         repository = new BusLocationRepositoryImpl(busLocationJpaRepository);
