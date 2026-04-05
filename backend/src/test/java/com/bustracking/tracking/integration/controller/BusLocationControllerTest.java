@@ -1,5 +1,7 @@
 package com.bustracking.tracking.integration.controller;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -16,6 +18,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.bustracking.shared.exception.ErrorCode;
 import com.bustracking.shared.exception.NotFoundException;
 import com.bustracking.shared.testinfrastructure.ControllerIntegrationTest;
@@ -24,10 +27,15 @@ import com.bustracking.tracking.application.usecase.GetBusLocationUseCase;
 import com.bustracking.tracking.application.usecase.UpdateBusLocationUseCase;
 import com.bustracking.tracking.domain.model.BusLocation;
 
+
 class BusLocationControllerTest extends ControllerIntegrationTest {
 
+    // In order to test the controller in isolation, we will mock the use cases it depends on.
     @Autowired
     private MockMvc mockMvc;
+
+    //To convert objects to JSON and vice versa, this is the objectMapper Spring provides by default.
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @MockitoBean
     private GetBusLocationUseCase getBusLocationUseCase;
@@ -62,7 +70,9 @@ class BusLocationControllerTest extends ControllerIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.busId").value(validBusId.toString()))
             .andExpect(jsonPath("$.lat").value(9.934739))
-            .andExpect(jsonPath("$.lng").value(-84.087502));
+            .andExpect(jsonPath("$.lng").value(-84.087502))
+            .andExpect(jsonPath("$.updatedAt").exists())
+            .andExpect(jsonPath("$.updatedAt").value("2025-01-01T12:00:00"));
     }
 
 
@@ -107,5 +117,110 @@ class BusLocationControllerTest extends ControllerIntegrationTest {
             .andExpect(status().isBadRequest());
     }
 
+    // =========================================================
+    // POST /tracking/buses/{busId}/location - Happy Path
+    // =========================================================
 
+    @Test
+    void shouldUpdateBusLocationWhenValidDataProvided() throws Exception {
+        // Arrange
+        String requestBody = objectMapper.writeValueAsString(
+            new Object() {
+                public final BigDecimal lat = new BigDecimal("9.934739");
+                public final BigDecimal lng = new BigDecimal("-84.087502");
+            }
+        );
+
+        //only for void methods, for methods that return something, we use when().thenReturn()
+        doNothing().when(updateBusLocationUseCase)
+            .execute(eq(validBusId), any(), any());
+
+        // Act & Assert
+        mockMvc.perform(post("/tracking/buses/{busId}/location", validBusId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+            .andExpect(status().isOk());
+
+        // only when we want to verify that the method was called.
+        verify(updateBusLocationUseCase, times(1))
+            .execute(eq(validBusId), any(), any());
+    }
+
+
+    // =========================================================
+    // POST /tracking/buses/{busId}/location - Error Cases
+    // =========================================================
+
+    @Test
+    void shouldReturn404WhenPostingLocationForNonExistentBus() throws Exception {
+        // Arrange
+        String requestBody = objectMapper.writeValueAsString(
+            new Object() {
+                public final BigDecimal lat = new BigDecimal("9.934739");
+                public final BigDecimal lng = new BigDecimal("-84.087502");
+            }
+        );
+
+        //only for void methods, for methods that return something, we use when().thenReturn()
+        doThrow(new NotFoundException(
+                ErrorCode.BUS_NOT_FOUND,
+                "Bus not found",
+                "Bus with ID " + validBusId + " does not exist"
+            ))
+            .when(updateBusLocationUseCase)
+            .execute(eq(validBusId), any(), any());
+
+        // Act & Assert
+        mockMvc.perform(post("/tracking/buses/{busId}/location", validBusId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+            .andExpect(status().isNotFound());
+
+        verify(updateBusLocationUseCase, times(1))
+            .execute(eq(validBusId), any(), any());
+    }
+
+    @Test
+    void shouldReturn400WhenPostingWithInvalidUUID() throws Exception {
+        // Arrange
+        String requestBody = objectMapper.writeValueAsString(
+            new Object() {
+                public final BigDecimal lat = new BigDecimal("9.934739");
+                public final BigDecimal lng = new BigDecimal("-84.087502");
+            }
+        );
+
+        // Act & Assert
+        mockMvc.perform(post("/tracking/buses/{busId}/location", "invalid-uuid")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+            .andExpect(status().isBadRequest());
+
+        verify(updateBusLocationUseCase, never())
+            .execute(any(), any(), any());
+    }
+
+    // Covered by GpsCoordinate domain validation (null lat/lng → ValidationException → 400)
+    // See: GpsCoordinateTest#shouldThrowValidationExceptionWhenLatOrLngIsNull
+    @Test
+    void shouldReturn400WhenPostingWithMissingRequiredFields() {}
+
+    @Test
+    void shouldReturn400WhenPostingWithoutContentType() throws Exception {
+        // Arrange
+        String requestBody = objectMapper.writeValueAsString(
+            new Object() {
+                public final BigDecimal lat = new BigDecimal("9.934739");
+                public final BigDecimal lng = new BigDecimal("-84.087502");
+            }
+        );
+
+        // Act & Assert
+        mockMvc.perform(post("/tracking/buses/{busId}/location", validBusId)
+                .content(requestBody))
+            .andExpect(status().isBadRequest());
+
+        verify(updateBusLocationUseCase, never())
+            .execute(any(), any(), any());
+    }
 }

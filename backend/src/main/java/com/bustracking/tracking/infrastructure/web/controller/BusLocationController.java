@@ -18,7 +18,7 @@ import com.bustracking.tracking.infrastructure.web.dto.response.BusLocationRespo
 
 @RestController
 @RequestMapping("/tracking/buses")
-class BusLocationController {
+public class BusLocationController {
  
     private final UpdateBusLocationUseCase updateBusLocationUseCase;
 
