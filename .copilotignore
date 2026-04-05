@@ -6,21 +6,44 @@
 
 # CREDENTIALS (NEVER read these files)
 .env
-.env.test
-.env.production
+.env.*
 .env.local
+.env.*.local
+*.env
+!.env.example
+!.env.test.example
 
 # CONFIGURATION WITH PASSWORDS
-application.properties
-application-test.properties
-application-prod.properties
+
+secrets.yml
+secrets.yaml
+.secrets
+
+# PRIVATE KEYS & CERTIFICATES
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
 
 # BINARIES AND BUILD
 *.jar
 *.class
 target/
 build/
+dist/
+out/
 
 # DEPENDENCIES
 node_modules/
 .gradle/
+.m2/
+
+# DATABASE
+*.db
+*.sqlite
+*.sql
+
+# LOGS
+logs/
+*.log

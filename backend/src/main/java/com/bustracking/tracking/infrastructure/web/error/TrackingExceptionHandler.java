@@ -1,4 +1,4 @@
-package com.bustracking.admin.infrastructure.web.error;
+package com.bustracking.tracking.infrastructure.web.error;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -6,7 +6,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.bustracking.shared.exception.ApplicationException;
 import com.bustracking.shared.exception.BusinessRuleException;
 import com.bustracking.shared.exception.ExternalServiceException;
 import com.bustracking.shared.exception.NotFoundException;
@@ -15,9 +14,9 @@ import com.bustracking.shared.infrastructure.error.ErrorResponse;
 
 // Every module should have its own exception handler, to avoid coupling between modules and to be able to handle exceptions in a specific way for each module.
 @RestControllerAdvice
-public class AdminExceptionHandler {
+public class TrackingExceptionHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(AdminExceptionHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(TrackingExceptionHandler.class);
 
 
     @ExceptionHandler(NotFoundException.class)
@@ -72,5 +71,4 @@ public class AdminExceptionHandler {
         // 502 = HttpStatusCode.BAD_GATEWAY
         return ResponseEntity.status(502).body(response);
     }
-
 }
