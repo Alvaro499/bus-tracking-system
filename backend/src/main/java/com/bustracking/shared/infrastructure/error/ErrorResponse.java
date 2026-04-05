@@ -1,5 +1,4 @@
-package com.bustracking.admin.infrastructure.web.error;
-
+package com.bustracking.shared.infrastructure.error;
 
 // ErrorResponse is not generic. It's specific about how we expose errors (HTTP/gRPC/Kafka). 
 public class ErrorResponse {

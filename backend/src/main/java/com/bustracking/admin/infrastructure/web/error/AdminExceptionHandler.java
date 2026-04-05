@@ -11,6 +11,7 @@ import com.bustracking.shared.exception.BusinessRuleException;
 import com.bustracking.shared.exception.ExternalServiceException;
 import com.bustracking.shared.exception.NotFoundException;
 import com.bustracking.shared.exception.ValidationException;
+import com.bustracking.shared.infrastructure.error.ErrorResponse;
 
 // Every module should have its own exception handler, to avoid coupling between modules and to be able to handle exceptions in a specific way for each module.
 @RestControllerAdvice
@@ -72,29 +73,4 @@ public class AdminExceptionHandler {
         return ResponseEntity.status(502).body(response);
     }
 
-    @ExceptionHandler(ApplicationException.class)
-    public ResponseEntity<ErrorResponse> handleApplication(ApplicationException ex){
-
-        log.warn("Application error: {}", ex.getDevMessage(), ex);
-
-        ErrorResponse response = new ErrorResponse(
-            ex.getErrorCode().name(),
-            ex.getUserMessage()
-        );
-        // 400 = HttpStatusCode.BAD_REQUEST
-        return ResponseEntity.status(400).body(response);
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGeneral(Exception ex){
-
-        log.error("Unexpected error", ex);
-
-        ErrorResponse response = new ErrorResponse(
-            "INTERNAL_ERROR",
-            "Error inesperado"
-        );
-        // 500 = HttpStatusCode.INTERNAL_SERVER_ERROR
-        return ResponseEntity.status(500).body(response);
-    }
 }
