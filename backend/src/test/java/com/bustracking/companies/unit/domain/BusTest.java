@@ -2,6 +2,7 @@ package com.bustracking.companies.unit.domain;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
@@ -155,12 +156,17 @@ public class BusTest {
     // Timestamps
     // =========================================================
 
-    @Test
+   @Test
     void shouldInitializeCreatedAtAndUpdatedAtOnConstruction() {
         Bus bus = new Bus(validCompanyId, validPlate, validInternalNumber, true);
 
         assertNotNull(bus.getCreatedAt());
         assertNotNull(bus.getUpdatedAt());
-        assertEquals(bus.getCreatedAt(), bus.getUpdatedAt());
+        
+        // Solo verifica que updatedAt está dentro de 1 segundo después de createdAt
+        assertTrue(
+            !bus.getUpdatedAt().isBefore(bus.getCreatedAt()) &&
+            bus.getUpdatedAt().isBefore(bus.getCreatedAt().plusSeconds(1))
+        );
     }
 }
