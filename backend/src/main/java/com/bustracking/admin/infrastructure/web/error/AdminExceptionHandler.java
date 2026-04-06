@@ -6,7 +6,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.bustracking.shared.exception.ApplicationException;
 import com.bustracking.shared.exception.BusinessRuleException;
 import com.bustracking.shared.exception.ExternalServiceException;
 import com.bustracking.shared.exception.NotFoundException;
