@@ -482,7 +482,218 @@ backend/
 
 ---
 
-## 2️⃣ docker-compose.yml (Local Development)
+## 2️⃣ Application Properties Files
+
+### **application.properties** (Profile Activation - Base)
+**Location:** `src/main/resources/application.properties`
+
+```properties
+spring.application.name=backend
+
+# PROFILE ACTIVATION - Resource filtering by Maven profile system
+# mvn clean install         → dev (activeByDefault=true)
+# mvn clean install -P prod → prod
+spring.profiles.active=@profileActive@
+```
+
+---
+
+### **application-dev.properties** (Development - Local Docker)
+**Location:** `src/main/resources/application-dev.properties`
+
+```properties
+spring.application.name=backend
+server.port=8080
+
+# ============================================================================
+# DATASOURCE (Local Development - Docker)
+# ============================================================================
+spring.datasource.url=jdbc:postgresql://${POSTGRES_HOST_DEV:localhost}:${POSTGRES_PORT_DEV:5432}/${POSTGRES_DB_DEV:bus_tracking_dev}
+spring.datasource.username=${POSTGRES_USER_DEV:bus_dev_user}
+spring.datasource.password=${POSTGRES_PASSWORD_DEV:dev_password_12345}
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# Hibernate validates schema but doesn't create (schema is managed separately)
+spring.jpa.hibernate.ddl-auto=validate
+
+# ============================================================================
+# LOGGING SQL (debugging queries)
+# ============================================================================
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+
+# ============================================================================
+# LOGGING (Verbose for development)
+# ============================================================================
+logging.level.root=INFO
+logging.level.com.bustracking=DEBUG
+logging.level.org.springframework.web=DEBUG
+logging.level.org.springframework.security=DEBUG
+logging.level.org.springframework.boot.autoconfigure=DEBUG
+logging.level.org.hibernate.SQL=DEBUG
+logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE
+
+# ============================================================================
+# DEVTOOLS (Auto-reload on code changes)
+# ============================================================================
+spring.devtools.restart.enabled=true
+spring.devtools.livereload.enabled=true
+
+# ============================================================================
+# ERROR HANDLING (Developer-friendly stack traces)
+# ============================================================================
+server.error.include-stacktrace=always
+server.error.include-binding-errors=always
+server.error.include-message=always
+server.error.include-exception=true
+```
+
+**Environment Variables Used (from .env):**
+```
+POSTGRES_HOST_DEV=localhost
+POSTGRES_PORT_DEV=5432
+POSTGRES_DB_DEV=bus_tracking_dev
+POSTGRES_USER_DEV=bus_dev_user
+POSTGRES_PASSWORD_DEV=dev_password_12345
+```
+
+---
+
+### **application-test.properties** (Testing - TestContainers + PostgreSQL)
+**Location:** `src/main/resources/application-test.properties`
+
+```properties
+spring.application.name=backend
+
+# ============================================================================
+# DATASOURCE (Test - TestContainers)
+# ============================================================================
+# TestContainers dynamically injects these at runtime
+# - @DynamicPropertySource in RepositoryIntegrationTest
+spring.datasource.url=jdbc:postgresql://${POSTGRES_HOST_TEST:localhost}:${POSTGRES_PORT_TEST:5433}/${POSTGRES_DB_TEST:bus_tracking_test}
+spring.datasource.username=${POSTGRES_USER_TEST:bus_test_user}
+spring.datasource.password=${POSTGRES_PASSWORD_TEST:test_password}
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# ============================================================================
+# HIBERNATE (Testing)
+# ============================================================================
+# Don't auto-create schema - use SQL initialization instead
+spring.jpa.hibernate.ddl-auto=none
+spring.jpa.show-sql=false
+spring.jpa.properties.hibernate.format_sql=false
+
+# ============================================================================
+# SQL INITIALIZATION (Schema + Data from SQL files)
+# ============================================================================
+# Always run initialization (CREATE TABLE, INSERT test data)
+spring.sql.init.mode=always
+spring.sql.init.platform=postgresql
+# Schema initialization (CREATE TABLE statements)
+spring.sql.init.schema-locations=classpath:db/test-init.sql
+# Data initialization - empty here (we use @Sql fixtures in test classes)
+spring.sql.init.data-locations=
+
+# ============================================================================
+# LOGGING (Minimal during tests - reduce noise)
+# ============================================================================
+logging.level.root=WARN
+logging.level.com.bustracking=INFO
+
+# ============================================================================
+# SWAGGER (Enabled for e2e/functional tests)
+# ============================================================================
+springdoc.swagger-ui.enabled=true
+springdoc.api-docs.enabled=true
+```
+
+---
+
+### **application-prod.properties** (Production - Not included in dev build)
+**Location:** `src/main/resources/application-prod.properties`
+
+```properties
+spring.application.name=backend
+server.port=8080
+
+# ============================================================================
+# DATASOURCE (Production - External Database)
+# ============================================================================
+spring.datasource.url=jdbc:postgresql://${POSTGRES_HOST_PROD:prod-db.example.com}:${POSTGRES_PORT_PROD:5432}/${POSTGRES_DB_PROD:bus_tracking_prod}
+spring.datasource.username=${POSTGRES_USER_PROD}
+spring.datasource.password=${POSTGRES_PASSWORD_PROD}
+spring.datasource.driver-class-name=org.postgresql.Driver
+spring.datasource.hikari.maximum-pool-size=20
+spring.datasource.hikari.minimum-idle=5
+
+# ============================================================================
+# HIBERNATE (Production)
+# ============================================================================
+# Validate only - schema is managed by migrations
+spring.jpa.hibernate.ddl-auto=validate
+spring.jpa.show-sql=false
+spring.jpa.properties.hibernate.format_sql=false
+
+# ============================================================================
+# LOGGING (Production - Minimal)
+# ============================================================================
+logging.level.root=WARN
+logging.level.com.bustracking=INFO
+
+# ============================================================================
+# ERROR HANDLING (Production - Hide sensitive info)
+# ============================================================================
+server.error.include-stacktrace=never
+server.error.include-binding-errors=never
+server.error.include-message=never
+server.error.include-exception=false
+```
+
+---
+
+## 3️⃣ Dockerfile (Multi-stage Build)
+
+**Location:** `backend/Dockerfile`
+
+```dockerfile
+# ============================================================================
+# ETAPA 1: BUILD (Compilar el JAR)
+# ============================================================================
+FROM maven:3.9-eclipse-temurin-21 AS builder
+
+WORKDIR /app
+
+# Copiar archivos de configuración
+COPY pom.xml .
+
+# Copiar código fuente
+COPY src ./src
+
+# Compilar el proyecto
+RUN mvn clean package -DskipTests
+
+# ============================================================================
+# ETAPA 2: RUNTIME (Ejecutar el JAR)
+# ============================================================================
+FROM eclipse-temurin:21-jre
+
+WORKDIR /app
+
+# Copiar JAR compilado de la etapa anterior
+COPY --from=builder /app/target/backend-0.0.1-SNAPSHOT.jar app.jar
+
+# Puerto expuesto (Spring Boot por defecto 8080)
+EXPOSE 8080
+
+# Comando de inicio
+ENTRYPOINT ["java", "-jar", "app.jar"]
+```
+
+---
+
+## 4️⃣ docker-compose.yml (Local Development)
+
+**Location:** `backend/docker-compose.yml`
 
 ```yaml
 version: '3.8'
@@ -680,3 +891,528 @@ All configuration files above can be used as complete context for an AI assistan
 - Docker Compose for testing
 - Maven plugin enhancements
 - Deployment strategies
+
+---
+
+# 📚 TEST EXAMPLES (For CI/CD Configuration)
+
+## Example 1️⃣ - UNIT TEST (Domain Logic)
+
+**Location:** `src/test/java/com/bustracking/companies/unit/domain/BusTest.java`
+
+```java
+package com.bustracking.companies.unit.domain;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.UUID;
+
+import org.junit.jupiter.api.Test;
+
+import com.bustracking.companies.domain.enums.BusStatus;
+import com.bustracking.companies.domain.model.Bus;
+import com.bustracking.companies.domain.valueobjects.InternalNumber;
+import com.bustracking.companies.domain.valueobjects.Plate;
+import com.bustracking.shared.exception.BusinessRuleException;
+import com.bustracking.shared.exception.ValidationException;
+
+/**
+ * UNIT TEST - Domain Logic (No DB, No Docker, No Mocking)
+ * 
+ * Speed: ~0.1 seconds per test
+ * Database: NONE
+ * Dependencies: Only domain objects and exceptions
+ * 
+ * Testing approach:
+ * - Test business rules in isolation
+ * - Test state transitions
+ * - Test validation and error cases
+ */
+public class BusTest {
+    
+    // Common test data
+    private final UUID validCompanyId = UUID.randomUUID();
+    private final String validPlate = "CRC123";
+    private final String validInternalNumber = "BUS-01";
+
+    // =========================================================
+    // Happy Path Tests
+    // =========================================================
+
+    @Test
+    void shouldCreateBusWithValidValues() {
+        // Arrange: Set up test data
+        // No database connections needed
+        
+        // Act: Execute business logic
+        Bus bus = new Bus(validCompanyId, validPlate, validInternalNumber, true);
+
+        // Assert: Verify expected behavior
+        assertEquals(validCompanyId, bus.getCompanyId());
+        assertEquals(new Plate(validPlate), bus.getPlate());
+        assertEquals(new InternalNumber(validInternalNumber), bus.getInternalNumber());
+        assertTrue(bus.getHasRamp());
+        assertEquals(BusStatus.INACTIVE, bus.getStatus());
+        assertNotNull(bus.getId());
+    }
+
+    @Test
+    void shouldCreateBusWithoutInternalNumber() {
+        Bus bus = new Bus(validCompanyId, validPlate, null, false);
+
+        assertNull(bus.getInternalNumber().getValue());
+        assertEquals(BusStatus.INACTIVE, bus.getStatus());
+    }
+
+    // =========================================================
+    // State Transitions - activate
+    // =========================================================
+
+    @Test
+    void shouldActivateBusWhenInactive() {
+        Bus bus = new Bus(validCompanyId, validPlate, null, false);
+        bus.activate();
+        assertEquals(BusStatus.ACTIVE, bus.getStatus());
+    }
+
+    @Test
+    void shouldThrowWhenActivatingAlreadyActiveBus() {
+        Bus bus = new Bus(validCompanyId, validPlate, null, false);
+        bus.activate();
+
+        // Business rule violation: cannot activate already active bus
+        assertThrows(BusinessRuleException.class, bus::activate);
+    }
+
+    @Test
+    void shouldThrowWhenActivatingBusInMaintenance() {
+        Bus bus = new Bus(validCompanyId, validPlate, null, false);
+        bus.activate();
+        bus.sendToMaintenance();
+
+        // Business rule violation: cannot activate bus in maintenance
+        assertThrows(BusinessRuleException.class, bus::activate);
+    }
+
+    // =========================================================
+    // State Transitions - deactivate
+    // =========================================================
+
+    @Test
+    void shouldDeactivateBusWhenActive() {
+        Bus bus = new Bus(validCompanyId, validPlate, null, false);
+        bus.activate();
+        bus.deactivate();
+
+        assertEquals(BusStatus.INACTIVE, bus.getStatus());
+    }
+
+    @Test
+    void shouldThrowWhenDeactivatingAlreadyInactiveBus() {
+        Bus bus = new Bus(validCompanyId, validPlate, null, false);
+
+        assertThrows(BusinessRuleException.class, bus::deactivate);
+    }
+}
+```
+
+**Key characteristics:**
+- ✅ No database
+- ✅ No Docker
+- ✅ No Spring Context
+- ✅ Plain Java testing with JUnit 5
+- ✅ Fast: ~0.1 seconds
+- ✅ Test business rules only
+
+---
+
+## Example 2️⃣ - CONTROLLER TEST (Integration - WebMvcTest)
+
+**Location:** `src/test/java/com/bustracking/tracking/integration/controller/BusLocationControllerTest.java`
+
+```java
+package com.bustracking.tracking.integration.controller;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.bustracking.shared.exception.ErrorCode;
+import com.bustracking.shared.exception.NotFoundException;
+import com.bustracking.shared.testinfrastructure.ControllerIntegrationTest;
+import com.bustracking.shared.valueobjects.GpsCoordinate;
+import com.bustracking.tracking.application.usecase.GetBusLocationUseCase;
+import com.bustracking.tracking.application.usecase.UpdateBusLocationUseCase;
+import com.bustracking.tracking.domain.model.BusLocation;
+
+/**
+ * CONTROLLER TEST - HTTP Layer (Spring WebMvc + Mocked Services)
+ * 
+ * Speed: ~1 second per test
+ * Database: NONE (services are mocked)
+ * Dependencies: Spring Web, Mockito
+ * 
+ * Testing approach:
+ * - Test HTTP request/response mapping
+ * - Test status codes and error handling
+ * - Test parameter validation
+ * - Mock service layer (don't test business logic here)
+ */
+class BusLocationControllerTest extends ControllerIntegrationTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    // Mock service layer - services are NOT tested here
+    @MockitoBean
+    private GetBusLocationUseCase getBusLocationUseCase;
+
+    @MockitoBean
+    private UpdateBusLocationUseCase updateBusLocationUseCase;
+
+    // Test data
+    private final UUID validBusId = UUID.fromString("650e8400-e29b-41d4-a716-446655440001");
+    private final BigDecimal validLat = new BigDecimal("9.934739");
+    private final BigDecimal validLng = new BigDecimal("-84.087502");
+    private final LocalDateTime validTimestamp = LocalDateTime.of(2025, 1, 1, 12, 0, 0);
+
+    private final BusLocation validBusLocation = new BusLocation(
+        validBusId,
+        new GpsCoordinate(validLat, validLng),
+        validTimestamp
+    );
+
+    // =========================================================
+    // GET /tracking/buses/{busId}/location - Happy Path
+    // =========================================================
+
+    @Test
+    void shouldReturnBusLocationWhenBusExists() throws Exception {
+        // Arrange
+        when(getBusLocationUseCase.execute(validBusId))
+            .thenReturn(validBusLocation);
+
+        // Act & Assert: Test HTTP response
+        mockMvc.perform(get("/tracking/buses/{busId}/location", validBusId))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.busId").value(validBusId.toString()))
+            .andExpect(jsonPath("$.lat").value(9.934739))
+            .andExpect(jsonPath("$.lng").value(-84.087502))
+            .andExpect(jsonPath("$.updatedAt").exists());
+    }
+
+    // =========================================================
+    // GET /tracking/buses/{busId}/location - Error Cases
+    // =========================================================
+
+    @Test
+    void shouldReturn404WhenBusDoesNotExist() throws Exception {
+        // Arrange: Mock service to throw exception
+        when(getBusLocationUseCase.execute(validBusId))
+            .thenThrow(new NotFoundException(
+                ErrorCode.BUS_NOT_FOUND,
+                "Bus not found",
+                "Bus with ID " + validBusId + " does not exist"
+            ));
+
+        // Act & Assert: Verify HTTP 404 error
+        mockMvc.perform(get("/tracking/buses/{busId}/location", validBusId))
+            .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldReturn400WhenBusIdIsNotValidUUID() throws Exception {
+        // Act & Assert: Test parameter validation
+        mockMvc.perform(get("/tracking/buses/{busId}/location", "not-a-valid-uuid"))
+            .andExpect(status().isBadRequest());
+    }
+
+    // =========================================================
+    // POST /tracking/buses/{busId}/location - Happy Path
+    // =========================================================
+
+    @Test
+    void shouldUpdateBusLocationWhenValidDataProvided() throws Exception {
+        // Arrange
+        String requestBody = objectMapper.writeValueAsString(
+            new Object() {
+                public final BigDecimal lat = new BigDecimal("9.934739");
+                public final BigDecimal lng = new BigDecimal("-84.087502");
+            }
+        );
+
+        doNothing().when(updateBusLocationUseCase)
+            .execute(eq(validBusId), any(), any());
+
+        // Act & Assert
+        mockMvc.perform(post("/tracking/buses/{busId}/location", validBusId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+            .andExpect(status().isOk());
+
+        // Verify method was called
+        verify(updateBusLocationUseCase, times(1))
+            .execute(eq(validBusId), any(), any());
+    }
+
+    // =========================================================
+    // POST /tracking/buses/{busId}/location - Error Cases
+    // =========================================================
+
+    @Test
+    void shouldReturn404WhenPostingLocationForNonExistentBus() throws Exception {
+        // Arrange
+        String requestBody = objectMapper.writeValueAsString(
+            new Object() {
+                public final BigDecimal lat = new BigDecimal("9.934739");
+                public final BigDecimal lng = new BigDecimal("-84.087502");
+            }
+        );
+
+        doThrow(new NotFoundException(
+                ErrorCode.BUS_NOT_FOUND,
+                "Bus not found",
+                "Bus with ID " + validBusId + " does not exist"
+            ))
+            .when(updateBusLocationUseCase)
+            .execute(eq(validBusId), any(), any());
+
+        // Act & Assert
+        mockMvc.perform(post("/tracking/buses/{busId}/location", validBusId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+            .andExpect(status().isNotFound());
+    }
+}
+```
+
+**Key characteristics:**
+- ✅ Spring Web Context (HTTP layer only)
+- ✅ Services are MOCKED
+- ✅ No database
+- ✅ No TestContainers
+- ✅ Tests HTTP request/response
+- ✅ Fast: ~1 second
+- ✅ Base class: `ControllerIntegrationTest`
+
+---
+
+## Example 3️⃣ - REPOSITORY TEST (Integration - DataJpaTest + TestContainers)
+
+**Location:** `src/test/java/com/bustracking/tracking/integration/repository/BusLocationRepositoryTest.java`
+
+```java
+package com.bustracking.tracking.integration.repository;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.jdbc.Sql;
+
+import com.bustracking.shared.testinfrastructure.RepositoryIntegrationTest;
+import com.bustracking.shared.valueobjects.GpsCoordinate;
+import com.bustracking.tracking.domain.model.BusLocation;
+import com.bustracking.tracking.infrastructure.persistence.repository.BusLocationRepositoryImpl;
+import com.bustracking.tracking.infrastructure.persistence.repository.BusLocationJpaRepository;
+
+/**
+ * REPOSITORY TEST - Persistence Layer (Real PostgreSQL + TestContainers)
+ * 
+ * Speed: ~5-10 seconds per test (includes container startup)
+ * Database: REAL PostgreSQL (via TestContainers)
+ * Dependencies: Spring Data JPA, TestContainers, PostgreSQL
+ * 
+ * Testing approach:
+ * - Test persistence behavior (INSERT, UPDATE, SELECT)
+ * - Test constraint validation
+ * - Test mapping (Entity ↔ Model)
+ * - Use SQL fixtures for test data
+ * - Transactions ROLLBACK after each test
+ */
+@Sql({
+    "/test-data/fixtures-shared.sql",          // Load companies + buses
+    "/test-data/tracking-fixtures.sql"         // Load tracking-specific data
+})
+class BusLocationRepositoryTest extends RepositoryIntegrationTest {
+
+    @Autowired
+    private BusLocationJpaRepository busLocationJpaRepository;
+
+    private BusLocationRepositoryImpl repository;
+    
+    // Fixed UUIDs from SQL fixtures
+    private static final UUID BUS_ID_1 = UUID.fromString("650e8400-e29b-41d4-a716-446655440001");
+    private static final UUID BUS_ID_2 = UUID.fromString("650e8400-e29b-41d4-a716-446655440002");
+
+    @BeforeEach
+    void setUp() {
+        repository = new BusLocationRepositoryImpl(busLocationJpaRepository);
+        // Test data already loaded from @Sql annotations
+    }
+
+    // =========================================================
+    // Save (INSERT)
+    // =========================================================
+
+    @Test
+    void shouldSaveBusLocationWhenItDoesNotExist() {
+        // Arrange: Create test object
+        GpsCoordinate coordinate = new GpsCoordinate(
+            new BigDecimal("9.934739"),
+            new BigDecimal("-84.087502")
+        );
+        BusLocation location = new BusLocation(BUS_ID_1, coordinate, LocalDateTime.now());
+
+        // Act: Save to real database
+        repository.save(location);
+
+        // Assert: Query database and verify
+        Optional<BusLocation> found = repository.findByBusId(BUS_ID_1);
+        assertTrue(found.isPresent());
+        assertEquals(BUS_ID_1, found.get().getBusId());
+        assertEquals(coordinate.getLat(), found.get().getGpsCoordinate().getLat());
+        assertEquals(coordinate.getLng(), found.get().getGpsCoordinate().getLng());
+    }
+
+    // =========================================================
+    // Save (UPSERT - update existing)
+    // =========================================================
+
+    @Test
+    void shouldUpdateBusLocationWhenItAlreadyExists() {
+        // Arrange: Insert first location
+        BusLocation firstLocation = new BusLocation(
+            BUS_ID_2,
+            new GpsCoordinate(new BigDecimal("9.934739"), new BigDecimal("-84.087502")),
+            LocalDateTime.now()
+        );
+        repository.save(firstLocation);
+
+        // Update with second location
+        GpsCoordinate newCoordinate = new GpsCoordinate(
+            new BigDecimal("10.000000"),
+            new BigDecimal("-85.000000")
+        );
+        BusLocation updatedLocation = new BusLocation(BUS_ID_2, newCoordinate, LocalDateTime.now());
+
+        // Act: Update in database
+        repository.save(updatedLocation);
+
+        // Assert: Verify update
+        Optional<BusLocation> found = repository.findByBusId(BUS_ID_2);
+        assertTrue(found.isPresent());
+        assertEquals(newCoordinate.getLat(), found.get().getGpsCoordinate().getLat());
+        assertEquals(newCoordinate.getLng(), found.get().getGpsCoordinate().getLng());
+    }
+
+    // =========================================================
+    // FindByBusId (non-existent bus)
+    // =========================================================
+
+    @Test
+    void shouldReturnEmptyForNonExistentBus() {
+        // Arrange
+        UUID nonExistentBusId = UUID.randomUUID();
+
+        // Act
+        Optional<BusLocation> found = repository.findByBusId(nonExistentBusId);
+
+        // Assert
+        assertTrue(found.isEmpty());
+    }
+}
+```
+
+**Key characteristics:**
+- ✅ REAL PostgreSQL database (via TestContainers)
+- ✅ Docker container automatically started
+- ✅ SQL fixtures load test data from files
+- ✅ Tests persistence behavior
+- ✅ Transactions ROLLBACK after each test
+- ✅ Slow: ~5-10 seconds (includes container overhead)
+- ✅ Base class: `RepositoryIntegrationTest`
+
+---
+
+## 📊 Test Configuration Summary
+
+| Type | Package | Annotations | DB | Speed | Purpose |
+|------|---------|-------------|-------|-------|---------|
+| **Unit (Domain)** | `unit/domain/` | `@Test` | ❌ | 0.1s | Test business logic |
+| **Unit (UseCase)** | `unit/usecase/` | `@Test` | ❌ | 0.5s | Test application logic |
+| **Controller** | `integration/controller/` | `@WebMvcTest` + `@Sql` | ❌ (Mocked) | 1s | Test HTTP layer |
+| **Repository** | `integration/repository/` | `@DataJpaTest` + `@Testcontainers` | ✅ (Real) | 5-10s | Test persistence |
+| **E2E** | `e2e/` | `@SpringBootTest` | ✅ (Real) | 10-30s | Full integration tests |
+
+---
+
+## 🔧 Running Tests in CI/CD
+
+```bash
+# Run all tests (unit + integration + e2e)
+mvn clean verify
+
+# Run only fast tests (skip integration with DB)
+mvn clean test -DskipITs
+
+# Run only unit tests
+mvn clean test -Dtest=**/unit/**
+
+# Run only controller tests
+mvn clean test -Dtest=**/integration/controller/**
+
+# Run only repository tests (with TestContainers)
+mvn clean test -Dtest=**/integration/repository/**
+
+# Run specific test class
+mvn clean test -Dtest=BusLocationRepositoryTest
+
+# Run specific test method
+mvn clean test -Dtest=BusLocationRepositoryTest#shouldSaveBusLocationWhenItDoesNotExist
+
+# Build Docker image (after successful tests)
+docker build -t bustracking-backend:latest .
+
+# Run Docker Compose locally
+docker-compose up -d
+docker-compose logs -f postgres-dev
+```
+
+---
+
+## ✅ CI/CD Ready Checklist
+
+- ✅ **Java 21** configured in `pom.xml`
+- ✅ **Maven 3.9+** with proper plugin configuration
+- ✅ **Spring Boot 4.0.4** with testing dependencies
+- ✅ **TestContainers 1.20.6** for integration tests
+- ✅ **PostgreSQL 16-alpine** for dev and test
+- ✅ **Docker multi-stage build** for production
+- ✅ **Maven profiles** for dev/test/prod configurations
+- ✅ **SQL fixtures** for test data management
+- ✅ **Test base classes** (`RepositoryIntegrationTest`, `ControllerIntegrationTest`)
+- ✅ **Property files** for each environment
+- ✅ **Test examples** for each test type (unit, controller, repository)
+
