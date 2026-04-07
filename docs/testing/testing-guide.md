@@ -214,4 +214,66 @@ A nivel de E2E existe una distinción adicional que este proyecto no implementa 
 
 ---
 
-No toques nada más del documento.
+## Convención de nombres para métodos de test
+
+### Patrón: "should"
+
+Todos los métodos de test siguen el patrón `should[resultado]When[condición]`:
+
+```java
+@Test
+void shouldReturnBusLocationWhenBusExistsAndHasLocation() {
+    // Arrange, Act, Assert
+}
+
+@Test
+void shouldThrowNotFoundExceptionWhenBusDoesNotExist() {
+    // Arrange, Act, Assert
+}
+
+@Test
+void shouldCreateCoordinateWithValidValues() {
+    // Arrange, Act, Assert
+}
+```
+
+### Por qué este patrón
+
+1. **Sin prefijo "test"**: La anotación `@Test` de JUnit5, el nombre de la clase (`XyzTest`) y la ubicación en `src/test/java/` ya lo hacen explícito. Agregar `test` al inicio es redundante.
+
+2. **Convención Java**: El patrón usa `camelCase` puro, que es el estándar en Java. No usar `snake_case` (`test_como_esto`) porque va contra las convenciones idiomáticas del lenguaje.
+
+3. **Legibilidad**: Leer "should return bus location when bus exists" es más natural que "test_notificationApprovedWhenProjectHasUserUnitsIsBiggerThanZeroAnd..." (ilegible).
+
+4. **CamelCase**: Los IDEs, refactoring tools y desarrolladores Java están acostumbrados a este formato.
+
+### Cuándo el nombre es demasiado largo
+
+Si un método de test necesita un nombre muy largo (>80 caracteres), es **señal de que el test está probando demasiado**. En lugar de agregar más condiciones al nombre, refactoriza en múltiples tests:
+
+```java
+// ❌ Demasiadas condiciones
+void shouldCalculateDiscountWhenCustomerTypeIsPremiumAndPurchaseAmountIsGreaterThan1000AndReferralCodeIsValidAndPromoIsActive() {
+}
+
+// ✅ Refactorizado
+void shouldCalculateDiscountWhenCustomerIsPremium() { }
+void shouldApplyReferralBonus() { }
+void shouldCombinePromoCodes() { }
+```
+
+### DisplayName para contexto adicional
+
+Si necesitas proporcionar contexto humano más detallado (sin cambiar el nombre del método), usa `@DisplayName` de JUnit5:
+
+```java
+@Test
+@DisplayName("Should return bus location when bus exists and has location in the database")
+void shouldReturnBusLocationWhenBusExists() {
+    // Arrange, Act, Assert
+}
+```
+
+El `@DisplayName` aparece en reportes de test y en el IDE sin hacer el nombre del método ilegible.
+
+---
