@@ -100,7 +100,7 @@ CREATE TABLE bus (
 );
 
 CREATE TABLE bus_location (
-    -- we avoid
+    -- we avoid cross-fk between bus_location and bus
     --bus_id UUID PRIMARY KEY REFERENCES bus(id) ON DELETE CASCADE,
     bus_id UUID PRIMARY KEY,
     lat DECIMAL(9,6) NOT NULL,
