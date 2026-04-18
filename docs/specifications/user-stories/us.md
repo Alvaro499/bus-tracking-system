@@ -16,42 +16,6 @@
 ---
 
 
-**HU-02 — Buscar empresa como usuario**
-
-> Como **usuario**, quiero **buscar o seleccionar una empresa de buses desde una lista** para **ver únicamente los buses de esa empresa.**
-
-**Criterios de aceptación:**
-
-- **CA-01** — Given estoy en el mapa / When busco o selecciono una empresa / Then solo se muestran los buses de esa empresa
-- **CA-02** — Given escribo parte del nombre de una empresa / When el sistema busca / Then me aparecen sugerencias
-- **CA-03** — Given seleccioné una empresa / When quiero quitar el filtro / Then puedo ver todos los buses nuevamente
-
----
-
-**HU-03 — Ver horarios del día**
-
-> Como **usuario**, quiero **ver los horarios disponibles del día de una empresa** para **planificar a qué hora sale el bus que necesito.**
-
-**Criterios de aceptación:**
-
-- **CA-01** — Given seleccioné una empresa / When consulto sus horarios / Then veo la lista de salidas del día con hora y origen
-- **CA-02** — Given ya pasó la hora de una salida / When veo la lista / Then ese horario aparece diferenciado o deshabilitado
-- **CA-03** — Given no hay horarios registrados / When consulto / Then veo un mensaje indicando que no hay horarios disponibles
-
----
-
-**HU-04 — Ver bus de un horario específico**
-
-> Como **usuario**, quiero **seleccionar un horario y ver el bus correspondiente en el mapa** para **saber exactamente dónde está el autobús que voy a tomar.**
-
-**Criterios de aceptación:**
-
-- **CA-01** — Given hay un horario activo en este momento / When lo selecciono / Then el mapa resalta ese bus
-- **CA-02** — Given el horario seleccionado todavía no ha iniciado / When lo selecciono / Then el mapa no muestra ningún bus y avisa que aún no ha salido
-- **CA-03** — Given el horario seleccionado ya finalizó / When lo selecciono / Then el sistema me informa que ese servicio ya terminó
-
----
-
 **HU-05 — Ver paradas de una ruta**
 
 > Como **usuario**, quiero **ver las paradas de una ruta en el mapa** para **saber por dónde pasa el bus y dónde puedo abordarlo.**

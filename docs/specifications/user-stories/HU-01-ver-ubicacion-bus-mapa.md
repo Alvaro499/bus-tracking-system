@@ -45,7 +45,7 @@ El usuario ingresa a la aplicación y usa el buscador para encontrar una ruta (e
 
 **Mockup**
 
-![Búsqueda de rutas y visualización en mapa](./assets/hu01-mockup.svg)
+![Búsqueda de rutas y visualización en mapa](./assets/hu01-buscador-resultados-mockup.svg)
 
 
 ---
