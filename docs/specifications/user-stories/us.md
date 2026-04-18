@@ -13,43 +13,6 @@
 
 ## E-01 — Visualización pública
 
----
-
-
-**HU-05 — Ver paradas de una ruta**
-
-> Como **usuario**, quiero **ver las paradas de una ruta en el mapa** para **saber por dónde pasa el bus y dónde puedo abordarlo.**
-
-**Criterios de aceptación:**
-
-- **CA-01** — Given seleccioné una ruta / When la visualizo / Then las paradas aparecen marcadas sobre el mapa en orden
-- **CA-02** — Given hago clic en una parada / When se abre su detalle / Then veo el nombre o referencia de esa parada
-- **CA-03** — Given la empresa actualizó una parada / When el usuario consulta / Then ve la información actualizada
-
----
-
-**HU-06 — Ver solo buses activos según la hora**
-
-> Como **usuario**, quiero **que el mapa muestre únicamente buses que deberían estar en circulación ahora** para **no ver información que no corresponde a este momento.**
-
-**Criterios de aceptación:**
-
-- **CA-01** — Given un horario no ha iniciado todavía / When consulto el mapa / Then ese bus no aparece
-- **CA-02** — Given un horario ya terminó / When consulto el mapa / Then ese bus no aparece
-- **CA-03** — Given un bus está en su horario activo / When consulto el mapa / Then aparece visible
-
----
-
-**HU-07 — Ver variantes de una ruta**
-
-> Como **usuario**, quiero **ver las diferentes variantes de una ruta** para **entender hasta dónde llega cada servicio.**
-
-**Criterios de aceptación:**
-
-- **CA-01** — Given una ruta tiene variantes (ej: Cartago–Orosi y Cartago–Río Macho) / When la consulto / Then veo las variantes disponibles como opciones separadas
-- **CA-02** — Given selecciono una variante / When se muestra en el mapa / Then el recorrido y las paradas corresponden a esa variante específica
-
----
 
 ## E-02 — Registro y autenticación
 
