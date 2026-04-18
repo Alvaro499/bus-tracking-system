@@ -15,22 +15,8 @@
 
 ---
 
-**HU-01 — Ver buses en el mapa**
 
-> Como **usuario**, quiero **ver los autobuses activos en un mapa** para **conocer su ubicación actual sin tener que llamar a la empresa.**
-
-**Criterios de aceptación:**
-
-- **CA-01** — Given hay buses activos / When abro la app / Then veo sus marcadores en el mapa
-- **CA-02** — Given tengo el mapa abierto / When pasa un momento / Then los marcadores se actualizan solos
-- **CA-03** — Given no hay buses activos / When abro la app / Then veo el mapa vacío con un aviso
-- **CA-04** — Given hay marcadores en el mapa / When hago clic en uno / Then veo empresa, ruta y número de unidad
-- **CA-05** — Given un bus lleva tiempo sin moverse / When lo veo en el mapa / Then su marcador aparece diferente al de los activos
-- **CA-06** — Given soy un visitante cualquiera / When entro a la app / Then puedo ver el mapa sin iniciar sesión
-
----
-
-**HU-02 — Buscar empresa**
+**HU-02 — Buscar empresa como usuario**
 
 > Como **usuario**, quiero **buscar o seleccionar una empresa de buses desde una lista** para **ver únicamente los buses de esa empresa.**
 

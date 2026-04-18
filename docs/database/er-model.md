@@ -91,3 +91,7 @@ Para registrar quién modificó qué y cuándo, se utiliza una tabla de auditor�
 Cada fila registra el usuario que ejecutó la acción, el tipo de entidad afectada, el id del registro, la acción realizada, el estado anterior y el estado nuevo en formato JSON, y la fecha y hora del evento.
 
 Esto permite responder preguntas como qué cambios se hicieron sobre un bus específico, qué acciones realizó un administrador en particular, o qué tenía un registro antes de ser modificado. Además, si se agrega una nueva entidad al sistema en el futuro, no es necesario crear una nueva tabla de auditoría, solo empezar a registrar eventos con el nuevo entity_type.
+
+
+
+---
