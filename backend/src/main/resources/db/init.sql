@@ -6,6 +6,11 @@
 -- Reset: docker-compose down -v && docker-compose up -d
 -- ============================================================================
 
+
+gUIA DE REGLAS:
+
+- Los buses se identifican internamente por UUID, no por placa ni número interno.
+
 CREATE TABLE "user" (
     id UUID PRIMARY KEY,
     email VARCHAR(150) UNIQUE NOT NULL,
