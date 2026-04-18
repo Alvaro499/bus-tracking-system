@@ -16,32 +16,7 @@
 
 ## E-02 — Registro y autenticación
 
----
 
-**HU-08 — Registrar empresa**
-
-> Como **dueño de una empresa de buses**, quiero **registrar mi empresa en la plataforma** para **poder gestionar mis buses y rutas.**
-
-**Criterios de aceptación:**
-
-- **CA-01** — Given lleno el formulario con datos válidos / When envío la solicitud / Then recibo un correo de verificación
-- **CA-02** — Given uso un correo ya registrado / When intento registrarme / Then el sistema me avisa y no me deja continuar
-- **CA-03** — Given verifico mi correo / When completo el proceso / Then mi cuenta queda pendiente de aprobación por el administrador
-- **CA-04** — Given mi solicitud fue aprobada / When inicio sesión / Then puedo acceder al panel de gestión de mi empresa
-
----
-
-**HU-09 — Iniciar sesión**
-
-> Como **dueño de empresa o administrador**, quiero **iniciar sesión en la plataforma** para **acceder a las funciones de gestión.**
-
-**Criterios de aceptación:**
-
-- **CA-01** — Given ingreso credenciales válidas / When inicio sesión / Then accedo al panel según mi rol
-- **CA-02** — Given ingreso una contraseña incorrecta / When intento iniciar sesión / Then veo un mensaje de error
-- **CA-03** — Given mi cuenta no ha sido aprobada / When intento iniciar sesión / Then el sistema me informa que está pendiente de aprobación
-
----
 
 ## E-03 — Gestión interna de la empresa
 
