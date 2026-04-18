@@ -30,7 +30,7 @@ El administrador de la empresa puede gestionar los buses de su flota desde un pa
 
 **Criterios de Aceptación:**
 
-- **CA-01** — Al registrar un bus con todos los campos obligatorios válidos, el bus queda disponible en la flota de la empresa.
+- **CA-01** — Al registrar un bus con todos los campos obligatorios válidos, el bus queda disponible en la flota de la empresa, pero como `INACTIVE`.
 - **CA-02** — Al intentar registrar un bus con una placa ya existente en el sistema, se muestra un error y no se permite continuar.
 - **CA-03** — Al dejar un campo obligatorio vacío en el formulario, el proceso no se completa y se indica el campo faltante.
 - **CA-04** — Al editar la información de un bus, los cambios se reflejan de inmediato en el sistema.
