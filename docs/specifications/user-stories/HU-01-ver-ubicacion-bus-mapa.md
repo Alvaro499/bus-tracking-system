@@ -24,11 +24,11 @@ El usuario ingresa a la aplicación y usa el buscador para encontrar una ruta (e
 **Criterios de aceptación:**
 
 - **CA-01** — Cuando el usuario busca una ruta, el sistema muestra las rutas coincidentes con sus empresas y variantes disponibles.
-- **CA-02** — Al seleccionar una ruta y empresa, el usuario ve la lista de viajes del día con su estado: _pendiente_, _en curso_ o _finalizado_.
+- **CA-02** — Al seleccionar una ruta y empresa, el usuario ve la lista de viajes del día con su estado: _PENDIENTE_, _EN CURSO_ o __FINALIZADO__.
 - **CA-03** — Al seleccionar un viaje _en curso_, el mapa muestra el marcador del bus con empresa, número de unidad y ruta.
 - **CA-04** — La posición del marcador se actualiza automáticamente cada N segundos sin recargar la página.
-- **CA-05** — Al seleccionar un viaje _pendiente_, se muestra el mensaje: "Este servicio aún no ha iniciado."
-- **CA-06** — Al seleccionar un viaje _finalizado_, se muestra el mensaje: "Este servicio ya terminó."
+- **CA-05** — Al seleccionar un viaje _PENDIENTE_, se muestra el mensaje: "Este servicio aún no ha iniciado."
+- **CA-06** — Al seleccionar un viaje __FINALIZADO__, se muestra el mensaje: "Este servicio ya terminó."
 - **CA-07** — Si un bus lleva más de N minutos sin actualizar su posición, su marcador cambia visualmente e indica "Última ubicación conocida hace X minutos."
 - **CA-08** — Si no hay viajes en curso para la ruta buscada, el mapa aparece vacío con el aviso: "No hay buses en movimiento para esta ruta en este momento."
 - **CA-09** — El usuario puede buscar rutas y ver el mapa sin iniciar sesión.

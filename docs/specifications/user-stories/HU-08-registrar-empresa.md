@@ -22,7 +22,7 @@ El dueño de una empresa ingresa a la plataforma y completa un formulario de reg
 - **CA-01** — Al completar el formulario con datos válidos y enviarlo, el sistema envía un correo de verificación al dueño.
 - **CA-02** — Al intentar registrarse con un correo ya existente en el sistema, se muestra un mensaje de error y no se permite continuar.
 - **CA-03** — Al verificar el correo, la cuenta queda en estado pendiente de aprobación por el administrador global.
-- **CA-04** — Al ser aprobada la solicitud, el dueño recibe una notificación y puede iniciar sesión para acceder al panel de gestión.
+- **CA-04** — Al ser aprobada la solicitud, el dueño recibe un correo con una contraseña generada automáticamente y puede iniciar sesión por primera vez.
 - **CA-05** — Mientras la solicitud esté pendiente o rechazada, el dueño no puede acceder al panel de gestión.
 
 **Definition of Done:**

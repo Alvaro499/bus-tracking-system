@@ -20,46 +20,6 @@
 
 ## E-03 — Gestión interna de la empresa
 
----
-
-**HU-10 — Gestionar buses de la flota**
-
-> Como **administrador de empresa**, quiero **registrar y administrar los buses de mi flota** para **tener el control de mis unidades en el sistema.**
-
-**Criterios de aceptación:**
-
-- **CA-01** — Given completo el formulario de un bus / When lo registro / Then queda pendiente de aprobación del administrador global
-- **CA-02** — Given el bus fue aprobado / When consulto mi flota / Then aparece disponible para asignarse a rutas
-- **CA-03** — Given registro un bus / When indico si tiene rampa de accesibilidad / Then esa información queda visible para los usuarios
-- **CA-04** — Given un bus ya no está en servicio / When lo desactivo / Then deja de aparecer en el mapa
-
-
----
-
-**HU-11 — Gestionar rutas y variantes**
-
-> Como **administrador de empresa**, quiero **registrar las rutas y sus variantes** para **que los usuarios vean correctamente los recorridos disponibles.**
-
-**Criterios de aceptación:**
-
-- **CA-01** — Given creo una ruta / When la guardo / Then puedo agregarle variantes con destinos distintos
-- **CA-02** — Given una ruta tiene variantes / When el usuario consulta / Then ve cada variante como una opción separada
-- **CA-03** — Given modifico una ruta existente / When guardo los cambios / Then la información actualizada se refleja para los usuarios
-
----
-
-**HU-12 — Gestionar horarios**
-
-> Como **administrador de empresa**, quiero **registrar y actualizar los horarios de salida** para **que los usuarios sepan a qué horas opera cada ruta.**
-
-**Criterios de aceptación:**
-
-- **CA-01** — Given agrego un horario con hora y origen / When lo guardo / Then aparece en la consulta pública de horarios
-- **CA-02** — Given modifico un horario / When guardo los cambios / Then el horario anterior deja de mostrarse
-- **CA-03** — Given elimino un horario / When el usuario consulta / Then ese horario ya no aparece en la lista
-
----
-
 **HU-13 — Gestionar paradas**
 
 > Como **administrador de empresa**, quiero **registrar y actualizar las paradas de mis rutas** para **que los usuarios siempre tengan información correcta sobre dónde pasa el bus.**
