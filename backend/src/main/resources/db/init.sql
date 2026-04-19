@@ -18,7 +18,8 @@ CREATE TABLE "user" (
     email VARCHAR(150) UNIQUE NOT NULL,
     password VARCHAR(12) NOT NULL,
     global_role VARCHAR(20) NOT NULL CHECK (global_role IN ('PLATFORM_ADMIN', 'COMPANY_USER')),
-    is_active BOOLEAN DEFAULT TRUE,
+    -- it depends if it´s a company user admin or owner
+    is_active BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -67,6 +68,7 @@ CREATE TABLE route (
     id UUID PRIMARY KEY,
     company_id UUID NOT NULL REFERENCES company(id) ON DELETE RESTRICT,
     name VARCHAR(150) NOT NULL,
+    price DECIMAL(10,2) NOT NULL CHECK (price >= 0),
     origin VARCHAR(150) NOT NULL,
     destination VARCHAR(150) NOT NULL,
     flat_fare BOOLEAN DEFAULT FALSE,
