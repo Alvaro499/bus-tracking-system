@@ -39,6 +39,7 @@ El administrador de la empresa puede gestionar los buses de su flota desde un pa
 - **CA-07** — Al consultar la flota, el administrador ve todos los buses de su empresa con su estado actual.
 - **CA-08** — El campo de rampa de accesibilidad debe ser visible para los usuarios públicos al consultar un viaje.
 
+- **CA-09** — Al registrar un bus, el sistema genera automáticamente sus credenciales de dispositivo (ver HU-18).
 
 **Definition of Done:**
 
