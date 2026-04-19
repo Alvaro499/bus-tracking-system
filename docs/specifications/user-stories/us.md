@@ -23,30 +23,6 @@
 
 ## E-04 — Seguimiento en tiempo real
 
----
-
-**HU-16 — Enviar ubicación desde el bus**
-
-> Como **operador del dispositivo en el bus**, quiero **que el dispositivo envíe la ubicación automáticamente mientras la ruta está activa** para **que los usuarios puedan ver dónde está el bus en tiempo real.**
-
-**Criterios de aceptación:**
-
-- **CA-01** — Given el operador inicia la ruta en el dispositivo / When está en circulación / Then la ubicación se envía automáticamente de forma periódica
-- **CA-02** — Given el operador termina la ruta / When la cierra en el dispositivo / Then el bus deja de aparecer en el mapa
-- **CA-03** — Given el dispositivo pierde conexión / When la recupera / Then retoma el envío de ubicación automáticamente
-
----
-
-**HU-17 — Autenticar el dispositivo del bus**
-
-> Como **administrador de empresa**, quiero **que cada dispositivo instalado en un bus esté vinculado a esa unidad** para **evitar que cualquier dispositivo externo envíe ubicaciones falsas.**
-
-**Criterios de aceptación:**
-
-- **CA-01** — Given el dispositivo tiene credenciales válidas del bus / When envía su ubicación / Then el sistema la acepta y actualiza el mapa
-- **CA-02** — Given el dispositivo no tiene credenciales válidas / When intenta enviar / Then el sistema rechaza la información
-
----
 
 ## E-05 — Administración global
 
