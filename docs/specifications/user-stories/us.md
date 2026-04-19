@@ -21,30 +21,6 @@
 ## E-03 — Gestión interna de la empresa
 
 
-
-**HU-14 — Definir precio informativo**
-
-> Como **administrador de empresa**, quiero **registrar el precio del pasaje de cada ruta** para **que los usuarios tengan esa información antes de viajar.**
-
-**Criterios de aceptación:**
-
-- **CA-01** — Given registro un precio para una ruta / When el usuario consulta esa ruta / Then ve el precio como referencia
-- **CA-02** — Given actualizo el precio / When el usuario consulta / Then ve el precio nuevo
-
----
-
-**HU-15 — Gestionar administradores de la empresa**
-
-> Como **dueño de empresa**, quiero **asignar uno o dos administradores adicionales** para **que puedan gestionar la información sin depender siempre de mí.**
-
-**Criterios de aceptación:**
-
-- **CA-01** — Given invito a un usuario como administrador / When acepta / Then puede gestionar buses, rutas y horarios de mi empresa
-- **CA-02** — Given tengo ya dos administradores asignados / When intento agregar otro / Then el sistema no me lo permite
-- **CA-03** — Given elimino a un administrador / When intenta acceder / Then ya no tiene permisos sobre mi empresa
-
----
-
 ## E-04 — Seguimiento en tiempo real
 
 ---
