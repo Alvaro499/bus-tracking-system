@@ -1,6 +1,6 @@
 
 ---
-**HU-13 — Gestionar paradas**
+**HU-13 — Gestionar Catálogo de paradas**
 
 > Como administrador de empresa, quiero registrar, editar y consultar las paradas de mi empresa para tener un catálogo de paradas reutilizables en mis rutas.
 
