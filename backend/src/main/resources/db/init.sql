@@ -136,7 +136,8 @@ CREATE TABLE trip (
     schedule_id UUID NOT NULL REFERENCES schedule(id) ON DELETE RESTRICT,
     bus_id UUID NULL REFERENCES bus(id) ON DELETE SET NULL,
     trip_date DATE NOT NULL,
-    status VARCHAR(20) NOT NULL CHECK (status IN ('PLANNED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'REASSIGNED')),
+    status VARCHAR(20) NOT NULL CHECK (status IN ('PLANNED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'RELIEFED')),
+    cancelation_reason TEXT NULL,
     actual_start_time TIME NULL,
     actual_end_time TIME NULL,
     delay_minutes INT NULL,
@@ -156,6 +157,16 @@ CREATE TABLE route_stop_fare (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CHECK (end_date IS NULL OR end_date >= start_date)
+);
+
+-- table to manage bus credentials for authentication on the bus app side
+CREATE TABLE bus_credential (
+    id UUID PRIMARY KEY,
+    bus_id UUID NOT NULL REFERENCES bus(id) ON DELETE RESTRICT,
+    password_hash VARCHAR(255) NOT NULL,
+    issued_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    revoked_at TIMESTAMP NULL,
+    UNIQUE (bus_id)
 );
 
 -- ============================================================================
