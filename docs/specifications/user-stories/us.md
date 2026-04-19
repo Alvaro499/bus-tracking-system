@@ -20,17 +20,7 @@
 
 ## E-03 — Gestión interna de la empresa
 
-**HU-13 — Gestionar paradas**
 
-> Como **administrador de empresa**, quiero **registrar y actualizar las paradas de mis rutas** para **que los usuarios siempre tengan información correcta sobre dónde pasa el bus.**
-
-**Criterios de aceptación:**
-
-- **CA-01** — Given agrego una parada con nombre y ubicación / When la guardo / Then aparece en el mapa de esa ruta
-- **CA-02** — Given modifico o elimino una parada / When el usuario consulta / Then ve la información actualizada
-- **CA-03** — Given las paradas tienen un orden / When se muestran en el mapa / Then aparecen en ese orden a lo largo de la ruta
-
----
 
 **HU-14 — Definir precio informativo**
 
