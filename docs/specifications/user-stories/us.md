@@ -26,21 +26,7 @@
 
 ## E-05 — Administración global
 
----
 
-**HU-18 — Aprobar o rechazar empresas**
-
-> Como **administrador global**, quiero **revisar y aprobar o rechazar solicitudes de registro de empresas** para **evitar que cualquier persona publique información falsa en el sistema.**
-
-**Criterios de aceptación:**
-
-- **CA-01** — Given hay una solicitud pendiente / When la reviso / Then puedo aprobarla o rechazarla con una razón
-- **CA-02** — Given apruebo una empresa / When el dueño inicia sesión / Then puede empezar a gestionar su información
-- **CA-03** — Given rechazo una empresa / When el solicitante consulta su estado / Then ve el motivo del rechazo
-
-
----
-   
 **HU-20 — Gestionar administradores globales**
 
 > Como **administrador global**, quiero **poder agregar o quitar otros administradores globales** para **mantener el control del sistema entre personas de confianza.**

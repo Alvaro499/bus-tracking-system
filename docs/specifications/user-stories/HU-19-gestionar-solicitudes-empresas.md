@@ -67,6 +67,8 @@ El administrador de plataforma tiene acceso a un panel con todas las solicitudes
 ─────────────────────────────────────────────
   Motivo de rechazo *
   [ La cédula jurídica no corresponde  ]
+  [ El ministerio de transportes no lo 
+  reconoce como una empresa registrada ]
 
 ─────────────────────────────────────────────
   [ Confirmar rechazo ]
