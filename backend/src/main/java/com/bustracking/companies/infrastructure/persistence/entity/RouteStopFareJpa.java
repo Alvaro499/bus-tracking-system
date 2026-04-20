@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "route_stop_fare")
+@Table(name = "route_stop_fare", schema = "companies")
 @Getter
 @Setter
 @NoArgsConstructor

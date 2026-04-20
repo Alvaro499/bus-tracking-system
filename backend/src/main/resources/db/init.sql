@@ -14,10 +14,12 @@
 
 CREATE SCHEMA admin;
 CREATE SCHEMA companies;
-CREATE SCHEMA operations;
+CREATE SCHEMA tracking;
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
 -- ============================================================================
--- SCHEMA: admin
+-- SCHEMA: admin (USERS ONLY - no FK to companies yet)
 -- Owns platform governance: users, company approval requests, audit trail
 -- ============================================================================
 
@@ -30,30 +32,10 @@ CREATE TABLE admin."user" (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE admin.company_request (
-    id UUID PRIMARY KEY,
-    company_id UUID NOT NULL REFERENCES companies.company(id) ON DELETE CASCADE,
-    reviewed_by UUID NULL REFERENCES admin."user"(id) ON DELETE SET NULL,
-    status VARCHAR(20) NOT NULL CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
-    rejection_reason TEXT NULL,
-    requested_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    reviewed_at TIMESTAMP NULL
-);
-
-CREATE TABLE admin.audit_log (
-    id UUID PRIMARY KEY,
-    user_id UUID REFERENCES admin."user"(id) ON DELETE SET NULL,
-    entity_type VARCHAR(50) NOT NULL,
-    entity_id UUID NOT NULL,
-    action VARCHAR(50) NOT NULL CHECK (action IN ('CREATE', 'UPDATE', 'DELETE', 'ASSIGN', 'REASSIGN')),
-    old_values JSONB,
-    new_values JSONB,
-    occurred_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
 -- ============================================================================
 -- SCHEMA: companies
 -- Owns company operations: fleet, routes, stops, schedules and trips
+-- MUST be created before admin.company_request (which references it)
 -- ============================================================================
 
 CREATE TABLE companies.company (
@@ -164,6 +146,32 @@ CREATE TABLE companies.trip (
 );
 
 -- ============================================================================
+-- SCHEMA: admin (continued - FK to companies)
+-- Now companies.company exists, we can create company_request
+-- ============================================================================
+
+CREATE TABLE admin.company_request (
+    id UUID PRIMARY KEY,
+    company_id UUID NOT NULL REFERENCES companies.company(id) ON DELETE CASCADE,
+    reviewed_by UUID NULL REFERENCES admin."user"(id) ON DELETE SET NULL,
+    status VARCHAR(20) NOT NULL CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
+    rejection_reason TEXT NULL,
+    requested_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    reviewed_at TIMESTAMP NULL
+);
+
+CREATE TABLE admin.audit_log (
+    id UUID PRIMARY KEY,
+    user_id UUID REFERENCES admin."user"(id) ON DELETE SET NULL,
+    entity_type VARCHAR(50) NOT NULL,
+    entity_id UUID NOT NULL,
+    action VARCHAR(50) NOT NULL CHECK (action IN ('CREATE', 'UPDATE', 'DELETE', 'ASSIGN', 'REASSIGN')),
+    old_values JSONB,
+    new_values JSONB,
+    occurred_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ============================================================================
 -- SCHEMA: tracking
 -- Owns real-time data: bus location and device authentication
 -- High write frequency, volatile data, consumed by the bus app
@@ -214,7 +222,6 @@ CREATE INDEX idx_Route_OriginDestination ON companies.route(origin, destination)
 
 -- Partial text search on route name (e.g. user types "Cartago")
 -- Requires: CREATE EXTENSION IF NOT EXISTS pg_trgm;
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE INDEX idx_Route_Name_GIN ON companies.route USING GIN (name gin_trgm_ops);
 
 

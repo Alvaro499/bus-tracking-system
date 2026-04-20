@@ -14,7 +14,7 @@ import java.util.UUID;
 
 
 @Entity
-@Table(name = "trip")
+@Table(name = "trip", schema = "companies")
 @Getter
 @Setter
 @NoArgsConstructor

@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "bus_location")
+@Table(name = "bus_location", schema = "tracking")
 @Getter
 @Setter
 @NoArgsConstructor

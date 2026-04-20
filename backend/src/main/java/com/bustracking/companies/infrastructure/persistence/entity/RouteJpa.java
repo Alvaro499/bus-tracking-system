@@ -11,7 +11,7 @@ import java.util.UUID;
 
 
 @Entity
-@Table(name = "route")
+@Table(name = "route", schema = "companies")
 @Getter
 @Setter
 @NoArgsConstructor

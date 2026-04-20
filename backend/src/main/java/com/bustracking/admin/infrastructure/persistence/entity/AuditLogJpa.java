@@ -23,7 +23,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "audit_log")
+@Table(name = "audit_log", schema = "admin")
 @Getter
 @Setter
 @NoArgsConstructor
