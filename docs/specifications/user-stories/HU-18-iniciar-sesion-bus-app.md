@@ -173,5 +173,3 @@ Cada bus tiene una contraseña generada por el sistema asociada a su placa. El t
 ```
 
 ---
-
-¿Seguimos con E-05?
