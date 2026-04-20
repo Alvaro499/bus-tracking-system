@@ -164,19 +164,19 @@ CREATE TABLE companies.trip (
 );
 
 -- ============================================================================
--- SCHEMA: operations
+-- SCHEMA: tracking
 -- Owns real-time data: bus location and device authentication
 -- High write frequency, volatile data, consumed by the bus app
 -- ============================================================================
 
-CREATE TABLE operations.bus_location (
+CREATE TABLE tracking.bus_location (
     bus_id UUID PRIMARY KEY,
     lat DECIMAL(9,6) NOT NULL,
     lng DECIMAL(9,6) NOT NULL,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE operations.bus_credential (
+CREATE TABLE tracking.bus_credential (
     id UUID PRIMARY KEY,
     bus_id UUID NOT NULL REFERENCES companies.bus(id) ON DELETE RESTRICT,
     password_hash VARCHAR(255) NOT NULL,
