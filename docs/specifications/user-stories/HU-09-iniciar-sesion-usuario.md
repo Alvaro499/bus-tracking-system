@@ -1,7 +1,7 @@
 
 ---
 
-**HU-09 — Iniciar sesión en la plataforma**
+**HU-09 — Iniciar sesión en la plataforma como usuario**
 
 > El usuario ingresa su correo y contraseña. En el primer inicio de sesión el sistema le exige cambiar la contraseña generada automáticamente. Según su rol es redirigido al panel correspondiente.
 
