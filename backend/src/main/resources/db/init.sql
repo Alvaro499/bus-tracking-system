@@ -119,7 +119,7 @@ CREATE TABLE companies.schedule (
     id UUID PRIMARY KEY,
     route_id UUID NOT NULL REFERENCES companies.route(id) ON DELETE RESTRICT,
     departure_time TIME NOT NULL,
-    day_of_week SMALLINT NOT NULL CHECK (day_of_week BETWEEN 1 AND 7),
+    day_of_week INTEGER NOT NULL CHECK (day_of_week BETWEEN 1 AND 7),
     start_date DATE NOT NULL,
     end_date DATE NULL,
     is_active BOOLEAN DEFAULT TRUE,
