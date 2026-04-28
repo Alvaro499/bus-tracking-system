@@ -2,7 +2,7 @@ import type { BusLocation } from "../../domain/models/BusLocation";
 
 // Service responsible for managing bus locations
 
-const BASE_URL = import.meta.env.VITE_API_API_URL;
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 export async function getBusLocation(busId: string): Promise<BusLocation>{
     
