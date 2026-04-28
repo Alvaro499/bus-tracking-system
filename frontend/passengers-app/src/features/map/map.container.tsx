@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { BusLocation } from '../../domain/models/BusLocation';
 import { getBusLocation } from '../../infrastructure/services/busLocationService';
 import { usePolling } from '../../shared/hooks/usePolling';
+import { BusMap } from '../../components/BusMap';
 
 const BUS_ID = '650e8400-e29b-41d4-a716-446655440001'; // temporal, hardcodeado por ahora
 const POLLING_INTERVAL = 5000; // 5 segundos
@@ -24,8 +25,11 @@ export function MapContainer() {
   if (!busLocation) return <p>Cargando ubicación...</p>;
 
   return (
-    <p>
-      Bus: {busLocation.busId} — lat: {busLocation.lat}, lng: {busLocation.lng}
-    </p>
+    <>
+      <BusMap location={busLocation} />
+      <p>
+        Bus: {busLocation.busId} — lat: {busLocation.lat}, lng: {busLocation.lng}
+      </p>
+    </>
   );
 }
