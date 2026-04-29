@@ -1,5 +1,7 @@
 
-// This custom React hook allows us to set up a polling mechanism that repeatedly calls a specified callback function at defined intervals. It uses the useEffect and useRef hooks to manage the polling behavior and ensure that the latest version of the callback is always used.
+/**
+ * usePolling is a custom React hook that sets up a polling mechanism to repeatedly call a specified callback function at defined intervals.
+ */
 
 import { useEffect, useRef } from 'react';
 
