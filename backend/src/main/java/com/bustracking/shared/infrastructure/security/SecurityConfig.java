@@ -44,8 +44,8 @@ public class SecurityConfig {
         
         // Development origins
         config.setAllowedOrigins(List.of(
-            "http://localhost:5173",  // passengers-app (Vite)
-            "http://localhost:3000"   // management-app (Next.js) — future
+            "http://localhost:5173",  // passengers-app (Vite default port)
+            "http://localhost:3000"   // management-app (Next.js default port)
         ));
         
         // Production origins — uncomment and update when deploying
