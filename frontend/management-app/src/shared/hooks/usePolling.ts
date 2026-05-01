@@ -10,9 +10,9 @@ export function usePolling(callback: () => void, intervalMs: number){
     }, [callback]);
 
     useEffect(() => {
-        const tick = () => savedCallBack.current();
-        tick();
-        const id = setInterval(tick, intervalMs);
+        const executeCallback = () => savedCallBack.current();
+        executeCallback();
+        const id = setInterval(executeCallback, intervalMs);
         return () => clearInterval(id);
     }, [intervalMs]);   
 }
