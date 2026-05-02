@@ -12,7 +12,7 @@ export function usePolling(callback: () => void, intervalMs: number){
         savedCallBack.current = callback;
     }, [callback]);
 
-    // It executes only once when the component is mounted and sets up an interval 
+    // It executes only once, when the component is mounted and sets up an interval 
     // to execute every new version of the callback by accessing the current value of 
     // savedCallBack obj (which is in memory thanks to useRef) and clears the interval 
     // when the component is unmounted
