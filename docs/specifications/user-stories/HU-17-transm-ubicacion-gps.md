@@ -1,54 +1,106 @@
 
+Aquí va la HU fusionada:
+
 ---
 
-**HU-17 — Transmitir ubicación del bus en tiempo real**
+**HU-17 — Gestionar y transmitir el viaje en tiempo real desde la app del bus**
 
-> Como chofer, quiero que el dispositivo transmita mi ubicación automáticamente mientras el viaje está activo para que los usuarios puedan ver dónde está el bus en tiempo real.
+> Como chofer, quiero gestionar el estado de mi viaje desde la app del bus y que mi ubicación se transmita automáticamente mientras conduzco, para que los pasajeros puedan ver dónde está el bus en tiempo real.
+
+**Dependencias:**
+- SPIKE-01 ✅ completado
+- HU-18 — autenticación del dispositivo con JWT
 
 **Descripción:**
 
-El chofer inicia su viaje asignado desde la app del bus. A partir de ese momento el dispositivo transmite la ubicación automáticamente de forma periódica sin intervención manual. Al finalizar el viaje, la transmisión se detiene y el bus desaparece del mapa público. Si se pierde la señal, el sistema retoma la transmisión automáticamente al recuperarla.
+El chofer accede a la app del bus y ve los viajes asignados para el día actual. Selecciona el viaje que realizará y lo inicia — a partir de ese momento el dispositivo transmite su ubicación automáticamente sin intervención adicional. Durante el viaje puede confirmar las paradas por las que va pasando. Al finalizar o cancelar el viaje, la transmisión se detiene automáticamente y el bus desaparece del mapa público. Si el dispositivo pierde señal, retoma la transmisión automáticamente al recuperarla.
 
 **Supuestos:**
 
-- Esta funcionalidad vive en una app separada instalada en el dispositivo del bus, distinta a la app pública de usuarios.
+- Esta funcionalidad vive en `management-app`, en una sección exclusiva para el chofer.
 - El dispositivo debe estar autenticado antes de poder transmitir (ver HU-18).
+- Los viajes del día se generan automáticamente cada día a medianoche como `PLANNED` a partir de los horarios activos.
 - La transmisión ocurre únicamente mientras el viaje tiene estado `IN_PROGRESS`.
+- Al iniciar el viaje, la transmisión comienza automáticamente — el chofer no activa nada extra.
+- Al finalizar o cancelar el viaje, la transmisión se detiene automáticamente.
 - El sistema almacena solo la última posición conocida del bus, no el historial de coordenadas.
-- La frecuencia de transmisión se define con el PO (valor inicial sugerido: cada 5 segundos).
-- Si el dispositivo pierde señal por más de N minutos, el marcador del bus cambia visualmente en el mapa público indicando la última posición conocida.
+- La frecuencia de transmisión es cada 5 segundos — validado en SPIKE-01.
+- Un viaje cancelado no puede volver a iniciarse.
+- La cancelación requiere un motivo obligatorio.
+- Un viaje solo puede ser tomado por un bus a la vez.
+- Si un viaje del día anterior aún está `IN_PROGRESS`, se conserva en su estado actual sin modificarse.
+- GPS requiere HTTPS en dispositivos móviles — confirmado en SPIKE-01.
 
 **Criterios de aceptación:**
 
-- **CA-01** — Al iniciar el viaje desde la app, el dispositivo comienza a transmitir la ubicación automáticamente sin intervención adicional del chofer.
-- **CA-02** — La posición del bus en el mapa público se actualiza periódicamente mientras el viaje está activo.
-- **CA-03** — Al finalizar el viaje desde la app, la transmisión se detiene y el bus desaparece del mapa público.
-- **CA-04** — Si el dispositivo pierde señal y la recupera, retoma la transmisión automáticamente sin intervención del chofer.
-- **CA-05** — Si el dispositivo lleva más de N minutos sin transmitir, el mapa público indica la última posición conocida y el tiempo transcurrido.
+- **CA-01** — Al abrir la app, el chofer ve los viajes del día con estado `PLANNED` disponibles para tomar.
+- **CA-02** — Al seleccionar un viaje y confirmarlo, el estado cambia a `IN_PROGRESS` y la transmisión de ubicación comienza automáticamente.
+- **CA-03** — Al intentar tomar un viaje ya tomado por otro bus, el sistema lo impide e informa el motivo.
+- **CA-04** — Durante el viaje, el chofer puede marcar cada parada como completada en orden.
+- **CA-05** — Las paradas ya confirmadas no pueden deshacerse.
+- **CA-06** — La posición del bus en el mapa público se actualiza cada 5 segundos mientras el viaje está `IN_PROGRESS`.
+- **CA-07** — Si el dispositivo pierde señal y la recupera, retoma la transmisión automáticamente sin intervención del chofer.
+- **CA-08** — Al finalizar el viaje, el estado cambia a `COMPLETED` y la transmisión se detiene automáticamente.
+- **CA-09** — Al cancelar el viaje, el estado cambia a `CANCELLED`, se registra el motivo y la transmisión se detiene automáticamente.
+- **CA-10** — Un viaje cancelado no puede volver a iniciarse.
 
 **Definition of Done:**
 
-- [ ] Transmisión automática de ubicación implementada y funcional en la app del bus.
-- [ ] Inicio y fin de transmisión vinculados al estado del viaje.
-- [ ] Lógica de reconexión automática implementada.
-- [ ] Indicador de última posición conocida funcionando en el mapa público.
-- [ ] Los criterios CA-01 a CA-05 están cubiertos por pruebas automatizadas.
-- [ ] Sin bugs críticos abiertos relacionados a esta HU.
+- [ ] Lista de viajes del día implementada y funcional en la app del bus
+- [ ] Flujo completo de inicio, confirmación de paradas, finalización y cancelación implementado
+- [ ] Transmisión de ubicación vinculada al estado `IN_PROGRESS` del viaje
+- [ ] Transmisión se detiene automáticamente al cambiar el estado a `COMPLETED` o `CANCELLED`
+- [ ] JWT incluido en cada petición de transmisión
+- [ ] Reconexión automática de transmisión implementada
+- [ ] Generación automática diaria de viajes desde horarios activos implementada
+- [ ] Probado en dispositivo móvil real con HTTPS
+- [ ] Los criterios CA-01 a CA-10 están cubiertos por pruebas automatizadas
+- [ ] Interfaz funcional en móvil y escritorio
+- [ ] Sin bugs críticos abiertos relacionados a esta HU
 
-**Mockup — app del bus:**
+**Mockup:**
 
 ```
 ─────────────────────────────────────────────
-  Viaje asignado
-  Ruta 300-C — Terminal SJ → Cartago
-  Salida: 05:45 a.m.
+  Viajes disponibles — Hoy
 ─────────────────────────────────────────────
-  Estado: EN CURSO
-  Transmitiendo ubicación...  ● 
+  Ruta 300-C   Terminal SJ → Cartago
+  Salida: 05:45 a.m.                  [Tomar]
+
+  Ruta 300-C   Terminal SJ → Cartago
+  Salida: 06:30 a.m.                  [Tomar]
+─────────────────────────────────────────────
+```
+
+```
+─────────────────────────────────────────────
+  Viaje en curso — Ruta 300-C
+  Terminal SJ → Cartago — 05:45 a.m.
+  Transmitiendo ubicación... ●
 
   Última transmisión: hace 3 seg
 ─────────────────────────────────────────────
-  [ Finalizar viaje ]
+  Paradas
+  ──────────────────────────────────────────
+  ✓  Terminal San José
+  ✓  La Sabana
+  →  Paseo Colón                [Confirmar]
+     Tres Ríos
+     Cartago
+─────────────────────────────────────────────
+  [ Finalizar viaje ]   [ Cancelar viaje ]
+─────────────────────────────────────────────
+```
+
+```
+─────────────────────────────────────────────
+  Cancelar viaje
+─────────────────────────────────────────────
+  Motivo *
+  [ Falla mecánica                     ]
+
+─────────────────────────────────────────────
+  [ Confirmar cancelación ]
 ─────────────────────────────────────────────
 ```
 
