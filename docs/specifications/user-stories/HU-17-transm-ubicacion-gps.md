@@ -1,6 +1,4 @@
 
-Aquí va la HU fusionada:
-
 ---
 
 **HU-17 — Gestionar y transmitir el viaje en tiempo real desde la app del bus**
