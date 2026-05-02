@@ -66,10 +66,6 @@ Se puede proceder con HU-17, HU-18 y HU-21 tal como están planteadas.
 
 **Ubicación**: `frontend/management-app/src/hooks/` y `frontend/passengers-app/src/components/`
 
-## Siguiente paso
-
-→ Crear HU-17 usando artefactos de este SPIKE como base
-
 ---
 
 **Investigador(es)**: [nombre]  
