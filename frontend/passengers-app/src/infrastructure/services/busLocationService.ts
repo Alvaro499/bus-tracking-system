@@ -1,20 +1,37 @@
 import type { BusLocation } from "../../domain/models/BusLocation";
+import { httpClient } from "../../lib/httpClient";
 
-// Service responsible for managing bus locations
+/**
+ * Service for managing bus location updates.
+ * Delegates all HTTP handling to httpClient.
+ * Errors flow up to GlobalErrorBoundary without try-catch.
+ */
+export const busLocationService = {
+  /**
+   * Retrieves the current location of a bus.
+   * Throws ApiErrorClass if backend returns error.
+   */
+  async getBusLocation(busId: string): Promise<BusLocation> {
+    return httpClient.get<BusLocation>(`/tracking/buses/${busId}/location`);
+  },
 
-const BASE_URL = import.meta.env.VITE_API_URL;
-
-export async function getBusLocation(busId: string): Promise<BusLocation>{
-    
-    
-    const response = await fetch(`${BASE_URL}/tracking/buses/${busId}/location`);
-    
-    if (!response.ok){
-        const error = await response.json();
-        throw new Error(error.errorCode);
-    }
-    return response.json()
-}
+  /**
+   * Updates the location of a bus.
+   * Throws ApiErrorClass if backend returns error.
+   */
+  async updateBusLocation(busId: string, lat: number, lng: number): Promise<void> {
+    await httpClient.post(`/tracking/buses/${busId}/location`, { lat, lng });
+  },
+};
 
 
-//export async function updateBusLocation(busId: string, lat: number, lng: number): Promise<BusLocation>{}
+
+/**
+ * Equivalence with older version:
+    export async function getBusLocation(busId: string) { ... }
+    export async function updateBusLocation(busId: string) { ... }
+
+    // We used to call them like this:
+    await getBusLocation(busId);
+    await updateBusLocation(busId, lat, lng);
+ */
