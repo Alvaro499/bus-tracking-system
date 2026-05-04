@@ -1,18 +1,17 @@
 
----------- For UserStory #17: As a passenger, I want to see the real-time location of the bus on a map, so that I can track its arrival.
+-- ============================================================================
+-- DEVELOPMENT SEEDS ORCHESTRATOR
+-- ============================================================================
+-- Carga todos los seeds de test en orden de dependencias.
+-- IMPORTANTE: Mantener orden (base primero, luego features por HU)
+-- ============================================================================
 
-DELETE FROM tracking.bus_location WHERE bus_id = '650e8400-e29b-41d4-a716-446655440001';
-DELETE FROM companies.bus WHERE id = '650e8400-e29b-41d4-a716-446655440001';
-DELETE FROM companies.company WHERE id = '550e8400-e29b-41d4-a716-446655440000';
+-- Base seeds (required for all features)
+\i seeds/00-base.sql
 
--- Insert test data
-INSERT INTO companies.company (id, tax_id, name, email, phone, status, created_at, updated_at)
-VALUES ('550e8400-e29b-41d4-a716-446655440000', '3101000000', 'Empresa Test', 'test@test.com', '22000000', 'ACTIVE', NOW(), NOW());
+-- Feature seeds by UserStory
+\i seeds/hu-17-trips.sql
 
-INSERT INTO companies.bus (id, company_id, plate, internal_number, has_ramp, status, created_at, updated_at)
-VALUES ('650e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440000', 'CRC001', '001', false, 'ACTIVE', NOW(), NOW());
-
-INSERT INTO tracking.bus_location (bus_id, lat, lng, updated_at)
-VALUES ('650e8400-e29b-41d4-a716-446655440001', 9.934739, -84.087502, NOW());
-
----------- UserStory #17 ----------
+-- Future HUs can be added below:
+-- \i seeds/hu-18-auth.sql
+-- \i seeds/hu-19-notifications.sql
