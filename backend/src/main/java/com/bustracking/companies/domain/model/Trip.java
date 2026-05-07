@@ -22,7 +22,10 @@ public class Trip {
 
     private UUID busId;
 
+
     private LocalDate tripDate;
+
+    private String cancellationReason;
 
     private TripStatus status;
 
@@ -37,4 +40,15 @@ public class Trip {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+    public Trip(UUID id, UUID scheduleId, UUID busId, LocalDate tripDate,
+                TripStatus status, LocalTime actualStartTime, LocalTime actualEndTime) {
+        this.id = id;
+        this.scheduleId = scheduleId;
+        this.busId = busId;
+        this.tripDate = tripDate;
+        this.status = status;
+        this.actualStartTime = actualStartTime;
+        this.actualEndTime = actualEndTime;
+    }
 }
