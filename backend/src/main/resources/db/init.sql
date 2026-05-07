@@ -115,6 +115,13 @@ CREATE TABLE companies.bus (
     updated_at TIMESTAMP NOT NULL
 );
 
+CREATE TABLE companies.bus_route (
+    bus_id UUID NOT NULL REFERENCES companies.bus(id) ON DELETE CASCADE,
+    route_id UUID NOT NULL REFERENCES companies.route(id) ON DELETE CASCADE,
+    PRIMARY KEY (bus_id, route_id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE companies.schedule (
     id UUID PRIMARY KEY,
     route_id UUID NOT NULL REFERENCES companies.route(id) ON DELETE RESTRICT,
@@ -213,6 +220,13 @@ CREATE INDEX idx_CompanyUser_CompanyId ON companies.company_user(company_id);
 CREATE INDEX idx_Route_CompanyId ON companies.route(company_id);
 CREATE INDEX idx_Stop_CompanyId ON companies.stop(company_id);
 CREATE INDEX idx_Bus_CompanyId ON companies.bus(company_id);
+
+-- Bus Route Assignment (used when filtering trips by assigned routes)
+-- Used when driver sees only trips of their assigned routes
+-- Used when admin assigns/removes routes from buses
+-- ----------------------------------------------------------------------------
+CREATE INDEX idx_BusRoute_BusId ON companies.bus_route(bus_id);
+CREATE INDEX idx_BusRoute_RouteId ON companies.bus_route(route_id);
 
 -- ----------------------------------------------------------------------------
 -- Public Search (used by end users searching for routes)
