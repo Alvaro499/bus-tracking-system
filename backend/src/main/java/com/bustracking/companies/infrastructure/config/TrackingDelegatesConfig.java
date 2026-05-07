@@ -1,12 +1,13 @@
 package com.bustracking.companies.infrastructure.config;
 
-import java.util.UUID;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.bustracking.companies.domain.repository.BusRepository;
+import com.bustracking.companies.domain.repository.TripRepository;
 import com.bustracking.tracking.domain.contract.BusExistsById;
+import com.bustracking.tracking.domain.contract.GetTodayPlannedTripsByBusRoutes;
+import com.bustracking.tracking.domain.model.TripView;
 
 /**
  * Configuration for Tracking Module Delegates
@@ -28,10 +29,13 @@ import com.bustracking.tracking.domain.contract.BusExistsById;
 public class TrackingDelegatesConfig {
 
     private final BusRepository busRepository;
+    private final TripRepository tripRepository;
 
-    public TrackingDelegatesConfig(BusRepository busRepository) {
+
+    public TrackingDelegatesConfig(BusRepository busRepository, TripRepository tripRepository) {
         this.busRepository = busRepository;
-    }
+        this.tripRepository = tripRepository;
+    }   
 
     /**
      * Provides a delegate for checking if a bus exists
@@ -50,5 +54,23 @@ public class TrackingDelegatesConfig {
         // This is equivalent to:
         // BusExistsById delegate = (UUID busId) -> busRepository.existsById(busId);
         return busRepository::existsById;
+    }
+
+    // Importing TripView is not a problem because it's a simple DTO used for data transfer between modules.
+    // The tracking module only knows about TripView, not the internal Trip entity or JPA
+    @Bean
+    public GetTodayPlannedTripsByBusRoutes getTodayPlannedTripsByBusRoutes() {
+        return busId -> tripRepository.findTodayPlannedTripsByBusRoutes(busId)
+            .stream()
+            .map(trip -> new TripView(
+                trip.getId(),
+                trip.getScheduleId(),
+                trip.getBusId(),
+                trip.getTripDate(),
+                trip.getStatus().name(), // TripStatus enum → String
+                trip.getActualStartTime(),
+                trip.getActualEndTime()
+            ))
+            .toList();
     }
 }

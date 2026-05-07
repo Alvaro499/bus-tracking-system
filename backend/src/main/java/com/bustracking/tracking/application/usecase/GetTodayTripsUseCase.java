@@ -1,0 +1,38 @@
+package com.bustracking.tracking.application.usecase;
+
+import java.util.List;
+import java.util.UUID;
+
+import com.bustracking.tracking.domain.contract.BusExistsById;
+import com.bustracking.tracking.domain.contract.GetTodayPlannedTripsByBusRoutes;
+import com.bustracking.tracking.domain.model.TripView;
+
+public class GetTodayTripsUseCase {
+
+    private final GetTodayPlannedTripsByBusRoutes getTodayTripsDelegate;
+    private final BusExistsById busExistsById;
+
+    public GetTodayTripsUseCase(GetTodayPlannedTripsByBusRoutes getTodayTripsDelegate,
+                                BusExistsById busExistsById) {
+        this.getTodayTripsDelegate = getTodayTripsDelegate;
+        this.busExistsById = busExistsById;
+    }
+
+    public List<TripView> execute(UUID busId) {
+        if (!busExistsById.check(busId)) {
+            throw new IllegalArgumentException("Bus with ID " + busId + " does not exist.");
+        }
+        return getTodayTripsDelegate.execute(busId).stream()
+                .map(tripData -> new TripView(
+                        tripData.getId(),
+                        tripData.getScheduleId(),
+                        tripData.getBusId(),
+                        tripData.getTripDate(),
+                        tripData.getStatus(),
+                        tripData.getActualStartTime(),
+                        tripData.getActualEndTime()
+                ))
+                .toList();
+    }
+
+}
