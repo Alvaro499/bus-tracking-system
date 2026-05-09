@@ -116,10 +116,11 @@ CREATE TABLE companies.bus (
 );
 
 CREATE TABLE companies.bus_route (
+    id UUID PRIMARY KEY,
     bus_id UUID NOT NULL REFERENCES companies.bus(id) ON DELETE CASCADE,
     route_id UUID NOT NULL REFERENCES companies.route(id) ON DELETE CASCADE,
-    PRIMARY KEY (bus_id, route_id),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (bus_id, route_id)
 );
 
 CREATE TABLE companies.schedule (
