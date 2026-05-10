@@ -1441,4 +1441,3 @@ El administrador de plataforma puede agregar nuevos administradores ingresando s
 ```
 
 ---
-
