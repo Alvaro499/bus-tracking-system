@@ -1,9 +1,14 @@
-package com.bustracking.tracking.infrastructure.web.dto.response;
+package com.bustracking.companies.domain.dto;
 
 import java.time.LocalTime;
 import java.util.UUID;
 
-public record TripResponse(
+
+/**
+ * Projection interface for fetching trip schedule details.
+ */
+
+public record TripScheduleProjection(
     UUID id,
     String routeName,
     String origin,

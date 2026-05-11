@@ -32,12 +32,11 @@ public class TrackingTripController {
         List<TripResponse> response = trips.stream()
             .map(trip -> new TripResponse(
                 trip.getId(),
-                trip.getScheduleId(),
-                trip.getBusId(),
-                trip.getTripDate(),
-                trip.getStatus(),
-                trip.getActualStartTime(),
-                trip.getActualEndTime()
+                trip.getRouteName(),
+                trip.getOrigin(),
+                trip.getDestination(),
+                trip.getDepartureTime(),
+                trip.getStatus()
             ))
             .toList();
 

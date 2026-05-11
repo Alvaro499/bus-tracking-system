@@ -1,6 +1,5 @@
 package com.bustracking.tracking.domain.repository;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import com.bustracking.tracking.domain.model.BusLocation;

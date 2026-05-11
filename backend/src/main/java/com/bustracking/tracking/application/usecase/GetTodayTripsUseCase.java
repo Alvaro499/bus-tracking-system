@@ -22,17 +22,9 @@ public class GetTodayTripsUseCase {
         if (!busExistsById.check(busId)) {
             throw new IllegalArgumentException("Bus with ID " + busId + " does not exist.");
         }
-        return getTodayTripsDelegate.execute(busId).stream()
-                .map(tripData -> new TripView(
-                        tripData.getId(),
-                        tripData.getScheduleId(),
-                        tripData.getBusId(),
-                        tripData.getTripDate(),
-                        tripData.getStatus(),
-                        tripData.getActualStartTime(),
-                        tripData.getActualEndTime()
-                ))
-                .toList();
+
+        // Companies module by using the contract returns the list of today's planned trips for the current bus
+        return getTodayTripsDelegate.execute(busId);
     }
 
 }

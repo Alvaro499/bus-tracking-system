@@ -62,14 +62,13 @@ public class TrackingDelegatesConfig {
     public GetTodayPlannedTripsByBusRoutes getTodayPlannedTripsByBusRoutes() {
         return busId -> tripRepository.findTodayPlannedTripsByBusRoutes(busId)
             .stream()
-            .map(trip -> new TripView(
-                trip.getId(),
-                trip.getScheduleId(),
-                trip.getBusId(),
-                trip.getTripDate(),
-                trip.getStatus().name(), // TripStatus enum → String
-                trip.getActualStartTime(),
-                trip.getActualEndTime()
+            .map(result -> new TripView(
+                result.id(),
+                result.routeName(),
+                result.origin(),
+                result.destination(),
+                result.departureTime(),
+                result.status()
             ))
             .toList();
     }
