@@ -7,12 +7,12 @@ import com.bustracking.tracking.domain.contract.BusExistsById;
 import com.bustracking.tracking.domain.contract.GetTodayPlannedTripsByBusRoutes;
 import com.bustracking.tracking.domain.model.TripView;
 
-public class GetTodayTripsUseCase {
+public class GetTodayPlannedTripsUseCase {
 
     private final GetTodayPlannedTripsByBusRoutes getTodayTripsDelegate;
     private final BusExistsById busExistsById;
 
-    public GetTodayTripsUseCase(GetTodayPlannedTripsByBusRoutes getTodayTripsDelegate,
+    public GetTodayPlannedTripsUseCase(GetTodayPlannedTripsByBusRoutes getTodayTripsDelegate,
                                 BusExistsById busExistsById) {
         this.getTodayTripsDelegate = getTodayTripsDelegate;
         this.busExistsById = busExistsById;
