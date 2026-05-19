@@ -20,7 +20,7 @@ import com.bustracking.shared.valueobjects.GpsCoordinate;
 @Getter
 public final class BusLocation {
 
-    private final UUID busId;
+    private final UUID busId; // it comes from company module
     private final GpsCoordinate gpsCoordinate;
     private final LocalDateTime updatedAt;
 
