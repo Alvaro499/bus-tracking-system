@@ -30,4 +30,8 @@ public enum ErrorCode {
     // GENERIC
     EXTERNAL_ERROR,
     INTERNAL_ERROR, BUS_LOCATION_NOT_FOUND,
+    
+    // TRIPS
+    TRIP_NOT_FOUND,
+    TRIP_ALREADY_TAKEN
 }
