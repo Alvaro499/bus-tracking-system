@@ -12,22 +12,21 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 //https://docs.spring.io/spring-framework/docs/6.2.x/javadoc-api/org/springframework/test/context/bean/override/mockito/MockitoBean.html
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.bustracking.shared.exception.ErrorCode;
-import com.bustracking.shared.exception.NotFoundException;
 import com.bustracking.shared.testinfrastructure.ControllerIntegrationTest;
 import com.bustracking.shared.valueobjects.GpsCoordinate;
 import com.bustracking.tracking.application.usecase.GetBusLocationUseCase;
 import com.bustracking.tracking.application.usecase.UpdateBusLocationUseCase;
 import com.bustracking.tracking.domain.model.BusLocation;
+import com.bustracking.tracking.infrastructure.web.controller.BusLocationController;
 
-
+@WebMvcTest(BusLocationController.class)
 class BusLocationControllerTest extends ControllerIntegrationTest {
 
     // In order to test the controller in isolation, we will mock the use cases it depends on.
@@ -77,38 +76,8 @@ class BusLocationControllerTest extends ControllerIntegrationTest {
 
 
     // =========================================================
-    // GET /tracking/buses/{busId}/location - Error Cases
+    // GET /tracking/buses/{busId}/location - Spring Validation
     // =========================================================
-
-    @Test
-    void shouldReturn404WhenBusDoesNotExist() throws Exception {
-        // Arrange
-        when(getBusLocationUseCase.execute(validBusId))
-            .thenThrow(new NotFoundException(
-                ErrorCode.BUS_NOT_FOUND,
-                "Bus not found",
-                "Bus with ID " + validBusId + " does not exist"
-            ));
-
-        // Act & Assert
-        mockMvc.perform(get("/tracking/buses/{busId}/location", validBusId))
-            .andExpect(status().isNotFound());
-    }
-
-    @Test
-    void shouldReturn404WhenBusHasNoLocation() throws Exception {
-        // Arrange
-        when(getBusLocationUseCase.execute(validBusId))
-            .thenThrow(new NotFoundException(
-                ErrorCode.BUS_LOCATION_NOT_FOUND,
-                "Bus location not found",
-                "Bus with ID " + validBusId + " has no location registered yet"
-            ));
-
-        // Act & Assert
-        mockMvc.perform(get("/tracking/buses/{busId}/location", validBusId))
-            .andExpect(status().isNotFound());
-    }
 
     @Test
     void shouldReturn400WhenBusIdIsNotValidUUID() throws Exception {
@@ -116,6 +85,9 @@ class BusLocationControllerTest extends ControllerIntegrationTest {
         mockMvc.perform(get("/tracking/buses/{busId}/location", "not-a-valid-uuid"))
             .andExpect(status().isBadRequest());
     }
+
+    // Note: NotFoundException → 404 is tested in TrackingExceptionHandlerTest
+    // This keeps the contract centralized and avoids duplication
 
     // =========================================================
     // POST /tracking/buses/{busId}/location - Happy Path
@@ -148,37 +120,8 @@ class BusLocationControllerTest extends ControllerIntegrationTest {
 
 
     // =========================================================
-    // POST /tracking/buses/{busId}/location - Error Cases
+    // POST /tracking/buses/{busId}/location - Spring Validation
     // =========================================================
-
-    @Test
-    void shouldReturn404WhenPostingLocationForNonExistentBus() throws Exception {
-        // Arrange
-        String requestBody = objectMapper.writeValueAsString(
-            new Object() {
-                public final BigDecimal lat = new BigDecimal("9.934739");
-                public final BigDecimal lng = new BigDecimal("-84.087502");
-            }
-        );
-
-        //only for void methods, for methods that return something, we use when().thenReturn()
-        doThrow(new NotFoundException(
-                ErrorCode.BUS_NOT_FOUND,
-                "Bus not found",
-                "Bus with ID " + validBusId + " does not exist"
-            ))
-            .when(updateBusLocationUseCase)
-            .execute(eq(validBusId), any(), any());
-
-        // Act & Assert
-        mockMvc.perform(post("/tracking/buses/{busId}/location", validBusId)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(requestBody))
-            .andExpect(status().isNotFound());
-
-        verify(updateBusLocationUseCase, times(1))
-            .execute(eq(validBusId), any(), any());
-    }
 
     @Test
     void shouldReturn400WhenPostingWithInvalidUUID() throws Exception {
@@ -200,11 +143,7 @@ class BusLocationControllerTest extends ControllerIntegrationTest {
             .execute(any(), any(), any());
     }
 
-    // Covered by GpsCoordinate domain validation (null lat/lng → ValidationException → 400)
-    // See: GpsCoordinateTest#shouldThrowValidationExceptionWhenLatOrLngIsNull
-    @Test
-    void shouldReturn400WhenPostingWithMissingRequiredFields() {}
-
+    
     @Test
     void shouldReturn400WhenPostingWithoutContentType() throws Exception {
         // Arrange
@@ -223,4 +162,7 @@ class BusLocationControllerTest extends ControllerIntegrationTest {
         verify(updateBusLocationUseCase, never())
             .execute(any(), any(), any());
     }
+
+    // Note: NotFoundException → 404 is tested in TrackingExceptionHandlerTest
+    // This keeps the contract centralized and avoids duplication
 }

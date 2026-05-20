@@ -7,7 +7,10 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
-import com.bustracking.shared.exception.ApplicationException;
+import com.bustracking.shared.exception.BusinessRuleException;
+import com.bustracking.shared.exception.ExternalServiceException;
+import com.bustracking.shared.exception.NotFoundException;
+import com.bustracking.shared.exception.ValidationException;
 
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -65,19 +68,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(400).body(response);
     }
 
-    @ExceptionHandler(ApplicationException.class)
-    public ResponseEntity<ErrorResponse> handleApplication(ApplicationException ex){
-
-        log.warn("Application error: {}", ex.getDevMessage(), ex);
-
-        ErrorResponse response = new ErrorResponse(
-            ex.getErrorCode().name(),
-            ex.getUserMessage()
-        );
-        // 400 = HttpStatusCode.BAD_REQUEST
-        return ResponseEntity.status(400).body(response);
-    }
-
     /**
      * Catches all unexpected exceptions that were not handled by any other handler.
      * This is the last resort to prevent unhandled exceptions from leaking to the client.
@@ -93,4 +83,45 @@ public class GlobalExceptionHandler {
         // 500 = HttpStatusCode.INTERNAL_SERVER_ERROR
         return ResponseEntity.status(500).body(response);
     }
+
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNotFound(NotFoundException ex){
+        log.warn("Not found: {}", ex.getDevMessage());
+        ErrorResponse response = new ErrorResponse(
+            ex.getErrorCode().name(),
+            ex.getUserMessage()
+        );
+        return ResponseEntity.status(404).body(response);
+    }
+
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<ErrorResponse> handleValidation(ValidationException ex){
+        log.warn("Validation error: {}", ex.getDevMessage());
+        ErrorResponse response = new ErrorResponse(
+            ex.getErrorCode().name(),
+            ex.getUserMessage()
+        );
+        return ResponseEntity.status(400).body(response);
+    }
+
+    @ExceptionHandler(BusinessRuleException.class)
+    public ResponseEntity<ErrorResponse> handleBusinessRule(BusinessRuleException ex){
+        log.warn("Business rule violation: {}", ex.getDevMessage());
+        ErrorResponse response = new ErrorResponse(
+            ex.getErrorCode().name(),
+            ex.getUserMessage()
+        );
+        return ResponseEntity.status(422).body(response);
+    }
+
+    @ExceptionHandler(ExternalServiceException.class)
+    public ResponseEntity<ErrorResponse> handleExternalService(ExternalServiceException ex){
+        log.error("External service error: {}", ex.getDevMessage(), ex);
+        ErrorResponse response = new ErrorResponse(
+            ex.getErrorCode().name(),
+            ex.getUserMessage()
+        );
+        return ResponseEntity.status(502).body(response);
+    }
+
 }
