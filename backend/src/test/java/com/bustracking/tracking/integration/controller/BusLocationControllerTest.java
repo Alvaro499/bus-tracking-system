@@ -86,8 +86,6 @@ class BusLocationControllerTest extends ControllerIntegrationTest {
             .andExpect(status().isBadRequest());
     }
 
-    // Note: NotFoundException → 404 is tested in TrackingExceptionHandlerTest
-    // This keeps the contract centralized and avoids duplication
 
     // =========================================================
     // POST /tracking/buses/{busId}/location - Happy Path
@@ -113,7 +111,7 @@ class BusLocationControllerTest extends ControllerIntegrationTest {
                 .content(requestBody))
             .andExpect(status().isOk());
 
-        // only when we want to verify that the method was called.
+        // only when we neeed to verify that the method was called.
         verify(updateBusLocationUseCase, times(1))
             .execute(eq(validBusId), any(), any());
     }
