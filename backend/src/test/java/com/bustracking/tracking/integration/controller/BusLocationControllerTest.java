@@ -55,7 +55,7 @@ class BusLocationControllerTest extends ControllerIntegrationTest {
     );
 
     // =========================================================
-    // GET /tracking/buses/{busId}/location - Happy Path
+    // GET /tracking/buses/{busId}/location - updateBusLocation - Happy Path
     // =========================================================
 
     @Test
@@ -88,7 +88,7 @@ class BusLocationControllerTest extends ControllerIntegrationTest {
 
 
     // =========================================================
-    // POST /tracking/buses/{busId}/location - Happy Path
+    // POST /tracking/buses/{busId}/location - updateBusLocation - Happy Path
     // =========================================================
 
     @Test
