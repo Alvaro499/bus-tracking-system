@@ -12,25 +12,20 @@ La estructura de tests es un espejo exacto del código fuente.
 
 ```
 src/
-├── main/java/com/bustracking/
-│   ├── tracking/
-│   │   ├── application/usecase/
-│   │   ├── domain/
-│   │   └── infrastructure/
-│   └── shared/
-│
-└── test/java/com/bustracking/
-    ├── tracking/
-    │   ├── unit/
-    │   │   ├── usecase/
-    │   │   └── domain/
-    │   ├── integration/
-    │   │   ├── repository/
-    │   │   └── controller/
-    │   └── e2e/
-    └── shared/
-        ├── unit/
-        └── testinfrastructure/   ← clases base compartidas
+  └── test/java/com/bustracking/
+      ├── tracking/
+      │   ├── unit/
+      │   │   ├── usecase/
+      │   │   └── domain/
+      │   ├── integration/
+-     │   │   ├── repository/
+-     │   │   └── controller/
++     │   │   ├── repository/   ← tests con TestContainers (solo repositorio)
++     │   │   ├── controller/   ← slice tests con @WebMvcTest y use cases mockeados
++     │   │   └── flow/         ← flujos completos backend (@SpringBootTest + TestContainers, sin mocks)
+      └── shared/
+          ├── unit/
+          └── testinfrastructure/
 ```
 
 Si existe `GetBusLocationUseCase` en `tracking/application/usecase/`, su test vive en `tracking/unit/usecase/`. Sin excepciones.
@@ -70,14 +65,14 @@ La regla: si el método es público, se testea. Si es privado, no se toca direct
 
 ### Integration Tests
 
-Prueban que dos o más capas funcionan juntas. Se dividen en dos subcategorías según qué se está integrando:
+Prueban que dos o más capas funcionan juntas. Se dividen en tres subcategorías según qué se está integrando:
 
 **Repository integration** — BD real con TestContainers, sin HTTP:
 ```
 BusLocationRepositoryTest → verifica que el UPSERT funciona contra PostgreSQL real
 ```
 
-**Controller integration** — HTTP real con MockMvc, use cases mockeados, sin BD:
+**Controller integration (slice)** — HTTP simulado con MockMvc, use cases mockeados, sin BD:
 ```
 BusLocationControllerTest → verifica status codes, JSON de respuesta, casos de error HTTP
 ```
@@ -87,24 +82,22 @@ Nota técnica: el BusLocationControllerTest es estrictamente un slice test, no u
 **Ubicación:** `[modulo]/integration/repository/` y `[modulo]/integration/controller/`
 **Velocidad:** segundos
 
+**Flow integration** — Flujo completo de backend (varios endpoints encadenados) con BD real y contexto Spring completo, sin mocks. Un test por historia de negocio o por flujo crítico.
+
+Estos tests usan `@SpringBootTest` + TestContainers, y residen en `integration/flow/`. No deben probar errores (eso va en controller integration), solo el camino feliz.
+
+**Ubicación:** `[modulo]/integration/repository/`, `[modulo]/integration/controller/` y `[modulo]/integration/flow/`
+**Velocidad:** segundos (flow es más lento que los otros dos, pero más rápido que un E2E con frontend)
+
+
+
 ---
 
-### E2E Tests
+### E2E Tests (end-to-end con frontend real)
 
-Prueban un flujo completo de negocio de punta a punta. BD real con TestContainers, HTTP real con MockMvc, sin mocks en ninguna capa. Un test E2E por historia de negocio, no por endpoint.
+**No implementados actualmente.** Se reservan para pruebas que involucren un navegador real o una app móvil (Cypress, Selenium, Espresso, etc.) contra un entorno completo (backend real, BD real, servicios externos reales). Cada E2E validará una historia de usuario completa desde la interfaz gráfica.
 
-La pregunta para decidir si algo es E2E: *¿puedo describir este test como una historia de negocio en una oración?*
-
-```
-"Un bus envía su ubicación y un usuario puede consultarla"
-→ POST /tracking/buses/{busId}/location
-→ GET  /tracking/buses/{busId}/location
-```
-
-Los casos de error no van en E2E. Ya están cubiertos en los integration tests de controller. El E2E solo prueba el camino feliz.
-
-**Ubicación:** `[modulo]/e2e/`
-**Velocidad:** segundos (más lento que los anteriores porque levanta el contexto completo)
+Mientras no existan, los flujos completos de backend se cubren con los **flow integration tests** (ver sección anterior).
 
 ---
 
@@ -124,11 +117,11 @@ E2E Tests         →  5%
 
 Las clases base viven en `shared/testinfrastructure/` y no contienen tests propios:
 
-| Clase | Extienden | Para qué |
-|---|---|---|
-| `RepositoryIntegrationTest` | `@DataJpaTest` + TestContainers | Base para repository integration tests |
-| `ControllerIntegrationTest` | `@WebMvcTest` | Base para controller integration tests |
-| `E2EIntegrationTest` | `@SpringBootTest` + TestContainers | Base para E2E tests |
+Clase	Extienden	Para qué
+RepositoryIntegrationTest	@DataJpaTest + TestContainers	Base para repository integration tests
+ControllerIntegrationTest	@WebMvcTest	Base para controller integration tests
+FlowIntegrationTest	@SpringBootTest + TestContainers	Base para flow integration tests (antes E2EIntegrationTest)
+
 
 El contenedor de PostgreSQL es `static` en las clases base que lo usan. Un solo contenedor se levanta por suite de tests y se destruye al final. Levantar un contenedor por clase sería innecesariamente lento.
 
@@ -236,44 +229,3 @@ void shouldCreateCoordinateWithValidValues() {
     // Arrange, Act, Assert
 }
 ```
-
-### Por qué este patrón
-
-1. **Sin prefijo "test"**: La anotación `@Test` de JUnit5, el nombre de la clase (`XyzTest`) y la ubicación en `src/test/java/` ya lo hacen explícito. Agregar `test` al inicio es redundante.
-
-2. **Convención Java**: El patrón usa `camelCase` puro, que es el estándar en Java. No usar `snake_case` (`test_como_esto`) porque va contra las convenciones idiomáticas del lenguaje.
-
-3. **Legibilidad**: Leer "should return bus location when bus exists" es más natural que "test_notificationApprovedWhenProjectHasUserUnitsIsBiggerThanZeroAnd..." (ilegible).
-
-4. **CamelCase**: Los IDEs, refactoring tools y desarrolladores Java están acostumbrados a este formato.
-
-### Cuándo el nombre es demasiado largo
-
-Si un método de test necesita un nombre muy largo (>80 caracteres), es **señal de que el test está probando demasiado**. En lugar de agregar más condiciones al nombre, refactoriza en múltiples tests:
-
-```java
-// ❌ Demasiadas condiciones
-void shouldCalculateDiscountWhenCustomerTypeIsPremiumAndPurchaseAmountIsGreaterThan1000AndReferralCodeIsValidAndPromoIsActive() {
-}
-
-// ✅ Refactorizado
-void shouldCalculateDiscountWhenCustomerIsPremium() { }
-void shouldApplyReferralBonus() { }
-void shouldCombinePromoCodes() { }
-```
-
-### DisplayName para contexto adicional
-
-Si necesitas proporcionar contexto humano más detallado (sin cambiar el nombre del método), usa `@DisplayName` de JUnit5:
-
-```java
-@Test
-@DisplayName("Should return bus location when bus exists and has location in the database")
-void shouldReturnBusLocationWhenBusExists() {
-    // Arrange, Act, Assert
-}
-```
-
-El `@DisplayName` aparece en reportes de test y en el IDE sin hacer el nombre del método ilegible.
-
----
