@@ -19,7 +19,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @AutoConfigureMockMvc
 @Testcontainers
 @ActiveProfiles("test")
-public abstract class E2EIntegrationTest {
+public abstract class FlowIntegrationTest {
 
     @Container
     protected static final PostgreSQLContainer<?> postgres =
