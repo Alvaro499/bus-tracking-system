@@ -36,24 +36,14 @@ import org.testcontainers.containers.PostgreSQLContainer;
 
 */
 
+// Elimina estas dos líneas si las tienes:
+// @Testcontainers
+// @Container protected static final PostgreSQLContainer<?> postgres = ... 
+
+// Tu clase quedará así, sin la configuración duplicada:
 @DataJpaTest
-@Testcontainers
-@ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-public abstract class RepositoryIntegrationTest {
-
-    //static so there will be only one docker container for all tests
-    @Container
-    protected static final PostgreSQLContainer<?> postgres =
-        new PostgreSQLContainer<>("postgres:16-alpine")
-            .withDatabaseName("bustracking_db_test")
-            .withUsername("bustracking_test_user")
-            .withPassword("test_password_random");
-
-    @DynamicPropertySource
-    static void registerPgProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgres::getJdbcUrl);
-        registry.add("spring.datasource.username", postgres::getUsername);
-        registry.add("spring.datasource.password", postgres::getPassword);
-    }
+@ActiveProfiles("test")
+public abstract class RepositoryIntegrationTest extends PostgresTestContainer {
+    // ... resto del código de la clase
 }
