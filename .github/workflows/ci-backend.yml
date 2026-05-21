@@ -67,7 +67,7 @@ jobs:
 
 
   # ============================================================
-  # JOB 2: INTEGRATION TESTS (Repository + E2E)
+  # JOB 2: INTEGRATION TESTS (Repository + Flow)
   # Uses TestContainers with real PostgreSQL in Docker.
   # Runs in ~5-15 minutes. Requires Job 1 to pass.
   # ============================================================
@@ -96,8 +96,8 @@ jobs:
       - name: Execute Repository Tests (TestContainers + PostgreSQL)
         run: ./mvnw test -B -Dtest="**/integration/repository/**" -DfailIfNoTests=false
 
-      - name: Execute E2E Tests
-        run: ./mvnw test -B -Dtest="**/e2e/**" -DfailIfNoTests=false
+      - name: Execute Flow Integration Tests
+        run: ./mvnw test -B -Dtest="**/integration/flow/**" -DfailIfNoTests=false
 
       - name: Upload integration test reports
         uses: actions/upload-artifact@v4
