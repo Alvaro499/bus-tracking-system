@@ -14,19 +14,18 @@ import com.bustracking.tracking.infrastructure.web.dto.response.TripResponse;
 
 @RestController
 @RequestMapping("/tracking/trips")
-public class TrackingTripController {
+public class DriverTripQueryController {
 
     private final GetTodayPlannedTripsUseCase getTodayPlannedTripsUseCase;
 
-    public TrackingTripController(GetTodayPlannedTripsUseCase getTodayPlannedTripsUseCase) {
+    public DriverTripQueryController(GetTodayPlannedTripsUseCase getTodayPlannedTripsUseCase) {
         this.getTodayPlannedTripsUseCase = getTodayPlannedTripsUseCase;
     }
 
         @GetMapping("/today")
     public ResponseEntity<List<TripResponse>> getTodayPlannedTrips() {
         // TODO: extraer busId del JWT cuando HU-18 esté implementada
-        UUID busId = UUID.fromString("00000000-0000-0000-0000-000000000000");
-
+        UUID busId = UUID.fromString("650e8400-e29b-41d4-a716-446655440001");
         List<TripView> trips = getTodayPlannedTripsUseCase.execute(busId);
 
         List<TripResponse> response = trips.stream()

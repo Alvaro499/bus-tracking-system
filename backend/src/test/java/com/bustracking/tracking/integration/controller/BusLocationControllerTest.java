@@ -55,11 +55,11 @@ class BusLocationControllerTest extends ControllerIntegrationTest {
     );
 
     // =========================================================
-    // GET /tracking/buses/{busId}/location - updateBusLocation - Happy Path
+    // GET /tracking/buses/{busId}/location - Happy Path
     // =========================================================
 
     @Test
-    void shouldReturnBusLocationWhenBusExists() throws Exception {
+    void shouldReturn200AndBusLocationWhenBusExists() throws Exception {
         // Arrange
         when(getBusLocationUseCase.execute(validBusId))
             .thenReturn(validBusLocation);
@@ -74,25 +74,22 @@ class BusLocationControllerTest extends ControllerIntegrationTest {
             .andExpect(jsonPath("$.updatedAt").value("2025-01-01T12:00:00"));
     }
 
-
     // =========================================================
     // GET /tracking/buses/{busId}/location - Spring Validation
     // =========================================================
 
     @Test
     void shouldReturn400WhenBusIdIsNotValidUUID() throws Exception {
-        // Act & Assert
         mockMvc.perform(get("/tracking/buses/{busId}/location", "not-a-valid-uuid"))
             .andExpect(status().isBadRequest());
     }
 
-
     // =========================================================
-    // POST /tracking/buses/{busId}/location - updateBusLocation - Happy Path
+    // POST /tracking/buses/{busId}/location - Happy Path
     // =========================================================
 
     @Test
-    void shouldUpdateBusLocationWhenValidDataProvided() throws Exception {
+    void shouldReturn200WhenBusLocationIsUpdated() throws Exception {
         // Arrange
         String requestBody = objectMapper.writeValueAsString(
             new Object() {
@@ -100,8 +97,6 @@ class BusLocationControllerTest extends ControllerIntegrationTest {
                 public final BigDecimal lng = new BigDecimal("-84.087502");
             }
         );
-
-        //only for void methods, for methods that return something, we use when().thenReturn()
         doNothing().when(updateBusLocationUseCase)
             .execute(eq(validBusId), any(), any());
 
@@ -111,11 +106,9 @@ class BusLocationControllerTest extends ControllerIntegrationTest {
                 .content(requestBody))
             .andExpect(status().isOk());
 
-        // only when we neeed to verify that the method was called.
         verify(updateBusLocationUseCase, times(1))
             .execute(eq(validBusId), any(), any());
     }
-
 
     // =========================================================
     // POST /tracking/buses/{busId}/location - Spring Validation
@@ -141,7 +134,6 @@ class BusLocationControllerTest extends ControllerIntegrationTest {
             .execute(any(), any(), any());
     }
 
-    
     @Test
     void shouldReturn400WhenPostingWithoutContentType() throws Exception {
         // Arrange
@@ -161,6 +153,6 @@ class BusLocationControllerTest extends ControllerIntegrationTest {
             .execute(any(), any(), any());
     }
 
-    // Note: NotFoundException → 404 is tested in TrackingExceptionHandlerTest
-    // This keeps the contract centralized and avoids duplication
+    // Note: NotFoundException → 404, ValidationException → 400, etc.
+    // are tested in GlobalExceptionHandlerTest — not repeated here
 }
