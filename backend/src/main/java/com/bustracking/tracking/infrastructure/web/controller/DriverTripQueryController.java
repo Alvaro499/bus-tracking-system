@@ -23,7 +23,7 @@ public class DriverTripQueryController {
     }
 
         @GetMapping("/today")
-    public ResponseEntity<List<TripResponse>> getTodayPlannedTrips() {
+    public ResponseEntity<List<TripResponse>> getTodayPlannedTripsForDriver() {
         // TODO: extraer busId del JWT cuando HU-18 esté implementada
         UUID busId = UUID.fromString("650e8400-e29b-41d4-a716-446655440001");
         List<TripView> trips = getTodayPlannedTripsUseCase.execute(busId);

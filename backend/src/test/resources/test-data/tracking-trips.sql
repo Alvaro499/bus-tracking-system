@@ -46,8 +46,12 @@ VALUES
     ('b70e8400-e29b-41d4-a716-446655440006', 'a70e8400-e29b-41d4-a716-446655440006', CURRENT_DATE, '650e8400-e29b-41d4-a716-446655440001', 'PLANNED', NOW(), NOW()),
     ('b70e8400-e29b-41d4-a716-446655440007', 'a70e8400-e29b-41d4-a716-446655440007', CURRENT_DATE, '650e8400-e29b-41d4-a716-446655440001', 'PLANNED', NOW(), NOW());
 
-INSERT INTO companies.bus_route (bus_id, route_id, created_at)
-VALUES ('650e8400-e29b-41d4-a716-446655440001', '750e8400-e29b-41d4-a716-446655440000', NOW());
-
+INSERT INTO companies.bus_route (id, bus_id, route_id, created_at)
+VALUES (
+    'c70e8400-e29b-41d4-a716-446655440001',
+    '650e8400-e29b-41d4-a716-446655440001',
+    '750e8400-e29b-41d4-a716-446655440000',
+    NOW()
+);
 
 -- El problema de que a los viajes no se les asigna bus automáticamente al crearlos. Revisar mañana

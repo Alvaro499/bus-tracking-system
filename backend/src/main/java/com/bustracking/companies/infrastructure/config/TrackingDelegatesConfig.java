@@ -68,7 +68,7 @@ public class TrackingDelegatesConfig {
                 result.origin(),
                 result.destination(),
                 result.departureTime(),
-                result.status()
+                result.status().name()
             ))
             .toList();
     }

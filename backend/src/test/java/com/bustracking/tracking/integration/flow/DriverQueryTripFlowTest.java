@@ -33,14 +33,14 @@ public class DriverQueryTripFlowTest extends FlowIntegrationTest {
     private MockMvc mockMvc;
 
     // Fixed UUID from tracking-trips.sql — bus with 6 planned trips today
-    private static final UUID BUS_ID = UUID.fromString("650e8400-e29b-41d4-a716-446655440001");
+    //private static final UUID BUS_ID = UUID.fromString("650e8400-e29b-41d4-a716-446655440001");
 
     // =========================================================
     // GET /tracking/trips/today - Driver sees planned trips
     // =========================================================
 
     @Test
-    void shouldReturnPlannedTripsWhenBusHasScheduledTripsToday() throws Exception {
+    void shouldReturnTodayPlannedTrips_WhenBusHasRoutesAssigned() throws Exception {
         mockMvc.perform(get("/tracking/trips/today"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$").isArray())
@@ -52,7 +52,7 @@ public class DriverQueryTripFlowTest extends FlowIntegrationTest {
     }
 
     @Test
-    void shouldReturnEmptyListWhenBusHasNoTripsToday() throws Exception {
+    void shouldReturnEmptyList_WhenBusHasNoRoutesAssigned() throws Exception {
         // BUS_ID_2 exists in tracking-base.sql but has no trips assigned
         // The hardcoded UUID in the controller returns empty for this bus
         // Note: this test validates the empty list response shape

@@ -3,6 +3,8 @@ package com.bustracking.companies.domain.dto;
 import java.time.LocalTime;
 import java.util.UUID;
 
+import com.bustracking.companies.domain.enums.TripStatus;
+
 
 /**
  * Projection interface for fetching trip schedule details.
@@ -14,5 +16,5 @@ public record TripScheduleProjection(
     String origin,
     String destination,
     LocalTime departureTime,
-    String status
+    TripStatus status
 ) {}
