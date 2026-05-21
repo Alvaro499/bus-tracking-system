@@ -118,6 +118,13 @@ mvn clean compile
 # Correr tests
 mvn test
 
+# Maven con stacktrace completo:
+mvn test -e
+
+# Maven con stacktrace completo y más detallado
+mvn test -X
+ --> Luego ejecuta: target/surefire-reports
+
 # Correr solo los tests de integración
 mvn verify
 
