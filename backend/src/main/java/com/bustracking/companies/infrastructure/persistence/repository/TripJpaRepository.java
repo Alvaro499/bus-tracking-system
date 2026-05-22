@@ -11,7 +11,21 @@ import org.springframework.data.repository.query.Param;
 import com.bustracking.companies.infrastructure.persistence.entity.TripJpa;
 import com.bustracking.companies.domain.dto.TripScheduleProjection;
 
+
 public interface TripJpaRepository extends JpaRepository<TripJpa, UUID> {
+
+
+    /*
+    
+    La consulta JPQL findTodayPlannedTripsByBusRoutes:
+
+        Filtra por br.busId = :busId → solo viajes de las rutas asignadas a ese bus.
+
+        Filtra por t.tripDate = :today → solo viajes del día actual.
+
+        Filtra por t.status = 'PLANNED' → solo viajes que aún no han comenzado (disponibles para ser tomados).
+
+    */
 
     @Query("SELECT new com.bustracking.companies.domain.dto.TripScheduleProjection(" +
            "t.id, r.name, r.origin, r.destination, s.departureTime, t.status) " +
