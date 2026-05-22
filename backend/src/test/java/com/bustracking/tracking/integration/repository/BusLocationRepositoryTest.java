@@ -31,8 +31,8 @@ import com.bustracking.tracking.infrastructure.persistence.repository.BusLocatio
  * - Shared fixtures: company + buses loaded from test-data/
  */
 @Sql({
-    "/test-data/fixtures-shared.sql",
-    "/test-data/tracking-fixtures.sql"
+    "/test-data/tracking-base.sql",
+    "/test-data/tracking-trips.sql"
 })
 class BusLocationRepositoryTest extends RepositoryIntegrationTest {
 

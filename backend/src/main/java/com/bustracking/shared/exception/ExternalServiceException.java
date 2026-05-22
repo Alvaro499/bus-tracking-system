@@ -2,6 +2,12 @@ package com.bustracking.shared.exception;
 
 // It goes in shared because it's a generic exception that can be used across different modules. It represents an error that occurs when calling an external service (like a third-party API).
 public class ExternalServiceException extends ApplicationException {
+    
+    // Constructor con ErrorCode explícito (nuevo)
+    public ExternalServiceException(ErrorCode code, String userMessage, String devMessage) {
+        super(code, userMessage, devMessage);
+    }
+    
     public ExternalServiceException(String userMessage, String devMessage, Throwable cause) {
         super(ErrorCode.EXTERNAL_ERROR, userMessage, devMessage, cause);
     }

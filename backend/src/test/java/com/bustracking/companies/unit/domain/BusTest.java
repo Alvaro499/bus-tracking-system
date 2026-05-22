@@ -2,7 +2,6 @@ package com.bustracking.companies.unit.domain;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
