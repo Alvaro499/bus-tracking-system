@@ -7,14 +7,6 @@
 -- Dependencias: 00-base.sql (necesita empresa y bus existentes)
 -- ============================================================================
 
--- Clean up existing data
-DELETE FROM companies.trip WHERE schedule_id IN (SELECT id FROM companies.schedule WHERE route_id = '750e8400-e29b-41d4-a716-446655440000');
-DELETE FROM companies.schedule WHERE route_id = '750e8400-e29b-41d4-a716-446655440000';
-DELETE FROM companies.route_stop WHERE route_id = '750e8400-e29b-41d4-a716-446655440000';
-DELETE FROM companies.stop WHERE company_id = '550e8400-e29b-41d4-a716-446655440000' AND name IN ('Cartago', 'Colegio Vicente de Costa Rica', 'Estado de Paraiso', 'Paraiso Centro', 'Recinto UCR Paraiso', 'Orosi');
-DELETE FROM tracking.bus_location WHERE bus_id = '650e8400-e29b-41d4-a716-446655440001';
-DELETE FROM companies.route WHERE id = '750e8400-e29b-41d4-a716-446655440000';
-
 -- Insert route: Cartago → Orosi
 INSERT INTO companies.route (id, company_id, name, price, origin, destination, flat_fare, is_active, created_at, updated_at)
 VALUES ('750e8400-e29b-41d4-a716-446655440000', '550e8400-e29b-41d4-a716-446655440000', 'Cartago-Orosi', 1500.00, 'Cartago', 'Orosi', true, true, NOW(), NOW());
@@ -61,8 +53,8 @@ VALUES
     ('b70e8400-e29b-41d4-a716-446655440006', 'a70e8400-e29b-41d4-a716-446655440006', CURRENT_DATE, '650e8400-e29b-41d4-a716-446655440001', 'PLANNED', NOW(), NOW());
 
 -- Link bus to route
-INSERT INTO companies.bus_route (bus_id, route_id, created_at)
-VALUES ('650e8400-e29b-41d4-a716-446655440001', '750e8400-e29b-41d4-a716-446655440000', NOW());
+INSERT INTO companies.bus_route (id, bus_id, route_id, created_at)
+VALUES ('c70e8400-e29b-41d4-a716-446655440001', '650e8400-e29b-41d4-a716-446655440001', '750e8400-e29b-41d4-a716-446655440000', NOW());
 
 -- Insert test location for bus
 INSERT INTO tracking.bus_location (bus_id, lat, lng, updated_at)

@@ -12,6 +12,7 @@ npm install
 
 # Correr en desarrollo (Vite dev server)
 npm run dev
+pnpm dev
 
 # Correr en puerto específico
 npm run dev -- --port 3000

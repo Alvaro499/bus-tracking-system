@@ -1,0 +1,1860 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+application/dto/Placeholder.java
+application/service/Placeholder.java
+application/usecase/Placeholder.java
+domain/dto/TripScheduleProjection.java
+domain/enums/BusStatus.java
+domain/enums/RequestStatus.java
+domain/enums/Role.java
+domain/enums/Status.java
+domain/enums/TripStatus.java
+domain/model/Bus.java
+domain/model/BusRoute.java
+domain/model/Company.java
+domain/model/CompanyRequest.java
+domain/model/CompanyUser.java
+domain/model/Route.java
+domain/model/RouteStop.java
+domain/model/RouteStopFare.java
+domain/model/Schedule.java
+domain/model/Stop.java
+domain/model/Trip.java
+domain/repository/BusRepository.java
+domain/repository/BusRouteRepository.java
+domain/repository/TripRepository.java
+domain/valueobjects/InternalNumber.java
+domain/valueobjects/Plate.java
+infrastructure/config/TrackingDelegatesConfig.java
+infrastructure/persistence/entity/BusJpa.java
+infrastructure/persistence/entity/BusRouteJpa.java
+infrastructure/persistence/entity/CompanyJpa.java
+infrastructure/persistence/entity/CompanyRequestJpa.java
+infrastructure/persistence/entity/CompanyUserJpa.java
+infrastructure/persistence/entity/RouteJpa.java
+infrastructure/persistence/entity/RouteStopFareJpa.java
+infrastructure/persistence/entity/RouteStopJpa.java
+infrastructure/persistence/entity/ScheduleJpa.java
+infrastructure/persistence/entity/StopJpa.java
+infrastructure/persistence/entity/TripJpa.java
+infrastructure/persistence/repository/BusJpaRepository.java
+infrastructure/persistence/repository/BusRepositoryImpl.java
+infrastructure/persistence/repository/BusRouteJpaRepository.java
+infrastructure/persistence/repository/BusRouteRepositoryImpl.java
+infrastructure/persistence/repository/TripJpaRepository.java
+infrastructure/persistence/repository/TripRepositoryImpl.java
+infrastructure/web/controller/Placeholder.java
+infrastructure/web/dto/request/Placeholder.java
+infrastructure/web/dto/response/Placeholder.java
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="application/dto/Placeholder.java">
+// DTOs - Data Transfer Objects for Company and Route commands/responses go here
+</file>
+
+<file path="application/service/Placeholder.java">
+// Application Services - Orchestrators for Company and Route use cases go here
+</file>
+
+<file path="application/usecase/Placeholder.java">
+// Use Cases - Business logic for Company and Route operations go here
+</file>
+
+<file path="domain/dto/TripScheduleProjection.java">
+package com.bustracking.companies.domain.dto;
+
+import java.time.LocalTime;
+import java.util.UUID;
+
+import com.bustracking.companies.domain.enums.TripStatus;
+
+
+/**
+ * Projection interface for fetching trip schedule details.
+ */
+
+public record TripScheduleProjection(
+    UUID id,
+    String routeName,
+    String origin,
+    String destination,
+    LocalTime departureTime,
+    TripStatus status
+) {}
+</file>
+
+<file path="domain/enums/BusStatus.java">
+package com.bustracking.companies.domain.enums;
+
+/**
+ * Possible states of a bus in the system.
+ * 
+ * ACTIVE: Bus available and operational
+ * INACTIVE: Bus temporarily out of service
+ * MAINTENANCE: Bus under maintenance
+ */
+public enum BusStatus {
+    ACTIVE,
+    INACTIVE,
+    MAINTENANCE
+}
+</file>
+
+<file path="domain/enums/RequestStatus.java">
+package com.bustracking.companies.domain.enums;
+
+// Enum for the status of company requests, used to track the state of requests forcreating companies.
+public enum RequestStatus {
+    PENDING,
+    APPROVED,
+    REJECTED
+}
+</file>
+
+<file path="domain/enums/Role.java">
+package com.bustracking.companies.domain.enums;
+
+//Enum for company-specific user roles, used for access control and permissions management within a company.
+public enum Role {
+    OWNER,
+    ADMIN
+}
+</file>
+
+<file path="domain/enums/Status.java">
+package com.bustracking.companies.domain.enums;
+
+
+public enum Status {
+    ACTIVE,
+    INACTIVE
+}
+</file>
+
+<file path="domain/enums/TripStatus.java">
+package com.bustracking.companies.domain.enums;
+
+/**
+ * Possible states of a trip in the system.
+ * 
+ * PLANNED: Trip scheduled but not yet started
+ * IN_PROGRESS: Trip currently in progress
+ * COMPLETED: Trip successfully completed
+ * CANCELLED: Trip cancelled
+ * REASSIGNED: Viaje reasignado a otro bus
+ */
+public enum TripStatus {
+    PLANNED,
+    IN_PROGRESS,
+    COMPLETED,
+    CANCELLED,
+    REASSIGNED
+}
+</file>
+
+<file path="domain/model/Bus.java">
+package com.bustracking.companies.domain.model;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+import com.bustracking.companies.domain.enums.BusStatus;
+import com.bustracking.companies.domain.valueobjects.InternalNumber;
+import com.bustracking.companies.domain.valueobjects.Plate;
+import com.bustracking.shared.exception.BusinessRuleException;
+import com.bustracking.shared.exception.ErrorCode;
+import com.bustracking.shared.exception.ValidationException;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Getter
+@NoArgsConstructor
+public class Bus {
+
+    private UUID id;
+
+    private UUID companyId;
+
+    private Plate plate;
+
+    private InternalNumber internalNumber;
+
+    private Boolean hasRamp;
+
+    private BusStatus status;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
+
+    public Bus(UUID companyId, String plate, String internalNumber, Boolean hasRamp){
+        validateCompanyId(companyId);
+        validateHasRamp(hasRamp);
+        
+        this.id = UUID.randomUUID();
+        this.companyId = companyId;
+        this.plate = new Plate(plate);
+        this.internalNumber = new InternalNumber(internalNumber);
+         // every new bus is created as inactive
+        this.hasRamp = hasRamp;
+        this.status = BusStatus.INACTIVE;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    private void validateCompanyId(UUID companyId) {
+        if (companyId == null) {
+            throw new ValidationException(
+                ErrorCode.MISSING_REQUIRED_FIELD,
+                "Company ID is required",
+                "Company ID cannot be null"
+            );
+        }
+    }
+
+    private void validateHasRamp(Boolean hasRamp) {
+        if (hasRamp == null) {
+            throw new ValidationException(
+                ErrorCode.MISSING_REQUIRED_FIELD,
+                "HasRamp flag is required",
+                "HasRamp cannot be null"
+            );
+        }
+    }
+
+    private void updateTimestamp() {
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void activate() {
+        if (this.status == BusStatus.MAINTENANCE) {
+            throw new BusinessRuleException(
+                ErrorCode.INVALID_STATE,
+                "Bus cannot be activated while in maintenance"
+            );
+        }
+        if (this.status == BusStatus.ACTIVE) {
+            throw new BusinessRuleException(
+                ErrorCode.INVALID_STATE,
+                "Bus is already active"
+            );
+        }
+        this.status = BusStatus.ACTIVE;
+        updateTimestamp();
+
+    }
+
+    public void deactivate() {
+        if (this.status == BusStatus.INACTIVE) {
+            throw new BusinessRuleException(
+                ErrorCode.INVALID_STATE,
+                "Bus is already inactive"
+            );
+        }
+        this.status = BusStatus.INACTIVE;
+        updateTimestamp();
+
+    }
+
+    public void sendToMaintenance() {
+        if (this.status == BusStatus.MAINTENANCE) {
+            throw new BusinessRuleException(
+                ErrorCode.INVALID_STATE,
+                "Bus is already in maintenance"
+            );
+        }
+        this.status = BusStatus.MAINTENANCE;
+        updateTimestamp();
+
+    }
+
+    public void finishMaintenance() {
+        if (this.status != BusStatus.MAINTENANCE) {
+            throw new BusinessRuleException(
+                ErrorCode.INVALID_STATE,
+                "Bus is not in maintenance"
+            );
+
+        }
+        this.status = BusStatus.INACTIVE;
+        updateTimestamp();
+
+    }
+}
+</file>
+
+<file path="domain/model/BusRoute.java">
+package com.bustracking.companies.domain.model;
+
+import java.util.UUID;
+
+public class BusRoute {
+    private final UUID busId;
+    private final UUID routeId;
+
+    public BusRoute(UUID busId, UUID routeId) {
+        this.busId = busId;
+        this.routeId = routeId;
+    }
+
+    public UUID getBusId() {
+        return busId;
+    }
+    public UUID getRouteId() {
+        return routeId;
+    }
+
+}
+</file>
+
+<file path="domain/model/Company.java">
+package com.bustracking.companies.domain.model;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+import com.bustracking.companies.domain.enums.Status;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class Company {
+
+    private UUID id;
+    private String taxId;
+    private String name;
+    private String email;
+    private String phone;
+    private Status status;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+}
+</file>
+
+<file path="domain/model/CompanyRequest.java">
+package com.bustracking.companies.domain.model;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+import com.bustracking.companies.domain.enums.RequestStatus;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class CompanyRequest {
+
+    private UUID id;
+    private UUID companyId;
+    private UUID reviewedBy;
+    private RequestStatus status;
+    private String rejectionReason;
+    private LocalDateTime requestedAt;
+    private LocalDateTime reviewedAt;
+}
+</file>
+
+<file path="domain/model/CompanyUser.java">
+package com.bustracking.companies.domain.model;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+import com.bustracking.companies.domain.enums.Role;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class CompanyUser {
+
+    private UUID id;
+    private UUID userId;
+    private UUID companyId;
+    private Role role;
+    private LocalDateTime createdAt;
+}
+</file>
+
+<file path="domain/model/Route.java">
+package com.bustracking.companies.domain.model;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class Route {
+
+    private UUID id;
+
+    private UUID companyId;
+
+    private String name;
+
+    private String origin;
+
+    private String destination;
+
+    private Boolean flatFare;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
+}
+</file>
+
+<file path="domain/model/RouteStop.java">
+package com.bustracking.companies.domain.model;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class RouteStop {
+
+    private UUID id;
+
+    private UUID routeId;
+
+    private UUID stopId;
+
+    private Integer orderIndex;
+
+    private Integer estimatedTimeOffset;
+
+    private LocalDateTime createdAt;
+}
+</file>
+
+<file path="domain/model/RouteStopFare.java">
+package com.bustracking.companies.domain.model;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class RouteStopFare {
+
+    private UUID id;
+
+    private UUID routeStopId;
+
+    private BigDecimal price;
+
+    private Boolean isActive;
+
+    private LocalDate startDate;
+
+    private LocalDate endDate;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
+}
+</file>
+
+<file path="domain/model/Schedule.java">
+package com.bustracking.companies.domain.model;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.UUID;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class Schedule {
+
+    private UUID id;
+
+    private UUID routeId;
+
+    private LocalTime departureTime;
+
+    // 1=Monday, 7=Sunday
+    private Integer dayOfWeek;
+
+    private LocalDate startDate;
+
+    private LocalDate endDate;
+
+    private Boolean isActive;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
+}
+</file>
+
+<file path="domain/model/Stop.java">
+package com.bustracking.companies.domain.model;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class Stop {
+
+    private UUID id;
+
+    private UUID companyId;
+
+    private String name;
+
+    private BigDecimal latitude;
+
+    private BigDecimal longitude;
+
+    private String reference;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
+}
+</file>
+
+<file path="domain/model/Trip.java">
+package com.bustracking.companies.domain.model;
+
+import com.bustracking.companies.domain.enums.TripStatus;
+import com.bustracking.shared.exception.BusinessRuleException;
+import com.bustracking.shared.exception.ErrorCode;
+import com.bustracking.shared.exception.ValidationException;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.UUID;
+
+
+@Getter
+@NoArgsConstructor
+public class Trip {
+
+    private UUID id;
+
+    private UUID scheduleId;
+
+    private UUID busId;
+
+
+    private LocalDate tripDate;
+
+    private String cancellationReason;
+
+    private TripStatus status;
+
+    private LocalTime actualStartTime;
+
+    private LocalTime actualEndTime;
+
+    private Integer delayMinutes;
+
+    private LocalDateTime assignedAt;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
+
+    public Trip(UUID scheduleId) {
+
+        validateScheduleId(scheduleId);
+        this.id = UUID.randomUUID();
+        this.scheduleId = scheduleId;
+        this.busId = null;
+        this.tripDate = LocalDate.now();
+        this.status = TripStatus.PLANNED;
+        this.actualStartTime = null;
+        this.actualEndTime = null;
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+        cancellationReason = null;
+        delayMinutes = null;
+    }
+
+    // VALIDATION METHODS
+    private void validateScheduleId(UUID scheduleId) {
+        if (scheduleId == null) {
+            throw new ValidationException(
+                ErrorCode.MISSING_REQUIRED_FIELD,
+                "Schedule ID is required",
+                "Schedule ID cannot be null"
+            );
+        }
+    }
+
+    // BUSINESS METHODS
+
+    public void start(UUID busId) {
+        if (this.status != TripStatus.PLANNED) {
+            throw new BusinessRuleException(
+                ErrorCode.INVALID_STATE,
+                "Trip can only be started from PLANNED status"
+            );
+        }
+        if (busId == null) {
+            throw new ValidationException(
+                ErrorCode.MISSING_REQUIRED_FIELD,
+                "Bus ID is required to start a trip",
+                "Bus ID cannot be null"
+            );
+        }
+        this.busId = busId;
+        this.status = TripStatus.IN_PROGRESS;
+        this.actualStartTime = LocalTime.now();
+        this.assignedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void cancel(String cancellationReason){
+        if(this.status == TripStatus.CANCELLED || this.status == TripStatus.COMPLETED) {
+            throw new BusinessRuleException(
+                ErrorCode.INVALID_STATE,
+                "Trip cannot be cancelled from its current status"
+            );
+        }
+        if (cancellationReason == null || cancellationReason.isBlank()) {
+            throw new ValidationException(
+                ErrorCode.MISSING_REQUIRED_FIELD,
+                "Cancellation reason is required",
+                "Cancellation reason cannot be null or blank"
+            );
+        }
+
+        this.status = TripStatus.CANCELLED;
+        this.cancellationReason = cancellationReason;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void complete(){
+        if(this.status != TripStatus.IN_PROGRESS){
+            throw new BusinessRuleException(
+                ErrorCode.INVALID_STATE,
+                "Trip only can be completed from IN_PROGRESS status"
+            );
+        }
+        this.actualEndTime = LocalTime.now();
+        this.status = TripStatus.COMPLETED;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void registerDelay(Integer minutes) {
+        if (minutes == null || minutes < 0) {
+            throw new ValidationException(
+                ErrorCode.INVALID_INPUT,
+                "Invalid delay minutes",
+                "Delay minutes cannot be null or negative"
+            );
+        }
+        this.delayMinutes = minutes;
+        this.updatedAt = LocalDateTime.now();
+    }
+}
+</file>
+
+<file path="domain/repository/BusRepository.java">
+package com.bustracking.companies.domain.repository;
+
+import java.util.UUID;
+
+public interface BusRepository {
+    
+    boolean existsById(UUID busId);
+}
+</file>
+
+<file path="domain/repository/BusRouteRepository.java">
+package com.bustracking.companies.domain.repository;
+
+
+import java.util.List;
+import java.util.UUID;
+
+public interface BusRouteRepository {
+    List<UUID> findRouteIdsByBusId(UUID busId);
+}
+</file>
+
+<file path="domain/repository/TripRepository.java">
+package com.bustracking.companies.domain.repository;
+
+import java.util.List;
+import java.util.UUID;
+
+import com.bustracking.companies.domain.dto.TripScheduleProjection;
+
+
+public interface TripRepository {
+    List<TripScheduleProjection> findTodayPlannedTripsByBusRoutes(UUID busId);
+}
+</file>
+
+<file path="domain/valueobjects/InternalNumber.java">
+package com.bustracking.companies.domain.valueobjects;
+
+import java.util.Objects;
+
+import com.bustracking.shared.exception.ErrorCode;
+import com.bustracking.shared.exception.ValidationException;
+
+/**
+ * Value Object representing a bus internal number.
+ * Ensures the internal number follows the business rules:
+ * - Can be null (optional field)
+ * - If provided, cannot be blank
+ * - Between 3 and 20 characters
+ */
+public final class InternalNumber {
+
+    private final String value;
+
+    public InternalNumber(String value) {
+        validate(value);
+        this.value = value;
+    }
+
+    private void validate(String value) {
+        // Optional field - null is allowed
+        if (value == null) {
+            return;
+        }
+
+        if (value.isBlank()) {
+            throw new ValidationException(
+                ErrorCode.INVALID_INPUT,
+                "Internal number has no valid values",
+                "Internal number cannot be empty if provided"
+            );
+        }
+
+        if (value.length() < 3) {
+            throw new ValidationException(
+                ErrorCode.INVALID_INPUT,
+                "Internal number has no valid values",
+                "Internal number must be at least 3 characters long"
+            );
+        }
+
+        if (value.length() > 20) {
+            throw new ValidationException(
+                ErrorCode.INVALID_INPUT,
+                "Internal number has no valid values",
+                "Internal number cannot exceed 20 characters"
+            );
+        }
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public boolean isEmpty() {
+        return value == null;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof InternalNumber)) return false;
+        InternalNumber that = (InternalNumber) o;
+        return Objects.equals(value, that.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(value);
+    }
+
+    @Override
+    public String toString() {
+        return value;
+    }
+}
+</file>
+
+<file path="domain/valueobjects/Plate.java">
+package com.bustracking.companies.domain.valueobjects;
+
+import java.util.Objects;
+
+import com.bustracking.shared.exception.ErrorCode;
+import com.bustracking.shared.exception.ValidationException;
+
+/**
+ * Value Object representing a bus plate/registration number.
+ * Ensures the plate follows the business rules:
+ * - Not null
+ * - Not blank
+ * - Between 5 and 10 characters
+ */
+public final class Plate {
+
+    private final String value;
+
+    public Plate(String value) {
+        validate(value);
+        this.value = value;
+    }
+
+    private void validate(String value) {
+        if (value == null) {
+            throw new ValidationException(
+                ErrorCode.MISSING_REQUIRED_FIELD,
+                "Plate has no valid value",
+                "Plate number cannot be null"
+            );
+        }
+
+        if (value.isBlank()) {
+            throw new ValidationException(
+                ErrorCode.INVALID_INPUT,
+                "Plate can not be empty",
+                "Plate number cannot be blank"
+            );
+        }
+
+        if (value.length() < 5 || value.length() > 10) {
+            throw new ValidationException(
+                ErrorCode.INVALID_INPUT,
+                "Plate has no valid values",
+                "Plate number must be between 5 and 10 characters"
+            );
+        }
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Plate)) return false;
+        Plate plate = (Plate) o;
+        return Objects.equals(value, plate.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(value);
+    }
+
+    @Override
+    public String toString() {
+        return value;
+    }
+}
+</file>
+
+<file path="infrastructure/config/TrackingDelegatesConfig.java">
+package com.bustracking.companies.infrastructure.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import com.bustracking.companies.domain.repository.BusRepository;
+import com.bustracking.companies.domain.repository.TripRepository;
+import com.bustracking.tracking.domain.contract.BusExistsById;
+import com.bustracking.tracking.domain.contract.GetTodayPlannedTripsByBusRoutes;
+import com.bustracking.tracking.domain.model.TripView;
+
+/**
+ * Configuration for Tracking Module Delegates
+ * 
+ * This class is responsible for wiring the delegates (functional contracts)
+ * that the tracking module requires. It acts as a bridge between modules:
+ * - Companies provides the implementation (via Spring Data repositories)
+ * - Tracking receives the behavior as a functional interface
+ * 
+ * All cross-module delegation is centralized here, making dependencies explicit
+ * and preventing tight coupling.
+ * 
+ * By using delegates instead of full repository interfaces, we:
+ * - Keep contracts minimal (single responsibility)
+ * - Prevent garbage method accumulation in interfaces
+ * - Make dependencies clear (tracking needs "does bus exist?", nothing more)
+ */
+@Configuration
+public class TrackingDelegatesConfig {
+
+    private final BusRepository busRepository;
+    private final TripRepository tripRepository;
+
+
+    public TrackingDelegatesConfig(BusRepository busRepository, TripRepository tripRepository) {
+        this.busRepository = busRepository;
+        this.tripRepository = tripRepository;
+    }   
+
+    /**
+     * Provides a delegate for checking if a bus exists
+     * 
+     * This bean is injected into the tracking module's use cases.
+     * Companies module keeps full control of the logic (is the bus active?
+     * does it belong to an active company? etc).
+     * Tracking module only knows "bus exists or not".
+     * 
+     * @return a function that checks bus existence by ID
+     */
+    @Bean
+    public BusExistsById busExistsById() {
+        // Method reference: delegates to the repository's existsById method
+        // 
+        // This is equivalent to:
+        // BusExistsById delegate = (UUID busId) -> busRepository.existsById(busId);
+        return busRepository::existsById;
+    }
+
+    // Importing TripView is not a problem because it's a simple DTO used for data transfer between modules.
+    // The tracking module only knows about TripView, not the internal Trip entity or JPA
+    @Bean
+    public GetTodayPlannedTripsByBusRoutes getTodayPlannedTripsByBusRoutes() {
+        return busId -> tripRepository.findTodayPlannedTripsByBusRoutes(busId)
+            .stream()
+            .map(result -> new TripView(
+                result.id(),
+                result.routeName(),
+                result.origin(),
+                result.destination(),
+                result.departureTime(),
+                result.status().name()
+            ))
+            .toList();
+    }
+}
+</file>
+
+<file path="infrastructure/persistence/entity/BusJpa.java">
+package com.bustracking.companies.infrastructure.persistence.entity;
+
+import com.bustracking.companies.domain.enums.BusStatus;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+
+@Entity
+@Table(name = "bus", schema = "companies")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class BusJpa {
+
+    @Id
+    private UUID id;
+
+    @Column(name = "company_id", nullable = false)
+    private UUID companyId;
+
+    @Column(name = "plate", unique = true, nullable = false, length = 20)
+    private String plate;
+
+    @Column(name = "internal_number", length = 20)
+    private String internalNumber;
+
+    @Column(name = "has_ramp")
+    private Boolean hasRamp;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private BusStatus status;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof BusJpa)) return false;
+        return id != null && id.equals(((BusJpa) o).getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return 31;
+    }
+}
+</file>
+
+<file path="infrastructure/persistence/entity/BusRouteJpa.java">
+package com.bustracking.companies.infrastructure.persistence.entity;
+
+import java.time.LocalDateTime;
+import java.util.Objects;
+import java.util.UUID;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Entity
+@Table(name = "bus_route", schema = "companies")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class BusRouteJpa {
+    @Id
+    private UUID id;
+
+    @Column(name = "bus_id", nullable = false)
+    private UUID busId;
+
+    @Column(name = "route_id", nullable = false)
+    private UUID routeId;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        BusRouteJpa that = (BusRouteJpa) o;
+        return busId.equals(that.busId) && routeId.equals(that.routeId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(busId, routeId);
+    }
+}
+</file>
+
+<file path="infrastructure/persistence/entity/CompanyJpa.java">
+package com.bustracking.companies.infrastructure.persistence.entity;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+import com.bustracking.companies.domain.enums.Status;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Entity
+@Table(name = "company", schema = "companies")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class CompanyJpa {
+
+    @Id
+    private UUID id;
+
+    @Column(name = "tax_id", unique = true, nullable = false, length = 20)
+    private String taxId;
+
+    @Column(nullable = false, length = 255)
+    private String name;
+
+    @Column(unique = true, nullable = false, length = 150)
+    private String email;
+
+    @Column(unique = true, nullable = false, length = 20)
+    private String phone;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private Status status;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof CompanyJpa)) return false;
+        return id != null && id.equals(((CompanyJpa) o).getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return 31;
+    }
+}
+</file>
+
+<file path="infrastructure/persistence/entity/CompanyRequestJpa.java">
+package com.bustracking.companies.infrastructure.persistence.entity;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+
+import com.bustracking.companies.domain.enums.RequestStatus;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Entity
+@Table(name = "company_request", schema = "admin")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class CompanyRequestJpa {
+
+    @Id
+    private UUID id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "company_id", nullable = false)
+    private CompanyJpa company;
+
+    @Column(name = "reviewed_by", nullable = true)
+    private UUID reviewedById;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private RequestStatus status;
+
+    @Column(name = "rejection_reason", columnDefinition = "TEXT")
+    private String rejectionReason;
+
+    @Column(name = "requested_at", nullable = false, updatable = false)
+    private LocalDateTime requestedAt;
+
+    //By the moment we don't store a history of the reviews, so we only store the last review date.
+    @Column(name = "reviewed_at", nullable = true)
+    private LocalDateTime reviewedAt;
+}
+</file>
+
+<file path="infrastructure/persistence/entity/CompanyUserJpa.java">
+package com.bustracking.companies.infrastructure.persistence.entity;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+import com.bustracking.companies.domain.enums.Role;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Entity
+@Table(name = "company_user", schema = "companies")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class CompanyUserJpa {
+
+    @Id
+    private UUID id;
+
+    @Column(name = "user_id", nullable = false)
+    private UUID userId;
+
+    @Column(name = "company_id", nullable = false)
+    private UUID companyId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private Role role;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+}
+</file>
+
+<file path="infrastructure/persistence/entity/RouteJpa.java">
+package com.bustracking.companies.infrastructure.persistence.entity;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+
+@Entity
+@Table(name = "route", schema = "companies")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class RouteJpa {
+
+    @Id
+    private UUID id;
+
+    @Column(name = "company_id", nullable = false)
+    private UUID companyId;
+
+    @Column(nullable = false, length = 150)
+    private String name;
+
+    @Column(nullable = false, length = 150)
+    private String origin;
+
+    @Column(nullable = false, length = 150)
+    private String destination;
+
+    // Indicates if the route has a flat fare or not
+    @Column(name = "flat_fare")
+    private Boolean flatFare;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof RouteJpa)) return false;
+        return id != null && id.equals(((RouteJpa) o).getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return 31;
+    }
+}
+</file>
+
+<file path="infrastructure/persistence/entity/RouteStopFareJpa.java">
+package com.bustracking.companies.infrastructure.persistence.entity;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Entity
+@Table(name = "route_stop_fare", schema = "companies")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class RouteStopFareJpa {
+
+    @Id
+    private UUID id;
+
+    @Column(name = "route_stop_id", nullable = false)
+    private UUID routeStopId;
+
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal price;
+
+    @Column(name = "is_active")
+    private Boolean isActive;
+
+    @Column(name = "start_date", nullable = false)
+    private LocalDate startDate;
+
+    @Column(name = "end_date")
+    private LocalDate endDate;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof RouteStopFareJpa)) return false;
+        return id != null && id.equals(((RouteStopFareJpa) o).getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return 31;
+    }
+}
+</file>
+
+<file path="infrastructure/persistence/entity/RouteStopJpa.java">
+package com.bustracking.companies.infrastructure.persistence.entity;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Entity
+@Table(name = "route_stop", schema = "companies",
+       uniqueConstraints = @UniqueConstraint(columnNames = {"route_id", "order_index"}))
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class RouteStopJpa {
+
+    @Id
+    private UUID id;
+
+    @Column(name = "route_id", nullable = false)
+    private UUID routeId;
+
+    @Column(name = "stop_id", nullable = false)
+    private UUID stopId;
+
+    @Column(name = "order_index", nullable = false)
+    private Integer orderIndex;
+
+    @Column(name = "estimated_time_offset")
+    private Integer estimatedTimeOffset;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof RouteStopJpa)) return false;
+        return id != null && id.equals(((RouteStopJpa) o).getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return 31;
+    }
+}
+</file>
+
+<file path="infrastructure/persistence/entity/ScheduleJpa.java">
+package com.bustracking.companies.infrastructure.persistence.entity;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.UUID;
+
+@Entity
+@Table(name = "schedule", schema = "companies")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class ScheduleJpa {
+
+    @Id
+    private UUID id;
+
+    @Column(name = "route_id", nullable = false)
+    private UUID routeId;
+
+    @Column(name = "departure_time", nullable = false)
+    private LocalTime departureTime;
+
+    @Column(name = "day_of_week", nullable = false)
+    private Integer dayOfWeek;
+
+    @Column(name = "start_date", nullable = false)
+    private LocalDate startDate;
+
+    @Column(name = "end_date")
+    private LocalDate endDate;
+
+    @Column(name = "is_active")
+    private Boolean isActive;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ScheduleJpa)) return false;
+        return id != null && id.equals(((ScheduleJpa) o).getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return 31;
+    }
+}
+</file>
+
+<file path="infrastructure/persistence/entity/StopJpa.java">
+package com.bustracking.companies.infrastructure.persistence.entity;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Entity
+@Table(name = "stop", schema = "companies")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class StopJpa {
+
+    @Id
+    private UUID id;
+
+    @Column(name = "company_id", nullable = false)
+    private UUID companyId;
+
+    @Column(nullable = false, length = 150)
+    private String name;
+
+    @Column(nullable = false, precision = 9, scale = 6)
+    private BigDecimal latitude;
+
+    @Column(nullable = false, precision = 9, scale = 6)
+    private BigDecimal longitude;
+
+    @Column(columnDefinition = "TEXT")
+    private String reference;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof StopJpa)) return false;
+        return id != null && id.equals(((StopJpa) o).getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return 31;
+    }
+}
+</file>
+
+<file path="infrastructure/persistence/entity/TripJpa.java">
+package com.bustracking.companies.infrastructure.persistence.entity;
+
+import com.bustracking.companies.domain.enums.TripStatus;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.UUID;
+
+
+@Entity
+@Table(name = "trip", schema = "companies")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class TripJpa {
+
+    @Id
+    private UUID id;
+
+    @Column(name = "schedule_id", nullable = false)
+    private UUID scheduleId;
+
+    @Column(name = "bus_id")
+    private UUID busId;
+
+    @Column(name = "trip_date", nullable = false)
+    private LocalDate tripDate;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private TripStatus status;
+
+    @Column(name = "actual_start_time")
+    private LocalTime actualStartTime;
+
+    @Column(name = "actual_end_time")
+    private LocalTime actualEndTime;
+
+    @Column(name = "delay_minutes")
+    private Integer delayMinutes;
+
+    @Column(name = "assigned_at")
+    private LocalDateTime assignedAt;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof TripJpa)) return false;
+        return id != null && id.equals(((TripJpa) o).getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return 31;
+    }
+}
+</file>
+
+<file path="infrastructure/persistence/repository/BusJpaRepository.java">
+package com.bustracking.companies.infrastructure.persistence.repository;
+
+import java.util.UUID;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import com.bustracking.companies.infrastructure.persistence.entity.BusJpa;
+
+/**
+ * Spring Data JPA Repository for Bus entity
+ * 
+ * Provides low-level database access for bus-related operations.
+ * This repository is internal to the companies infrastructure layer.
+ * 
+ * Methods from JpaRepository:
+ * - existsById(UUID): Check if a bus exists
+ * - findById(UUID): Retrieve a bus by ID
+ * - save(BusJpa): Persist a bus
+ * - delete(BusJpa): Remove a bus
+ * - findAll(): Get all buses
+ * 
+ * Other modules should NOT depend on this class directly.
+ * Instead, they depend on delegates defined in TrackingDelegatesConfig.
+ */
+@Repository
+public interface BusJpaRepository extends JpaRepository<BusJpa, UUID> {
+    
+}
+</file>
+
+<file path="infrastructure/persistence/repository/BusRepositoryImpl.java">
+package com.bustracking.companies.infrastructure.persistence.repository;
+
+import java.util.UUID;
+
+import org.springframework.stereotype.Repository;
+
+import com.bustracking.companies.domain.repository.BusRepository;
+
+@Repository
+public class BusRepositoryImpl implements BusRepository {
+
+    private final BusJpaRepository busJpaRepository;
+
+    public BusRepositoryImpl(BusJpaRepository busJpaRepository) {
+        this.busJpaRepository = busJpaRepository;
+    }
+
+    @Override
+    public boolean existsById(UUID busId) {
+        return busJpaRepository.existsById(busId);
+    }
+}
+</file>
+
+<file path="infrastructure/persistence/repository/BusRouteJpaRepository.java">
+package com.bustracking.companies.infrastructure.persistence.repository;
+
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+ import com.bustracking.companies.infrastructure.persistence.entity.BusRouteJpa;
+
+@Repository
+public interface BusRouteJpaRepository extends JpaRepository<BusRouteJpa, UUID> {
+
+    List<UUID> findRouteIdsByBusId(UUID busId);
+}
+</file>
+
+<file path="infrastructure/persistence/repository/BusRouteRepositoryImpl.java">
+package com.bustracking.companies.infrastructure.persistence.repository;
+
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.stereotype.Repository;
+
+import com.bustracking.companies.domain.repository.BusRouteRepository;
+
+@Repository
+public class BusRouteRepositoryImpl implements BusRouteRepository {
+
+    private final BusRouteJpaRepository busRouteJpaRepository;
+
+    public BusRouteRepositoryImpl(BusRouteJpaRepository busRouteJpaRepository) {
+        this.busRouteJpaRepository = busRouteJpaRepository;
+    }
+
+    @Override
+    public List<UUID> findRouteIdsByBusId(UUID busId) {
+        return busRouteJpaRepository.findRouteIdsByBusId(busId);
+    }
+}
+</file>
+
+<file path="infrastructure/persistence/repository/TripJpaRepository.java">
+package com.bustracking.companies.infrastructure.persistence.repository;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.bustracking.companies.infrastructure.persistence.entity.TripJpa;
+import com.bustracking.companies.domain.dto.TripScheduleProjection;
+
+
+public interface TripJpaRepository extends JpaRepository<TripJpa, UUID> {
+
+
+    /*
+    
+    La consulta JPQL findTodayPlannedTripsByBusRoutes:
+
+        Filtra por br.busId = :busId → solo viajes de las rutas asignadas a ese bus.
+
+        Filtra por t.tripDate = :today → solo viajes del día actual.
+
+        Filtra por t.status = 'PLANNED' → solo viajes que aún no han comenzado (disponibles para ser tomados).
+
+    */
+
+    @Query("SELECT new com.bustracking.companies.domain.dto.TripScheduleProjection(" +
+           "t.id, r.name, r.origin, r.destination, s.departureTime, t.status) " +
+           "FROM TripJpa t " +
+           "JOIN ScheduleJpa s ON s.id = t.scheduleId " +
+           "JOIN RouteJpa r ON r.id = s.routeId " +
+           "JOIN BusRouteJpa br ON br.routeId = r.id " +
+           "WHERE br.busId = :busId " +
+           "AND t.tripDate = :today " +
+           "AND t.status = 'PLANNED'")
+    List<TripScheduleProjection> findTodayPlannedTripsByBusRoutes(
+        @Param("busId") UUID busId,
+        @Param("today") LocalDate today
+    );
+}
+</file>
+
+<file path="infrastructure/persistence/repository/TripRepositoryImpl.java">
+package com.bustracking.companies.infrastructure.persistence.repository;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.stereotype.Repository;
+
+import com.bustracking.companies.domain.dto.TripScheduleProjection;
+import com.bustracking.companies.domain.repository.TripRepository;
+
+@Repository
+public class TripRepositoryImpl implements TripRepository {
+
+    private final TripJpaRepository tripJpaRepository;
+
+    public TripRepositoryImpl(TripJpaRepository tripJpaRepository) {
+        this.tripJpaRepository = tripJpaRepository;
+    }
+
+    @Override
+    public List<TripScheduleProjection> findTodayPlannedTripsByBusRoutes(UUID busId) {
+        return tripJpaRepository
+            .findTodayPlannedTripsByBusRoutes(busId, LocalDate.now())
+            .stream()
+            .map(r -> new TripScheduleProjection(
+                r.id(),
+                r.routeName(),
+                r.origin(),
+                r.destination(),
+                r.departureTime(),
+                r.status()
+            ))
+            .toList();
+    }
+}
+</file>
+
+<file path="infrastructure/web/controller/Placeholder.java">
+// REST Controllers - HTTP endpoints for Company and Route go here
+</file>
+
+<file path="infrastructure/web/dto/request/Placeholder.java">
+// Request DTOs - HTTP requests for Company and Route go here
+</file>
+
+<file path="infrastructure/web/dto/response/Placeholder.java">
+// Response DTOs - HTTP responses for Company and Route go here
+</file>
+
+</files>

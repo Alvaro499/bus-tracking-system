@@ -194,19 +194,24 @@ src/test/java/com/bustracking/
 │   │           ├── PlateTest.java
 │   │           └── InternalNumberTest.java
 │   ├── integration/
-│   └── e2e/
+│       └── flowtests/
+|       └── controlertests/
+|       └── repositorytests/
 │
 ├── admin/
 │   ├── unit/
 │   ├── integration/
-│   └── e2e/
+│       └── flowtests/
+|       └── controlertests/
+|       └── repositorytests/
+│   
 │
 └── shared/
     ├── unit/
     │   └── GpsCoordinateTest.java
     └── testinfrastructure/
         ├── ControllerIntegrationTest.java
-        ├── E2EIntegrationTest.java
+        ├── FlowIntegrationTest.java
         └── RepositoryIntegrationTest.java
 ```
 
