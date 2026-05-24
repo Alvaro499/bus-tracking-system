@@ -21,7 +21,7 @@ export function TripCard({ trip, onTakeTrip }: TripCardProps) {
     <Card>
       <CardHeader>
         <CardTitle className="text-lg font-semibold">
-          {trip.routeName}
+          Ruta: {trip.routeName}
         </CardTitle>
         <CardDescription className="flex items-center gap-1 text-muted-foreground">
           <MapPin size={14} />
