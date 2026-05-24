@@ -6,15 +6,12 @@
 -- Reset: docker-compose down -v && docker-compose up -d
 -- ============================================================================
 
-
-
 -- ============================================================================
 -- SCHEMAS
 -- ============================================================================
-
-CREATE SCHEMA admin;
-CREATE SCHEMA companies;
-CREATE SCHEMA tracking;
+CREATE SCHEMA IF NOT EXISTS admin;
+CREATE SCHEMA IF NOT EXISTS companies;
+CREATE SCHEMA IF NOT EXISTS tracking;
 
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
@@ -23,7 +20,7 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm;
 -- Owns platform governance: users, company approval requests, audit trail
 -- ============================================================================
 
-CREATE TABLE admin."user" (
+CREATE TABLE IF NOT EXISTS admin."user" (
     id UUID PRIMARY KEY,
     email VARCHAR(150) UNIQUE NOT NULL,
     password VARCHAR(12) NOT NULL,
@@ -38,7 +35,7 @@ CREATE TABLE admin."user" (
 -- MUST be created before admin.company_request (which references it)
 -- ============================================================================
 
-CREATE TABLE companies.company (
+CREATE TABLE IF NOT EXISTS companies.company (
     id UUID PRIMARY KEY,
     tax_id VARCHAR(20) UNIQUE NOT NULL,
     name VARCHAR(255) NOT NULL,
@@ -49,7 +46,7 @@ CREATE TABLE companies.company (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE companies.company_user (
+CREATE TABLE IF NOT EXISTS companies.company_user (
     id UUID PRIMARY KEY,
     user_id UUID NOT NULL REFERENCES admin."user"(id) ON DELETE RESTRICT,
     company_id UUID NOT NULL REFERENCES companies.company(id) ON DELETE RESTRICT,
@@ -58,7 +55,7 @@ CREATE TABLE companies.company_user (
     UNIQUE (user_id, company_id)
 );
 
-CREATE TABLE companies.route (
+CREATE TABLE IF NOT EXISTS companies.route (
     id UUID PRIMARY KEY,
     company_id UUID NOT NULL REFERENCES companies.company(id) ON DELETE RESTRICT,
     name VARCHAR(150) NOT NULL,
@@ -71,7 +68,7 @@ CREATE TABLE companies.route (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE companies.stop (
+CREATE TABLE IF NOT EXISTS companies.stop (
     id UUID PRIMARY KEY,
     company_id UUID NOT NULL REFERENCES companies.company(id) ON DELETE RESTRICT,
     name VARCHAR(150) NOT NULL,
@@ -82,7 +79,7 @@ CREATE TABLE companies.stop (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE companies.route_stop (
+CREATE TABLE IF NOT EXISTS companies.route_stop (
     id UUID PRIMARY KEY,
     route_id UUID NOT NULL REFERENCES companies.route(id) ON DELETE RESTRICT,
     stop_id UUID NOT NULL REFERENCES companies.stop(id) ON DELETE RESTRICT,
@@ -92,7 +89,7 @@ CREATE TABLE companies.route_stop (
     UNIQUE (route_id, order_index)
 );
 
-CREATE TABLE companies.route_stop_fare (
+CREATE TABLE IF NOT EXISTS companies.route_stop_fare (
     id UUID PRIMARY KEY,
     route_stop_id UUID NOT NULL REFERENCES companies.route_stop(id) ON DELETE RESTRICT,
     price DECIMAL(10,2) NOT NULL CHECK (price >= 0),
@@ -104,7 +101,7 @@ CREATE TABLE companies.route_stop_fare (
     CHECK (end_date IS NULL OR end_date >= start_date)
 );
 
-CREATE TABLE companies.bus (
+CREATE TABLE IF NOT EXISTS companies.bus (
     id UUID PRIMARY KEY,
     company_id UUID NOT NULL REFERENCES companies.company(id) ON DELETE RESTRICT,
     plate VARCHAR(20) NOT NULL UNIQUE,
@@ -115,7 +112,7 @@ CREATE TABLE companies.bus (
     updated_at TIMESTAMP NOT NULL
 );
 
-CREATE TABLE companies.bus_route (
+CREATE TABLE IF NOT EXISTS companies.bus_route (
     id UUID PRIMARY KEY,
     bus_id UUID NOT NULL REFERENCES companies.bus(id) ON DELETE CASCADE,
     route_id UUID NOT NULL REFERENCES companies.route(id) ON DELETE CASCADE,
@@ -123,7 +120,7 @@ CREATE TABLE companies.bus_route (
     UNIQUE (bus_id, route_id)
 );
 
-CREATE TABLE companies.schedule (
+CREATE TABLE IF NOT EXISTS companies.schedule (
     id UUID PRIMARY KEY,
     route_id UUID NOT NULL REFERENCES companies.route(id) ON DELETE RESTRICT,
     departure_time TIME NOT NULL,
@@ -137,7 +134,7 @@ CREATE TABLE companies.schedule (
     CHECK (end_date IS NULL OR end_date > start_date)
 );
 
-CREATE TABLE companies.trip (
+CREATE TABLE IF NOT EXISTS companies.trip (
     id UUID PRIMARY KEY,
     schedule_id UUID NOT NULL REFERENCES companies.schedule(id) ON DELETE RESTRICT,
     bus_id UUID NULL REFERENCES companies.bus(id) ON DELETE SET NULL,
@@ -158,7 +155,7 @@ CREATE TABLE companies.trip (
 -- Now companies.company exists, we can create company_request
 -- ============================================================================
 
-CREATE TABLE admin.company_request (
+CREATE TABLE IF NOT EXISTS admin.company_request (
     id UUID PRIMARY KEY,
     company_id UUID NOT NULL REFERENCES companies.company(id) ON DELETE CASCADE,
     reviewed_by UUID NULL REFERENCES admin."user"(id) ON DELETE SET NULL,
@@ -168,7 +165,7 @@ CREATE TABLE admin.company_request (
     reviewed_at TIMESTAMP NULL
 );
 
-CREATE TABLE admin.audit_log (
+CREATE TABLE IF NOT EXISTS admin.audit_log (
     id UUID PRIMARY KEY,
     user_id UUID REFERENCES admin."user"(id) ON DELETE SET NULL,
     entity_type VARCHAR(50) NOT NULL,
@@ -185,14 +182,14 @@ CREATE TABLE admin.audit_log (
 -- High write frequency, volatile data, consumed by the bus app
 -- ============================================================================
 
-CREATE TABLE tracking.bus_location (
+CREATE TABLE IF NOT EXISTS tracking.bus_location (
     bus_id UUID PRIMARY KEY,
     lat DECIMAL(9,6) NOT NULL,
     lng DECIMAL(9,6) NOT NULL,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE tracking.bus_credential (
+CREATE TABLE IF NOT EXISTS tracking.bus_credential (
     id UUID PRIMARY KEY,
     bus_id UUID NOT NULL REFERENCES companies.bus(id) ON DELETE RESTRICT,
     password_hash VARCHAR(255) NOT NULL,
@@ -210,66 +207,66 @@ CREATE TABLE tracking.bus_credential (
 -- Auth & Permission Checks
 -- Used when verifying what company a user belongs to and what role they have
 -- ----------------------------------------------------------------------------
-CREATE INDEX idx_CompanyUser_UserId ON companies.company_user(user_id);
-CREATE INDEX idx_CompanyUser_CompanyId ON companies.company_user(company_id);
+CREATE INDEX IF NOT EXISTS idx_CompanyUser_UserId ON companies.company_user(user_id);
+CREATE INDEX IF NOT EXISTS idx_CompanyUser_CompanyId ON companies.company_user(company_id);
 
 -- ----------------------------------------------------------------------------
 -- Company Admin Panel
 -- Used when a company admin manages their own routes, stops and buses
 -- Used when the system filters and gives the admin user only the company data
 -- ----------------------------------------------------------------------------
-CREATE INDEX idx_Route_CompanyId ON companies.route(company_id);
-CREATE INDEX idx_Stop_CompanyId ON companies.stop(company_id);
-CREATE INDEX idx_Bus_CompanyId ON companies.bus(company_id);
+CREATE INDEX IF NOT EXISTS idx_Route_CompanyId ON companies.route(company_id);
+CREATE INDEX IF NOT EXISTS idx_Stop_CompanyId ON companies.stop(company_id);
+CREATE INDEX IF NOT EXISTS idx_Bus_CompanyId ON companies.bus(company_id);
 
 -- Bus Route Assignment (used when filtering trips by assigned routes)
 -- Used when driver sees only trips of their assigned routes
 -- Used when admin assigns/removes routes from buses
 -- ----------------------------------------------------------------------------
-CREATE INDEX idx_BusRoute_BusId ON companies.bus_route(bus_id);
-CREATE INDEX idx_BusRoute_RouteId ON companies.bus_route(route_id);
+CREATE INDEX IF NOT EXISTS idx_BusRoute_BusId ON companies.bus_route(bus_id);
+CREATE INDEX IF NOT EXISTS idx_BusRoute_RouteId ON companies.bus_route(route_id);
 
 -- ----------------------------------------------------------------------------
 -- Public Search (used by end users searching for routes)
 -- Origin + destination for exact match, name for partial text search
 -- ----------------------------------------------------------------------------
-CREATE INDEX idx_Route_OriginDestination ON companies.route(origin, destination);
+CREATE INDEX IF NOT EXISTS idx_Route_OriginDestination ON companies.route(origin, destination);
 
 -- Partial text search on route name (e.g. user types "Cartago")
 -- Requires: CREATE EXTENSION IF NOT EXISTS pg_trgm;
-CREATE INDEX idx_Route_Name_GIN ON companies.route USING GIN (name gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_Route_Name_GIN ON companies.route USING GIN (name gin_trgm_ops);
 
 
 -- ----------------------------------------------------------------------------
 -- Map & Real-Time Tracking (used by end users viewing the map)
 -- Core query: find active trips for today to show buses on the map
 -- ----------------------------------------------------------------------------
-CREATE INDEX idx_Trip_StatusDate ON companies.trip(status, trip_date);
-CREATE INDEX idx_Trip_BusId ON companies.trip(bus_id);
+CREATE INDEX IF NOT EXISTS idx_Trip_StatusDate ON companies.trip(status, trip_date);
+CREATE INDEX IF NOT EXISTS idx_Trip_BusId ON companies.trip(bus_id);
 
 -- ----------------------------------------------------------------------------
 -- Stop & Route Details (used when loading route stops on the map)
 -- ----------------------------------------------------------------------------
-CREATE INDEX idx_RouteStop_RouteId ON companies.route_stop(route_id);
+CREATE INDEX IF NOT EXISTS idx_RouteStop_RouteId ON companies.route_stop(route_id);
 
 -- ----------------------------------------------------------------------------
 -- Schedule Management (used by admins and trip generation)
 -- ----------------------------------------------------------------------------
-CREATE INDEX idx_Schedule_RouteId ON companies.schedule(route_id);
+CREATE INDEX IF NOT EXISTS idx_Schedule_RouteId ON companies.schedule(route_id);
 
 -- ----------------------------------------------------------------------------
 -- Trip Management (used by admins and the bus app)
 -- Drivers look up trips by schedule when starting their shift
 -- ----------------------------------------------------------------------------
-CREATE INDEX idx_Trip_ScheduleId ON companies.trip(schedule_id);
+CREATE INDEX IF NOT EXISTS idx_Trip_ScheduleId ON companies.trip(schedule_id);
 
 -- ----------------------------------------------------------------------------
 -- Bus App (used by drivers searching for available trips)
 -- Stops lookup by name when admins assign or modify stops
 -- ----------------------------------------------------------------------------
-CREATE INDEX idx_Stop_Name ON companies.stop(name);
+CREATE INDEX IF NOT EXISTS idx_Stop_Name ON companies.stop(name);
 
 -- ----------------------------------------------------------------------------
 -- Fare Lookup (used when showing ticket prices per stop)
 -- ----------------------------------------------------------------------------
-CREATE INDEX idx_RouteStopFare_RouteStopId ON companies.route_stop_fare(route_stop_id, is_active);
+CREATE INDEX IF NOT EXISTS idx_RouteStopFare_RouteStopId ON companies.route_stop_fare(route_stop_id, is_active);
