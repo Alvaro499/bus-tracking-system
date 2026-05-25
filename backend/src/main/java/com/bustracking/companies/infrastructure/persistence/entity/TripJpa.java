@@ -33,6 +33,9 @@ public class TripJpa {
     @Column(name = "trip_date", nullable = false)
     private LocalDate tripDate;
 
+    @Column(name = "cancellation_reason", columnDefinition = "TEXT", nullable = true)
+    private String cancellationReason;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private TripStatus status;
