@@ -1,12 +1,17 @@
 package com.bustracking.companies.infrastructure.config;
 
+import java.util.Optional;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.bustracking.companies.domain.model.Trip;
 import com.bustracking.companies.domain.repository.BusRepository;
 import com.bustracking.companies.domain.repository.TripRepository;
+import com.bustracking.shared.exception.ErrorCode;
+import com.bustracking.shared.exception.NotFoundException;
 import com.bustracking.tracking.domain.contract.BusExistsById;
 import com.bustracking.tracking.domain.contract.GetTodayPlannedTripsByBusRoutes;
+import com.bustracking.tracking.domain.contract.StartTrip;
 import com.bustracking.tracking.domain.model.TripView;
 
 /**
@@ -71,5 +76,28 @@ public class TrackingDelegatesConfig {
                 result.status().name()
             ))
             .toList();
+    }
+
+    @Bean 
+    public StartTrip startTrip() {
+
+        // We use lambda expression avoiding creating an unneessary class.
+        return (tripId, busId) -> {
+            Optional<Trip> optionalTrip = tripRepository.findById(tripId);
+
+            if(optionalTrip.isEmpty()) {
+                throw new NotFoundException(
+                    ErrorCode.TRIP_NOT_FOUND,
+                    "Trip not found",
+                    "Trip with ID " + tripId + " not found for Bus ID " + busId);
+
+            }
+            // We extract the Trip entity
+            Trip trip = optionalTrip.get();
+            // We use trip domain logic to start the trip
+            trip.start(busId);
+            // We save the updated trip back to the repository
+            tripRepository.save(trip);
+        };
     }
 }
