@@ -15,11 +15,10 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.bustracking.shared.testinfrastructure.ControllerIntegrationTest;
 import com.bustracking.tracking.application.usecase.StartTripUseCase;
-import com.bustracking.tracking.infrastructure.web.controller.DriverTripQueryController;
+import com.bustracking.tracking.infrastructure.web.controller.DriverTripCommandController;
 
-
-@WebMvcTest(DriverTripQueryController.class)
-class DriverTripQueryControllerTest extends ControllerIntegrationTest {
+@WebMvcTest(DriverTripCommandController.class)
+class DriverTripCommandControllerTest extends ControllerIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
