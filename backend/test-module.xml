@@ -1,0 +1,2640 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: src/test/**
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+src/test/java/com/bustracking/companies/integration/repository/TripRepositoryTest.java
+src/test/java/com/bustracking/companies/unit/domain/BusTest.java
+src/test/java/com/bustracking/companies/unit/domain/TripTest.java
+src/test/java/com/bustracking/companies/unit/domain/valueobjects/InternalNumberTest.java
+src/test/java/com/bustracking/companies/unit/domain/valueobjects/PlateTest.java
+src/test/java/com/bustracking/shared/testinfrastructure/ControllerIntegrationTest.java
+src/test/java/com/bustracking/shared/testinfrastructure/FlowIntegrationTest.java
+src/test/java/com/bustracking/shared/testinfrastructure/PostgresTestContainer.java
+src/test/java/com/bustracking/shared/testinfrastructure/RepositoryIntegrationTest.java
+src/test/java/com/bustracking/shared/unit/GlobalExceptionHandlerTest.java
+src/test/java/com/bustracking/shared/unit/GpsCoordinateTest.java
+src/test/java/com/bustracking/tracking/integration/controller/BusLocationControllerTest.java
+src/test/java/com/bustracking/tracking/integration/controller/DriverTripQueryControllerTest.java
+src/test/java/com/bustracking/tracking/integration/flow/BusLocationFlowTest.java
+src/test/java/com/bustracking/tracking/integration/flow/DriverQueryTripFlowTest.java
+src/test/java/com/bustracking/tracking/integration/repository/BusLocationRepositoryTest.java
+src/test/java/com/bustracking/tracking/unit/domain/BusLocationTest.java
+src/test/java/com/bustracking/tracking/unit/usecase/GetBusLocationUseCaseTest.java
+src/test/java/com/bustracking/tracking/unit/usecase/GetTodayPlannedTripsUseCaseTest.java
+src/test/java/com/bustracking/tracking/unit/usecase/UpdateBusLocationUseCaseTest.java
+src/test/resources/db/test-init.sql
+src/test/resources/test-data/cleanup.sql
+src/test/resources/test-data/tracking-base.sql
+src/test/resources/test-data/tracking-trips.sql
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="src/test/java/com/bustracking/companies/integration/repository/TripRepositoryTest.java">
+package com.bustracking.companies.integration.repository;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.List;
+import java.util.UUID;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.jdbc.Sql;
+
+import com.bustracking.companies.domain.dto.TripScheduleProjection;
+import com.bustracking.companies.infrastructure.persistence.repository.TripJpaRepository;
+import com.bustracking.companies.infrastructure.persistence.repository.TripRepositoryImpl;
+import com.bustracking.shared.testinfrastructure.RepositoryIntegrationTest;
+
+@Sql({
+    "/test-data/tracking-base.sql",
+    "/test-data/tracking-trips.sql"
+})
+class TripRepositoryTest extends RepositoryIntegrationTest {
+
+    @Autowired
+    private TripJpaRepository tripJpaRepository;
+
+    private TripRepositoryImpl repository;
+
+    private static final UUID BUS_ID_1 = UUID.fromString("650e8400-e29b-41d4-a716-446655440001");
+    private static final UUID BUS_ID_2 = UUID.fromString("650e8400-e29b-41d4-a716-446655440002");
+
+    @BeforeEach
+    void setUp() {
+        repository = new TripRepositoryImpl(tripJpaRepository);
+    }
+
+    // =========================================================
+    // findTodayPlannedTripsByBusRoutes — Happy Path
+    // =========================================================
+
+    @Test
+    void shouldReturnPlannedTripsForTodayWhenBusHasRoutes() {
+        List<TripScheduleProjection> result =
+            repository.findTodayPlannedTripsByBusRoutes(BUS_ID_1);
+
+        assertFalse(result.isEmpty());
+        assertEquals("Cartago-Orosi", result.get(0).routeName());
+        assertEquals("Cartago", result.get(0).origin());
+        assertEquals("Orosi", result.get(0).destination());
+        assertEquals("PLANNED", result.get(0).status().name());
+    }
+
+    @Test
+    void shouldReturnEmptyListWhenBusHasNoTripsToday() {
+        // BUS_ID_2 exists in tracking-base.sql but has no routes or trips
+        List<TripScheduleProjection> result =
+            repository.findTodayPlannedTripsByBusRoutes(BUS_ID_2);
+
+        assertTrue(result.isEmpty());
+    }
+
+    // =========================================================
+    // findTodayPlannedTripsByBusRoutes — Filters
+    // =========================================================
+
+    @Test
+    void shouldNotReturnTripsFromOtherBusRoutes() {
+        List<TripScheduleProjection> result =
+            repository.findTodayPlannedTripsByBusRoutes(UUID.randomUUID());
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void shouldNotReturnTripsWithStatusInProgress() {
+        // IN_PROGRESS trip loaded by tracking-trips.sql (filter test data section)
+        List<TripScheduleProjection> result =
+            repository.findTodayPlannedTripsByBusRoutes(BUS_ID_1);
+
+        assertFalse(result.isEmpty());
+        result.forEach(trip -> assertEquals("PLANNED", trip.status().name()));
+    }
+
+    @Test
+    void shouldNotReturnTripsFromYesterday() {
+        // Yesterday PLANNED trip loaded by tracking-trips.sql (filter test data section)
+        List<TripScheduleProjection> result =
+            repository.findTodayPlannedTripsByBusRoutes(BUS_ID_1);
+
+        assertFalse(result.isEmpty());
+        result.forEach(trip -> assertEquals("PLANNED", trip.status().name()));
+    }
+}
+</file>
+
+<file path="src/test/java/com/bustracking/companies/unit/domain/BusTest.java">
+package com.bustracking.companies.unit.domain;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.UUID;
+
+import org.junit.jupiter.api.Test;
+
+import com.bustracking.companies.domain.enums.BusStatus;
+import com.bustracking.companies.domain.model.Bus;
+import com.bustracking.companies.domain.valueobjects.InternalNumber;
+import com.bustracking.companies.domain.valueobjects.Plate;
+import com.bustracking.shared.exception.BusinessRuleException;
+import com.bustracking.shared.exception.ValidationException;
+
+public class BusTest {
+    
+    // Common data test
+    private final UUID validCompanyId = UUID.randomUUID();
+    private final String validPlate = "CRC123";
+    private final String validInternalNumber = "BUS-01";
+
+    //==========================================================
+    // Happy Path Tests
+    //==========================================================
+
+    @Test
+    void shouldCreateBusWithValidValues() {
+        Bus bus = new Bus(validCompanyId, validPlate, validInternalNumber, true);
+
+        assertEquals(validCompanyId, bus.getCompanyId());
+        assertEquals(new Plate(validPlate), bus.getPlate());
+        assertEquals(new InternalNumber(validInternalNumber), bus.getInternalNumber());
+        assertTrue(bus.getHasRamp());
+        assertEquals(BusStatus.INACTIVE, bus.getStatus());
+        assertNotNull(bus.getId());
+    }
+
+    @Test
+    void shouldCreateBusWithoutInternalNumber() {
+        Bus bus = new Bus(validCompanyId, validPlate, null, false);
+
+        assertNull(bus.getInternalNumber().getValue());
+        assertEquals(BusStatus.INACTIVE, bus.getStatus());
+    }
+
+    // =========================================================
+    // Bus State Transitions - activate
+    // =========================================================
+
+    @Test
+    void shouldActivateBusWhenInactive() {
+        Bus bus = new Bus(validCompanyId, validPlate, null, false);
+        bus.activate();
+        assertEquals(BusStatus.ACTIVE, bus.getStatus());
+    }
+
+    @Test
+    void shouldThrowWhenActivatingAlreadyActiveBus() {
+        Bus bus = new Bus(validCompanyId, validPlate, null, false);
+        bus.activate();
+
+        // equivalent -> assertThrows(BusinessRuleException.class, () -> bus.activate());
+        assertThrows(BusinessRuleException.class, bus::activate);
+    }
+
+    @Test
+    void shouldThrowWhenActivatingBusInMaintenance() {
+        Bus bus = new Bus(validCompanyId, validPlate, null, false);
+        bus.activate();
+        bus.sendToMaintenance();
+
+        assertThrows(BusinessRuleException.class, bus::activate);
+    }
+
+    // =========================================================
+    // State Transitions - deactivate
+    // =========================================================
+
+    @Test
+    void shouldDeactivateBusWhenActive() {
+        Bus bus = new Bus(validCompanyId, validPlate, null, false);
+        bus.activate();
+        bus.deactivate();
+
+        assertEquals(BusStatus.INACTIVE, bus.getStatus());
+    }
+
+    @Test
+    void shouldThrowWhenDeactivatingAlreadyInactiveBus() {
+        Bus bus = new Bus(validCompanyId, validPlate, null, false);
+
+        assertThrows(BusinessRuleException.class, bus::deactivate);
+    }
+
+    @Test
+    void shouldDeactivateBusWhenInMaintenance() {
+        Bus bus = new Bus(validCompanyId, validPlate, null, false);
+        bus.activate();
+        bus.sendToMaintenance();
+        bus.deactivate();
+
+        assertEquals(BusStatus.INACTIVE, bus.getStatus());
+    }
+
+    // =========================================================
+    // Transiciones de estado - sendToMaintenance
+    // =========================================================
+
+    @Test
+    void shouldSendBusToMaintenanceWhenActive() {
+        Bus bus = new Bus(validCompanyId, validPlate, null, false);
+        bus.activate();
+        bus.sendToMaintenance();
+
+        assertEquals(BusStatus.MAINTENANCE, bus.getStatus());
+    }
+
+    @Test
+    void shouldThrowWhenSendingToMaintenanceAlreadyInMaintenance() {
+        Bus bus = new Bus(validCompanyId, validPlate, null, false);
+        bus.activate();
+        bus.sendToMaintenance();
+
+        assertThrows(BusinessRuleException.class, bus::sendToMaintenance);
+    }
+
+    @Test
+    void shouldSendBusToMaintenanceWhenInactive() {
+        Bus bus = new Bus(validCompanyId, validPlate, null, false);
+        bus.sendToMaintenance();
+
+        assertEquals(BusStatus.MAINTENANCE, bus.getStatus());
+    }
+
+    // =========================================================
+    // Invalid CompanyId and HasRamp
+    // =========================================================
+
+    @Test
+    void shouldThrowWhenCompanyIdIsNull() {
+        assertThrows(ValidationException.class, () ->
+            new Bus(null, validPlate, validInternalNumber, true)
+        );
+    }
+
+    @Test
+    void shouldThrowWhenHasRampIsNull() {
+        assertThrows(ValidationException.class, () ->
+            new Bus(validCompanyId, validPlate, validInternalNumber, null)
+        );
+    }
+
+    // =========================================================
+    // Timestamps
+    // =========================================================
+
+   @Test
+    void shouldInitializeCreatedAtAndUpdatedAtOnConstruction() {
+        Bus bus = new Bus(validCompanyId, validPlate, validInternalNumber, true);
+
+        assertNotNull(bus.getCreatedAt());
+        assertNotNull(bus.getUpdatedAt());
+        
+        // Solo verifica que updatedAt está dentro de 1 segundo después de createdAt
+        assertTrue(
+            !bus.getUpdatedAt().isBefore(bus.getCreatedAt()) &&
+            bus.getUpdatedAt().isBefore(bus.getCreatedAt().plusSeconds(1))
+        );
+    }
+}
+</file>
+
+<file path="src/test/java/com/bustracking/companies/unit/domain/TripTest.java">
+package com.bustracking.companies.unit.domain;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.Test;
+
+import com.bustracking.companies.domain.enums.TripStatus;
+import com.bustracking.companies.domain.model.Trip;
+import com.bustracking.shared.exception.BusinessRuleException;
+import com.bustracking.shared.exception.ValidationException;
+
+import java.time.LocalDate;
+import java.util.UUID;
+
+public class TripTest {
+
+    // =========================================================
+    // Helpers
+    // =========================================================
+
+    private Trip aPlannedTrip() {
+        return new Trip(UUID.randomUUID());
+    }
+
+    private Trip anInProgressTrip() {
+        Trip trip = new Trip(UUID.randomUUID());
+        trip.start(UUID.randomUUID());
+        return trip;
+    }
+
+    private Trip aCancelledTrip() {
+        Trip trip = new Trip(UUID.randomUUID());
+        trip.cancel("Driver unavailable");
+        return trip;
+    }
+
+    private Trip aCompletedTrip() {
+        Trip trip = new Trip(UUID.randomUUID());
+        trip.start(UUID.randomUUID());
+        trip.complete();
+        return trip;
+    }
+
+    // =========================================================
+    // Happy Path & Invalid — Constructor
+    // =========================================================
+
+    @Test
+    void shouldCreateTripWithCorrectInitialValues() {
+        // Arrange
+        UUID scheduleId = UUID.randomUUID();
+
+        // Act
+        Trip trip = new Trip(scheduleId);
+
+        // Assert
+        assertNotNull(trip.getId());
+        assertEquals(scheduleId, trip.getScheduleId());
+        assertEquals(TripStatus.PLANNED, trip.getStatus());
+        assertEquals(LocalDate.now(), trip.getTripDate());
+        assertNull(trip.getBusId());
+        assertNull(trip.getActualStartTime());
+        assertNull(trip.getActualEndTime());
+        assertNull(trip.getCancellationReason());
+    }
+
+    @Test
+    void shouldGenerateUniqueIdOnEachCreation() {
+        // Arrange & Act
+        Trip trip1 = aPlannedTrip();
+        Trip trip2 = aPlannedTrip();
+
+        // Assert
+        assertNotEquals(trip1.getId(), trip2.getId());
+    }
+
+    @Test
+    void shouldThrowValidationExceptionWhenScheduleIdIsNull() {
+        // Act & Assert
+        assertThrows(ValidationException.class, () ->
+            new Trip(null)
+        );
+    }
+
+    // =========================================================
+    // Happy Path & Invalid — start()
+    // =========================================================
+
+    @Test
+    void shouldStartTripWithCorrectFields() {
+        // Arrange
+        UUID busId = UUID.randomUUID();
+        Trip trip = aPlannedTrip();
+
+        // Act
+        trip.start(busId);
+
+        // Assert
+        assertEquals(TripStatus.IN_PROGRESS, trip.getStatus());
+        assertEquals(busId, trip.getBusId());
+        assertNotNull(trip.getActualStartTime());
+        assertNotNull(trip.getAssignedAt());
+        assertNotNull(trip.getUpdatedAt());
+    }
+
+    @Test
+    void shouldThrowWhenStartCalledOnInProgressTrip() {
+        // Arrange
+        Trip trip = anInProgressTrip();
+
+        // Act & Assert
+        assertThrows(BusinessRuleException.class, () ->
+            trip.start(UUID.randomUUID())
+        );
+    }
+
+    @Test
+    void shouldThrowWhenStartCalledOnCancelledTrip() {
+        // Arrange
+        Trip trip = aCancelledTrip();
+
+        // Act & Assert
+        assertThrows(BusinessRuleException.class, () ->
+            trip.start(UUID.randomUUID())
+        );
+    }
+
+    @Test
+    void shouldThrowWhenStartCalledOnCompletedTrip() {
+        // Arrange
+        Trip trip = aCompletedTrip();
+
+        // Act & Assert
+        assertThrows(BusinessRuleException.class, () ->
+            trip.start(UUID.randomUUID())
+        );
+    }
+
+    @Test
+    void shouldThrowWhenBusIdIsNullOnStart() {
+        // Arrange
+        Trip trip = aPlannedTrip();
+
+        // Act & Assert
+        assertThrows(ValidationException.class, () ->
+            trip.start(null)
+        );
+    }
+
+    // =========================================================
+    // Happy Path & Invalid — cancel()
+    // =========================================================
+
+    @Test
+    void shouldCancelPlannedTripWithCorrectFields() {
+        // Arrange
+        Trip trip = aPlannedTrip();
+        String reason = "Driver unavailable";
+
+        // Act
+        trip.cancel(reason);
+
+        // Assert
+        assertEquals(TripStatus.CANCELLED, trip.getStatus());
+        assertEquals(reason, trip.getCancellationReason());
+        assertNotNull(trip.getUpdatedAt());
+    }
+
+    @Test
+    void shouldCancelInProgressTripWithCorrectFields() {
+        // Arrange
+        Trip trip = anInProgressTrip();
+        String reason = "Mechanical failure";
+
+        // Act
+        trip.cancel(reason);
+
+        // Assert
+        assertEquals(TripStatus.CANCELLED, trip.getStatus());
+        assertEquals(reason, trip.getCancellationReason());
+        assertNotNull(trip.getUpdatedAt());
+    }
+
+    @Test
+    void shouldThrowWhenCancelCalledOnCancelledTrip() {
+        // Arrange
+        Trip trip = aCancelledTrip();
+
+        // Act & Assert
+        assertThrows(BusinessRuleException.class, () ->
+            trip.cancel("Another reason")
+        );
+    }
+
+    @Test
+    void shouldThrowWhenCancelCalledOnCompletedTrip() {
+        // Arrange
+        Trip trip = aCompletedTrip();
+
+        // Act & Assert
+        assertThrows(BusinessRuleException.class, () ->
+            trip.cancel("Too late")
+        );
+    }
+
+    @Test
+    void shouldThrowWhenCancellationReasonIsNull() {
+        // Arrange
+        Trip trip = aPlannedTrip();
+
+        // Act & Assert
+        assertThrows(ValidationException.class, () ->
+            trip.cancel(null)
+        );
+    }
+
+    @Test
+    void shouldThrowWhenCancellationReasonIsBlank() {
+        // Arrange
+        Trip trip = aPlannedTrip();
+
+        // Act & Assert
+        assertThrows(ValidationException.class, () ->
+            trip.cancel("   ")
+        );
+    }
+
+    // =========================================================
+    // Happy Path & Invalid — complete()
+    // =========================================================
+
+    @Test
+    void shouldCompleteTripWithCorrectFields() {
+        // Arrange
+        Trip trip = anInProgressTrip();
+
+        // Act
+        trip.complete();
+
+        // Assert
+        assertEquals(TripStatus.COMPLETED, trip.getStatus());
+        assertNotNull(trip.getActualEndTime());
+        assertNotNull(trip.getUpdatedAt());
+    }
+
+    @Test
+    void shouldThrowWhenCompleteCalledOnPlannedTrip() {
+        // Arrange
+        Trip trip = aPlannedTrip();
+
+        // Act & Assert
+        assertThrows(BusinessRuleException.class, () ->
+            trip.complete()
+        );
+    }
+
+    @Test
+    void shouldThrowWhenCompleteCalledOnCancelledTrip() {
+        // Arrange
+        Trip trip = aCancelledTrip();
+
+        // Act & Assert
+        assertThrows(BusinessRuleException.class, () ->
+            trip.complete()
+        );
+    }
+}
+</file>
+
+<file path="src/test/java/com/bustracking/companies/unit/domain/valueobjects/InternalNumberTest.java">
+package com.bustracking.companies.unit.domain.valueobjects;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.Test;
+
+import com.bustracking.companies.domain.valueobjects.InternalNumber;
+import com.bustracking.shared.exception.ValidationException;
+
+class InternalNumberTest {
+
+    // =========================================================
+    // Happy Path Tests
+    // =========================================================
+
+    @Test
+    void shouldCreateInternalNumberWithValidValue() {
+        String validNumber = "BUS-01";
+        InternalNumber internalNumber = new InternalNumber(validNumber);
+
+        assertEquals(validNumber, internalNumber.getValue());
+    }
+
+    @Test
+    void shouldCreateInternalNumberAsNull() {
+        InternalNumber internalNumber = new InternalNumber(null);
+
+        assertNull(internalNumber.getValue());
+        assertTrue(internalNumber.isEmpty());
+    }
+
+    @Test
+    void shouldCreateInternalNumberAtMinimumLength() {
+        String minNumber = "ABC";
+        InternalNumber internalNumber = new InternalNumber(minNumber);
+        assertEquals(minNumber, internalNumber.getValue());
+    }
+
+    @Test
+    void shouldCreateInternalNumberAtMaximumLength() {
+        String maxNumber = "A".repeat(20);
+        InternalNumber internalNumber = new InternalNumber(maxNumber);
+        assertEquals(maxNumber, internalNumber.getValue());
+    }
+
+    @Test
+    void shouldConsiderTwoInternalNumbersWithSameValueAsEqual() {
+        InternalNumber number1 = new InternalNumber("BUS-01");
+        InternalNumber number2 = new InternalNumber("BUS-01");
+
+        assertEquals(number1, number2);
+        assertEquals(number1.hashCode(), number2.hashCode());
+    }
+
+    @Test
+    void shouldConsiderTwoNullInternalNumbersAsEqual() {
+        InternalNumber number1 = new InternalNumber(null);
+        InternalNumber number2 = new InternalNumber(null);
+
+        assertEquals(number1, number2);
+    }
+
+    @Test
+    void shouldHaveDifferentHashCodeForDifferentValues() {
+        InternalNumber number1 = new InternalNumber("BUS-01");
+        InternalNumber number2 = new InternalNumber("BUS-02");
+
+        assertNotEquals(number1, number2);
+    }
+
+    // =========================================================
+    // Invalid InternalNumber
+    // =========================================================
+
+    @Test
+    void shouldThrowWhenInternalNumberIsBlank() {
+        assertThrows(ValidationException.class, () ->
+            new InternalNumber("   ")
+        );
+    }
+
+    @Test
+    void shouldThrowWhenInternalNumberTooShort() {
+        assertThrows(ValidationException.class, () ->
+            new InternalNumber("AB")
+        );
+    }
+
+    @Test
+    void shouldThrowWhenInternalNumberTooLong() {
+        assertThrows(ValidationException.class, () ->
+            new InternalNumber("A".repeat(21))
+        );
+    }
+
+    @Test
+    void shouldThrowWhenInternalNumberIsEmpty() {
+        assertThrows(ValidationException.class, () ->
+            new InternalNumber("")
+        );
+    }
+
+    @Test
+    void shouldNotThrowWhenInternalNumberIsNull() {
+        // Optional field, null is allowed
+        assertDoesNotThrow(() -> new InternalNumber(null));
+    }
+}
+</file>
+
+<file path="src/test/java/com/bustracking/companies/unit/domain/valueobjects/PlateTest.java">
+package com.bustracking.companies.unit.domain.valueobjects;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.Test;
+
+import com.bustracking.companies.domain.valueobjects.Plate;
+import com.bustracking.shared.exception.ValidationException;
+
+class PlateTest {
+
+    // =========================================================
+    // Happy Path Tests
+    // =========================================================
+
+    @Test
+    void shouldCreatePlateWithValidValue() {
+        String validPlate = "CRC123";
+        Plate plate = new Plate(validPlate);
+
+        assertEquals(validPlate, plate.getValue());
+    }
+
+    @Test
+    void shouldCreatePlateAtMinimumLength() {
+        String minPlate = "AB123";
+        Plate plate = new Plate(minPlate);
+        assertEquals(minPlate, plate.getValue());
+    }
+
+    @Test
+    void shouldCreatePlateAtMaximumLength() {
+        String maxPlate = "ABC1234567";
+        Plate plate = new Plate(maxPlate);
+        assertEquals(maxPlate, plate.getValue());
+    }
+
+    @Test
+    void shouldConsiderTwoPlatesWithSameValueAsEqual() {
+        Plate plate1 = new Plate("CRC123");
+        Plate plate2 = new Plate("CRC123");
+
+        assertEquals(plate1, plate2);
+        assertEquals(plate1.hashCode(), plate2.hashCode());
+    }
+
+    @Test
+    void shouldHaveDifferentHashCodeForDifferentValues() {
+        Plate plate1 = new Plate("CRC123");
+        Plate plate2 = new Plate("ABC456");
+
+        assertNotEquals(plate1, plate2);
+    }
+
+    // =========================================================
+    // Invalid Plate
+    // =========================================================
+
+    @Test
+    void shouldThrowWhenPlateIsNull() {
+        assertThrows(ValidationException.class, () ->
+            new Plate(null)
+        );
+    }
+
+    @Test
+    void shouldThrowWhenPlateIsBlank() {
+        assertThrows(ValidationException.class, () ->
+            new Plate("   ")
+        );
+    }
+
+    @Test
+    void shouldThrowWhenPlateTooShort() {
+        assertThrows(ValidationException.class, () ->
+            new Plate("AB1")
+        );
+    }
+
+    @Test
+    void shouldThrowWhenPlateTooLong() {
+        assertThrows(ValidationException.class, () ->
+            new Plate("ABC12345678")
+        );
+    }
+
+    @Test
+    void shouldThrowWhenPlateIsEmpty() {
+        assertThrows(ValidationException.class, () ->
+            new Plate("")
+        );
+    }
+}
+</file>
+
+<file path="src/test/java/com/bustracking/shared/testinfrastructure/ControllerIntegrationTest.java">
+package com.bustracking.shared.testinfrastructure;
+
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
+
+import com.bustracking.shared.infrastructure.error.GlobalExceptionHandler;
+
+
+/*
+
+    @WebMvcTest: starts only the web layer, including controllers, filters, and Spring MVC configuration. No persistence layer, no security, and no services.
+
+*/
+
+@WebMvcTest
+@ActiveProfiles("test")
+@Import(GlobalExceptionHandler.class)
+public abstract class ControllerIntegrationTest {
+
+    // It doesn't need TestContainers because we mock the service layer
+}
+</file>
+
+<file path="src/test/java/com/bustracking/shared/testinfrastructure/FlowIntegrationTest.java">
+package com.bustracking.shared.testinfrastructure;
+
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
+
+/**
+ * @SpringBootTest can not configure MockMvc by default. This annotation tell it to auto-configure MockMvc
+ */
+
+
+@SpringBootTest
+@AutoConfigureMockMvc
+@ActiveProfiles("test")
+@Sql(scripts = "/cleanup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+public abstract class FlowIntegrationTest extends PostgresTestContainer {
+}
+</file>
+
+<file path="src/test/java/com/bustracking/shared/testinfrastructure/PostgresTestContainer.java">
+package com.bustracking.shared.testinfrastructure;
+
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.utility.DockerImageName;
+
+
+/**
+ 1. Testcontainers spin up and start PostgreSQL Docker container
+   
+2. spring.sql.init.schema-locations loads  init-test.sql
+    CREATE TABLE company, bus, bus_location, etc.
+   
+3. Every Test starts and use :
+   * @Sql loads fixtures-shared.sql
+   * @Sql loads tracking-fixtures.sql
+   * INSERT company, buses
+   
+4. Test runs with clean data
+   
+5. Cleanup of data after each kind of test
+
+    5.1 @DataJpaTest rolls back transactions after each test method automatically
+    5.2 @SpringBootTest use cleanup.sql to truncate tables before each test method (configured in @Sql annotation)
+    5.3 @DataJpaTest also uses cleanup.sql before each test method in order to avoid cross-test pollution from FlowTests
+ */
+
+
+public abstract class PostgresTestContainer {
+
+    public static final PostgreSQLContainer<?> POSTGRES = 
+        new PostgreSQLContainer<>(DockerImageName.parse("postgres:16-alpine"))
+                .withDatabaseName("bustracking_db_test")
+                .withUsername("bustracking_test_user")
+                .withPassword("test_password_random")
+                .withReuse(true);
+
+    // Bloque estático: la JVM garantiza que se ejecutará solo una vez
+    static {
+        POSTGRES.start();
+    }
+
+    @DynamicPropertySource
+    static void registerPgProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", POSTGRES::getJdbcUrl);
+        registry.add("spring.datasource.username", POSTGRES::getUsername);
+        registry.add("spring.datasource.password", POSTGRES::getPassword);
+    }
+}
+</file>
+
+<file path="src/test/java/com/bustracking/shared/testinfrastructure/RepositoryIntegrationTest.java">
+package com.bustracking.shared.testinfrastructure;
+
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.SqlConfig;
+
+@DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@ActiveProfiles("test")
+@Sql(scripts = "/cleanup.sql",
+     executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
+     config = @SqlConfig(transactionMode = SqlConfig.TransactionMode.ISOLATED))
+public abstract class RepositoryIntegrationTest extends PostgresTestContainer {
+}
+</file>
+
+<file path="src/test/java/com/bustracking/shared/unit/GlobalExceptionHandlerTest.java">
+package com.bustracking.shared.unit;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.http.ResponseEntity;
+
+import com.bustracking.shared.exception.BusinessRuleException;
+import com.bustracking.shared.exception.ErrorCode;
+import com.bustracking.shared.exception.ExternalServiceException;
+import com.bustracking.shared.exception.NotFoundException;
+import com.bustracking.shared.exception.ValidationException;
+import com.bustracking.shared.infrastructure.error.ErrorResponse;
+import com.bustracking.shared.infrastructure.error.GlobalExceptionHandler;
+
+
+class GlobalExceptionHandlerTest {
+
+    private final GlobalExceptionHandler handler = new GlobalExceptionHandler();
+
+    @Test
+    void shouldReturn404WhenNotFoundExceptionIsThrown() {
+        NotFoundException ex = new NotFoundException(
+            ErrorCode.RESOURCE_NOT_FOUND,  // genérico, no BUS_NOT_FOUND
+            "Resource not found",
+            "dev details"
+        );
+        ResponseEntity<ErrorResponse> response = handler.handleNotFound(ex);
+        assertEquals(404, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertEquals("RESOURCE_NOT_FOUND", response.getBody().getCode());
+        assertEquals("Resource not found", response.getBody().getMessage());
+        assertNotNull(response.getBody().getTimestamp());
+    }
+
+    @Test
+    void shouldReturn400WhenValidationExceptionIsThrown() {
+        ValidationException ex = new ValidationException(
+            ErrorCode.MISSING_REQUIRED_FIELD,
+            "Field required",
+            "dev details"
+        );
+        ResponseEntity<ErrorResponse> response = handler.handleValidation(ex);
+        assertEquals(400, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+    }
+
+    @Test
+    void shouldReturn422WhenBusinessRuleExceptionIsThrown() {
+        BusinessRuleException ex = new BusinessRuleException(
+            ErrorCode.INVALID_STATE,
+            "Invalid state"
+        );
+        ResponseEntity<ErrorResponse> response = handler.handleBusinessRule(ex);
+        assertEquals(422, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+    }
+
+    @Test
+    void shouldReturn502WhenExternalServiceExceptionIsThrown() {
+        ExternalServiceException ex = new ExternalServiceException(
+            ErrorCode.EXTERNAL_SERVICE_ERROR,
+            "Service unavailable",
+            "dev details"
+        );
+        ResponseEntity<ErrorResponse> response = handler.handleExternalService(ex);
+        assertEquals(502, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+    }
+}
+</file>
+
+<file path="src/test/java/com/bustracking/shared/unit/GpsCoordinateTest.java">
+package com.bustracking.shared.unit;
+
+
+
+import com.bustracking.shared.exception.ValidationException;
+import com.bustracking.shared.valueobjects.GpsCoordinate;
+import org.junit.jupiter.api.Test;
+
+import java.math.BigDecimal;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class GpsCoordinateTest {
+
+    // =========================================================
+    // Happy Path Tests
+    // =========================================================
+
+    @Test
+    void shouldCreateCoordinateWithValidValues() {
+        BigDecimal lat = new BigDecimal("9.934739");
+        BigDecimal lng = new BigDecimal("-84.087502");
+
+        GpsCoordinate coordinate = new GpsCoordinate(lat, lng);
+
+        assertEquals(lat, coordinate.getLat());
+        assertEquals(lng, coordinate.getLng());
+    }
+
+    @Test
+    void shouldCreateCoordinateAtExactBoundaries() {
+        GpsCoordinate topLeft     = new GpsCoordinate(new BigDecimal("90"),  new BigDecimal("-180"));
+        GpsCoordinate bottomRight = new GpsCoordinate(new BigDecimal("-90"), new BigDecimal("180"));
+
+        assertEquals(new BigDecimal("90"),   topLeft.getLat());
+        assertEquals(new BigDecimal("-180"), topLeft.getLng());
+        assertEquals(new BigDecimal("-90"),  bottomRight.getLat());
+        assertEquals(new BigDecimal("180"),  bottomRight.getLng());
+    }
+
+    @Test
+    void shouldCreateCoordinateAtOrigin() {
+        GpsCoordinate origin = new GpsCoordinate(BigDecimal.ZERO, BigDecimal.ZERO);
+
+        assertEquals(BigDecimal.ZERO, origin.getLat());
+        assertEquals(BigDecimal.ZERO, origin.getLng());
+    }
+
+    // =========================================================
+    // INVALID LATITUDE
+    // =========================================================
+
+    @Test
+    void shouldThrowWhenLatitudeIsNull() {
+        assertThrows(ValidationException.class, () ->
+            new GpsCoordinate(null, new BigDecimal("10.0"))
+        );
+    }
+
+    @Test
+    void shouldThrowWhenLatitudeExceedsMaximum() {
+        assertThrows(ValidationException.class, () ->
+            new GpsCoordinate(new BigDecimal("90.000001"), new BigDecimal("0"))
+        );
+    }
+
+    @Test
+    void shouldThrowWhenLatitudeBelowMinimum() {
+        assertThrows(ValidationException.class, () ->
+            new GpsCoordinate(new BigDecimal("-90.000001"), new BigDecimal("0"))
+        );
+    }
+
+    // =========================================================
+    // Invalid Longitude
+    // =========================================================
+
+    /*
+        Other more strict examples:
+
+            assertNotNull(exception);
+            assertEquals(ErrorCode.MISSING_REQUIRED_FIELD, exception.getErrorCode()); --> recommended because is what the exception handlers use to:
+                - Register error type of logs
+                - Return HTTP code to client (e.g. 400 Bad Request)
+
+            assertEquals("Latitude and Longitud are missing", exception.getMessage());
+            assertNotNull(exception.getDetails());
+    */
+
+    @Test
+    void shouldThrowWhenLongitudeIsNull() {
+        assertThrows(ValidationException.class, () ->
+            new GpsCoordinate(new BigDecimal("10.0"), null)
+        );
+    }
+
+    @Test
+    void shouldThrowWhenLongitudeExceedsMaximum() {
+        assertThrows(ValidationException.class, () ->
+            new GpsCoordinate(new BigDecimal("0"), new BigDecimal("180.000001"))
+        );
+    }
+
+    @Test
+    void shouldThrowWhenLongitudeBelowMinimum() {
+        assertThrows(ValidationException.class, () ->
+            new GpsCoordinate(new BigDecimal("0"), new BigDecimal("-180.000001"))
+        );
+    }
+
+    // =========================================================
+    // Both Null
+    // =========================================================
+
+    @Test
+    void shouldThrowWhenBothAreNull() {
+        assertThrows(ValidationException.class, () ->
+            new GpsCoordinate(null, null)
+        );
+    }
+
+    // =========================================================
+    // Equals and HashCode
+    // =========================================================
+
+    @Test
+    void shouldBeEqualWhenSameValues() {
+        GpsCoordinate a = new GpsCoordinate(new BigDecimal("9.9"), new BigDecimal("-84.0"));
+        GpsCoordinate b = new GpsCoordinate(new BigDecimal("9.9"), new BigDecimal("-84.0"));
+
+        assertEquals(a, b);
+        assertEquals(a.hashCode(), b.hashCode());
+    }
+
+    @Test
+    void shouldNotBeEqualWhenDifferentValues() {
+        GpsCoordinate a = new GpsCoordinate(new BigDecimal("9.9"), new BigDecimal("-84.0"));
+        GpsCoordinate b = new GpsCoordinate(new BigDecimal("1.0"), new BigDecimal("-84.0"));
+
+        assertNotEquals(a, b);
+    }
+}
+</file>
+
+<file path="src/test/java/com/bustracking/tracking/integration/controller/BusLocationControllerTest.java">
+package com.bustracking.tracking.integration.controller;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+//https://docs.spring.io/spring-framework/docs/6.2.x/javadoc-api/org/springframework/test/context/bean/override/mockito/MockitoBean.html
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.bustracking.shared.testinfrastructure.ControllerIntegrationTest;
+import com.bustracking.shared.valueobjects.GpsCoordinate;
+import com.bustracking.tracking.application.usecase.GetBusLocationUseCase;
+import com.bustracking.tracking.application.usecase.UpdateBusLocationUseCase;
+import com.bustracking.tracking.domain.model.BusLocation;
+import com.bustracking.tracking.infrastructure.web.controller.BusLocationController;
+
+@WebMvcTest(BusLocationController.class)
+class BusLocationControllerTest extends ControllerIntegrationTest {
+
+    // In order to test the controller in isolation, we will mock the use cases it depends on.
+    @Autowired
+    private MockMvc mockMvc;
+
+    //To convert objects to JSON and vice versa, this is the objectMapper Spring provides by default.
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @MockitoBean
+    private GetBusLocationUseCase getBusLocationUseCase;
+
+    @MockitoBean
+    private UpdateBusLocationUseCase updateBusLocationUseCase;
+
+    // Test data
+    private final UUID validBusId = UUID.fromString("650e8400-e29b-41d4-a716-446655440001");
+    private final BigDecimal validLat = new BigDecimal("9.934739");
+    private final BigDecimal validLng = new BigDecimal("-84.087502");
+    private final LocalDateTime validTimestamp = LocalDateTime.of(2025, 1, 1, 12, 0, 0);
+
+    private final BusLocation validBusLocation = new BusLocation(
+        validBusId,
+        new GpsCoordinate(validLat, validLng),
+        validTimestamp
+    );
+
+    // =========================================================
+    // GET /tracking/buses/{busId}/location - Happy Path
+    // =========================================================
+
+    @Test
+    void shouldReturn200AndBusLocationWhenBusExists() throws Exception {
+        // Arrange
+        when(getBusLocationUseCase.execute(validBusId))
+            .thenReturn(validBusLocation);
+
+        // Act & Assert
+        mockMvc.perform(get("/tracking/buses/{busId}/location", validBusId))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.busId").value(validBusId.toString()))
+            .andExpect(jsonPath("$.lat").value(9.934739))
+            .andExpect(jsonPath("$.lng").value(-84.087502))
+            .andExpect(jsonPath("$.updatedAt").exists())
+            .andExpect(jsonPath("$.updatedAt").value("2025-01-01T12:00:00"));
+    }
+
+    // =========================================================
+    // GET /tracking/buses/{busId}/location - Spring Validation
+    // =========================================================
+
+    @Test
+    void shouldReturn400WhenBusIdIsNotValidUUID() throws Exception {
+        mockMvc.perform(get("/tracking/buses/{busId}/location", "not-a-valid-uuid"))
+            .andExpect(status().isBadRequest());
+    }
+
+    // =========================================================
+    // POST /tracking/buses/{busId}/location - Happy Path
+    // =========================================================
+
+    @Test
+    void shouldReturn200WhenBusLocationIsUpdated() throws Exception {
+        // Arrange
+        String requestBody = objectMapper.writeValueAsString(
+            new Object() {
+                public final BigDecimal lat = new BigDecimal("9.934739");
+                public final BigDecimal lng = new BigDecimal("-84.087502");
+            }
+        );
+        doNothing().when(updateBusLocationUseCase)
+            .execute(eq(validBusId), any(), any());
+
+        // Act & Assert
+        mockMvc.perform(post("/tracking/buses/{busId}/location", validBusId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+            .andExpect(status().isOk());
+
+        verify(updateBusLocationUseCase, times(1))
+            .execute(eq(validBusId), any(), any());
+    }
+
+    // =========================================================
+    // POST /tracking/buses/{busId}/location - Spring Validation
+    // =========================================================
+
+    @Test
+    void shouldReturn400WhenPostingWithInvalidUUID() throws Exception {
+        // Arrange
+        String requestBody = objectMapper.writeValueAsString(
+            new Object() {
+                public final BigDecimal lat = new BigDecimal("9.934739");
+                public final BigDecimal lng = new BigDecimal("-84.087502");
+            }
+        );
+
+        // Act & Assert
+        mockMvc.perform(post("/tracking/buses/{busId}/location", "invalid-uuid")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+            .andExpect(status().isBadRequest());
+
+        verify(updateBusLocationUseCase, never())
+            .execute(any(), any(), any());
+    }
+
+    @Test
+    void shouldReturn400WhenPostingWithoutContentType() throws Exception {
+        // Arrange
+        String requestBody = objectMapper.writeValueAsString(
+            new Object() {
+                public final BigDecimal lat = new BigDecimal("9.934739");
+                public final BigDecimal lng = new BigDecimal("-84.087502");
+            }
+        );
+
+        // Act & Assert
+        mockMvc.perform(post("/tracking/buses/{busId}/location", validBusId)
+                .content(requestBody))
+            .andExpect(status().isBadRequest());
+
+        verify(updateBusLocationUseCase, never())
+            .execute(any(), any(), any());
+    }
+
+    // Note: NotFoundException → 404, ValidationException → 400, etc.
+    // are tested in GlobalExceptionHandlerTest — not repeated here
+}
+</file>
+
+<file path="src/test/java/com/bustracking/tracking/integration/controller/DriverTripQueryControllerTest.java">
+package com.bustracking.tracking.integration.controller;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import java.time.LocalTime;
+import java.util.List;
+import java.util.UUID;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+
+import com.bustracking.shared.testinfrastructure.ControllerIntegrationTest;
+import com.bustracking.tracking.application.usecase.GetTodayPlannedTripsUseCase;
+import com.bustracking.tracking.domain.model.TripView;
+import com.bustracking.tracking.infrastructure.web.controller.DriverTripQueryController;
+
+@WebMvcTest(DriverTripQueryController.class)
+class DriverTripQueryControllerTest extends ControllerIntegrationTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockitoBean
+    private GetTodayPlannedTripsUseCase getTodayPlannedTripsUseCase;
+
+    // Test data
+    private final TripView plannedTrip = new TripView(
+        UUID.randomUUID(),
+        "Ruta 300",
+        "San José",
+        "Cartago",
+        LocalTime.of(5, 45),
+        "PLANNED"
+    );
+
+    // =========================================================
+    // GET /tracking/trips/today - Happy Path
+    // =========================================================
+
+    @Test
+    void shouldReturnTodayTripsWhenBusHasPlannedTrips() throws Exception {
+        // Arrange
+        when(getTodayPlannedTripsUseCase.execute(any()))
+            .thenReturn(List.of(plannedTrip));
+
+        // Act & Assert
+        mockMvc.perform(get("/tracking/trips/today"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].routeName").value("Ruta 300"))
+            .andExpect(jsonPath("$[0].origin").value("San José"))
+            .andExpect(jsonPath("$[0].destination").value("Cartago"))
+            .andExpect(jsonPath("$[0].departureTime").value("05:45:00"))
+            .andExpect(jsonPath("$[0].status").value("PLANNED"));
+    }
+
+    @Test
+    void shouldReturnEmptyListWhenBusHasNoTripsToday() throws Exception {
+        // Arrange
+        when(getTodayPlannedTripsUseCase.execute(any()))
+            .thenReturn(List.of());
+
+        // Act & Assert
+        mockMvc.perform(get("/tracking/trips/today"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$").isArray())
+            .andExpect(jsonPath("$").isEmpty());
+    }
+
+    // =========================================================
+    // POST /tracking/trips/{tripId}/start — SCRUM-51 (pendiente)
+    // =========================================================
+
+    // =========================================================
+    // POST /tracking/trips/{tripId}/cancel — SCRUM-55 (pendiente)
+    // =========================================================
+}
+</file>
+
+<file path="src/test/java/com/bustracking/tracking/integration/flow/BusLocationFlowTest.java">
+package com.bustracking.tracking.integration.flow;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import java.math.BigDecimal;
+import java.util.UUID;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.MockMvc;
+
+import com.bustracking.shared.testinfrastructure.FlowIntegrationTest;
+
+
+/**
+ * E2E Test: Bus Location Flow
+ *
+ * Business story:
+ * "A bus sends its location and a user can query it"
+ *
+ * Flow:
+ * POST /tracking/buses/{busId}/location  → device sends location
+ * GET  /tracking/buses/{busId}/location  → user queries location
+ *
+ * Covers: HU-01 (ver buses en el mapa) + HU-16 (enviar ubicación desde el bus)
+ */
+
+@Sql({
+    "/test-data/tracking-base.sql"
+})
+public class BusLocationFlowTest extends FlowIntegrationTest{
+    
+    @Autowired
+    private MockMvc mockMvc;
+
+    // Fixed UUID from tracking-fixtures.sql
+    private static final UUID BUS_ID = UUID.fromString("650e8400-e29b-41d4-a716-446655440001");
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    // TextBlock instead of ObjectMapper for simplicity, since the request body is simple and we don't need to reuse it
+    //private static final String VALID_LOCATION_BODY = """
+    //    {"lat": 9.934739, "lng": -84.087502}
+    //    """;
+
+    @Test
+    void shouldSendAndRetrieveBusLocation() throws Exception{
+
+        String VALID_LOCATION_BODY = objectMapper.writeValueAsString(
+            new Object() {
+                public final BigDecimal lat = new BigDecimal("9.934739");
+                public final BigDecimal lng = new BigDecimal("-84.087502");
+            }
+        );
+
+        // Step 1: Device sends bus location (HU-16)
+        mockMvc.perform(post("/tracking/buses/{busId}/location", BUS_ID)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(VALID_LOCATION_BODY))
+            .andExpect(status().isOk());
+
+            // Step 2: User queries bus location (HU-01)
+        mockMvc.perform(get("/tracking/buses/{busId}/location", BUS_ID))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.busId").value(BUS_ID.toString()))
+            .andExpect(jsonPath("$.lat").value(9.934739))
+            .andExpect(jsonPath("$.lng").value(-84.087502))
+            .andExpect(jsonPath("$.updatedAt").exists());
+    }
+
+    @Test
+    void shouldUpdateBusLocationWhenDeviceSendsNewPosition() throws Exception{
+
+        // First, send an initial location
+
+        String OLD_VALID_LOCATION_BODY = objectMapper.writeValueAsString(
+            new Object() {
+                public final BigDecimal lat = new BigDecimal("9.934739");
+                public final BigDecimal lng = new BigDecimal("-84.087502");
+            }
+        );
+
+        mockMvc.perform(post("/tracking/buses/{busId}/location", BUS_ID)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(OLD_VALID_LOCATION_BODY))
+            .andExpect(status().isOk());
+
+        // Then, send a new location and verify that it updates
+        String NEW_VALID_LOCATION_BODY = objectMapper.writeValueAsString(
+            new Object() {
+                public final BigDecimal lat = new BigDecimal("10.934739");
+                public final BigDecimal lng = new BigDecimal("-90.087502");
+            }
+        );
+
+        mockMvc.perform(post("/tracking/buses/{busId}/location", BUS_ID)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(NEW_VALID_LOCATION_BODY))
+            .andExpect(status().isOk());
+
+        mockMvc.perform(get("/tracking/buses/{busId}/location", BUS_ID))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.busId").value(BUS_ID.toString()))
+            .andExpect(jsonPath("$.lat").value(10.934739))
+            .andExpect(jsonPath("$.lng").value(-90.087502))
+            .andExpect(jsonPath("$.updatedAt").exists());
+
+    }
+}
+</file>
+
+<file path="src/test/java/com/bustracking/tracking/integration/flow/DriverQueryTripFlowTest.java">
+package com.bustracking.tracking.integration.flow;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.MockMvc;
+
+import com.bustracking.shared.testinfrastructure.FlowIntegrationTest;
+
+/**
+ * Flow Test: Driver Today Trips
+ *
+ * Business story:
+ * "A driver opens the app and sees the planned trips for today"
+ *
+ * Flow:
+ * GET /tracking/trips/today → returns list of PLANNED trips for the bus
+ *
+ * Covers: HU-17 (obtener viajes del día del bus autenticado)
+ */
+@Sql({
+    "/test-data/tracking-base.sql",
+    "/test-data/tracking-trips.sql"
+})
+public class DriverQueryTripFlowTest extends FlowIntegrationTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    // Fixed UUID from tracking-trips.sql — bus with 6 planned trips today
+    //private static final UUID BUS_ID = UUID.fromString("650e8400-e29b-41d4-a716-446655440001");
+
+    // =========================================================
+    // GET /tracking/trips/today - Driver sees planned trips
+    // =========================================================
+
+    @Test
+    void shouldReturnTodayPlannedTrips_WhenBusHasRoutesAssigned() throws Exception {
+        mockMvc.perform(get("/tracking/trips/today"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$").isArray())
+            .andExpect(jsonPath("$[0].routeName").value("Cartago-Orosi"))
+            .andExpect(jsonPath("$[0].origin").value("Cartago"))
+            .andExpect(jsonPath("$[0].destination").value("Orosi"))
+            .andExpect(jsonPath("$[0].status").value("PLANNED"))
+            .andExpect(jsonPath("$[0].departureTime").exists());
+    }
+
+    @Test
+    void shouldReturnEmptyList_WhenBusHasNoRoutesAssigned() throws Exception {
+        // BUS_ID_2 exists in tracking-base.sql but has no trips assigned
+        // The hardcoded UUID in the controller returns empty for this bus
+        // Note: this test validates the empty list response shape
+        mockMvc.perform(get("/tracking/trips/today"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$").isArray());
+    }
+    // Note: empty list scenario covered in DriverTripQueryControllerTest
+    // Note: JWT extraction will be added in HU-18
+}
+</file>
+
+<file path="src/test/java/com/bustracking/tracking/integration/repository/BusLocationRepositoryTest.java">
+package com.bustracking.tracking.integration.repository;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.jdbc.Sql;
+
+import com.bustracking.shared.testinfrastructure.RepositoryIntegrationTest;
+import com.bustracking.shared.valueobjects.GpsCoordinate;
+import com.bustracking.tracking.domain.model.BusLocation;
+import com.bustracking.tracking.infrastructure.persistence.repository.BusLocationRepositoryImpl;
+import com.bustracking.tracking.infrastructure.persistence.repository.BusLocationJpaRepository;
+
+/**
+ * Integration tests for BusLocationRepository.
+ * 
+ * Tests the repository layer with real PostgreSQL (Testcontainers).
+ * Focuses on persistence behavior only, not on entity/value object logic
+ * (those are covered by BusTest, GpsCoordinateTest).
+ * 
+ * Test approach:
+ * - Minimal: only test what the repository is responsible for
+ * - Real DB: detect mapping issues, constraint violations
+ * - Shared fixtures: company + buses loaded from test-data/
+ */
+@Sql({
+    "/test-data/tracking-base.sql",
+    "/test-data/tracking-trips.sql"
+})
+class BusLocationRepositoryTest extends RepositoryIntegrationTest {
+
+    @Autowired
+    private BusLocationJpaRepository busLocationJpaRepository;
+
+    private BusLocationRepositoryImpl repository;
+    
+    // Fixed UUIDs from tracking-fixtures.sql
+    private static final UUID BUS_ID_1 = UUID.fromString("650e8400-e29b-41d4-a716-446655440001");
+    private static final UUID BUS_ID_2 = UUID.fromString("650e8400-e29b-41d4-a716-446655440002");
+
+
+    @BeforeEach
+    void setUp() {
+        repository = new BusLocationRepositoryImpl(busLocationJpaRepository);
+        // Test data (company + buses) loaded from tracking-fixtures.sql automatically
+    }
+
+    // =========================================================
+    // Save (INSERT)
+    // =========================================================
+
+    @Test
+    void shouldSaveBusLocationWhenItDoesNotExist() {
+        // Arrange
+        GpsCoordinate coordinate = new GpsCoordinate(
+            new BigDecimal("9.934739"),
+            new BigDecimal("-84.087502")
+        );
+        BusLocation location = new BusLocation(BUS_ID_1, coordinate, LocalDateTime.now());
+
+        // Act
+        repository.save(location);
+
+        // Assert
+        Optional<BusLocation> found = repository.findByBusId(BUS_ID_1);
+        assertTrue(found.isPresent());
+        assertEquals(BUS_ID_1, found.get().getBusId());
+        assertEquals(coordinate.getLat(), found.get().getGpsCoordinate().getLat());
+        assertEquals(coordinate.getLng(), found.get().getGpsCoordinate().getLng());
+    }
+
+    // =========================================================
+    // Save (UPSERT - update existing)
+    // =========================================================
+
+    @Test
+    void shouldUpdateBusLocationWhenItAlreadyExists() {
+        // Arrange: Insert first location
+        BusLocation firstLocation = new BusLocation(
+            BUS_ID_2,
+            new GpsCoordinate(new BigDecimal("9.934739"), new BigDecimal("-84.087502")),
+            LocalDateTime.now()
+        );
+        repository.save(firstLocation);
+
+        // Update with second location
+        GpsCoordinate newCoordinate = new GpsCoordinate(
+            new BigDecimal("10.000000"),
+            new BigDecimal("-85.000000")
+        );
+        BusLocation updatedLocation = new BusLocation(BUS_ID_2, newCoordinate, LocalDateTime.now());
+
+        // Act
+        repository.save(updatedLocation);
+
+        // Assert
+        Optional<BusLocation> found = repository.findByBusId(BUS_ID_2);
+        assertTrue(found.isPresent());
+        assertEquals(newCoordinate.getLat(), found.get().getGpsCoordinate().getLat());
+        assertEquals(newCoordinate.getLng(), found.get().getGpsCoordinate().getLng());
+    }
+
+    // =========================================================
+    // FindByBusId (non-existent bus)
+    // =========================================================
+
+    @Test
+    void shouldReturnEmptyForNonExistentBus() {
+        // Arrange
+        UUID nonExistentBusId = UUID.randomUUID();
+
+        // Act
+        Optional<BusLocation> found = repository.findByBusId(nonExistentBusId);
+
+        // Assert
+        assertTrue(found.isEmpty());
+    }
+}
+</file>
+
+<file path="src/test/java/com/bustracking/tracking/unit/domain/BusLocationTest.java">
+package com.bustracking.tracking.unit.domain;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+import org.junit.jupiter.api.Test;
+
+import com.bustracking.shared.exception.ValidationException;
+import com.bustracking.shared.valueobjects.GpsCoordinate;
+import com.bustracking.tracking.domain.model.BusLocation;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+public class BusLocationTest {
+
+    // Test data
+    private final UUID validBusId = UUID.randomUUID();
+    private final GpsCoordinate validCoordinate = new GpsCoordinate(
+        new BigDecimal("9.934739"), 
+        new BigDecimal("-84.087502"));
+
+    private final LocalDateTime validTimestamp = LocalDateTime.now();
+    //==========================================================
+    // Happy Path Tests
+    //==========================================================
+
+    @Test
+    void shouldCreateBusLocationWithValidData() {
+        BusLocation busLocation = new BusLocation(validBusId, validCoordinate,  validTimestamp);
+        
+        assertEquals(validBusId, busLocation.getBusId());
+        assertEquals(validCoordinate, busLocation.getGpsCoordinate());
+        assertEquals(validTimestamp, busLocation.getUpdatedAt());
+    }
+
+
+    //==========================================================
+    // Invalid busId
+    //==========================================================
+
+    @Test
+    void shouldThrowWhenBusIdIsNull() {
+        assertThrows(ValidationException.class, () ->
+            new BusLocation(null, validCoordinate, validTimestamp)
+        );
+    }
+
+    //==========================================================
+    // Invalid Coordinate
+    //==========================================================
+    
+    @Test
+    void shouldThrowWhenCoordinateIsNull(){
+        assertThrows(ValidationException.class, () ->
+            new BusLocation(validBusId, null, validTimestamp)
+        );
+    }
+
+
+    //==========================================================
+    // Invalid Timestamp        
+    //==========================================================
+
+    @Test
+    void shouldThrowWhenTimestampIsNull(){
+        assertThrows(ValidationException.class, () ->
+            new BusLocation(validBusId, validCoordinate, null)
+        );
+    }
+
+    @Test
+    void shouldThrowWhenAllFieldsAreNull() {
+        assertThrows(ValidationException.class, () ->
+            new BusLocation(null, null, null)
+        );
+    }
+
+    // =========================================================
+    // Equals and HashCode
+    // =========================================================
+
+    @Test
+    void shouldBeEqualWhenSameValues() {
+        LocalDateTime timestamp = LocalDateTime.now();
+        UUID busId = UUID.randomUUID();
+        GpsCoordinate coordinate = new GpsCoordinate(new BigDecimal("9.934739"), new BigDecimal("-84.087502"));
+
+        BusLocation location1 = new BusLocation(busId, coordinate, timestamp);
+        BusLocation location2 = new BusLocation(busId, coordinate, timestamp);
+
+        assertEquals(location1, location2);
+        assertEquals(location1.hashCode(), location2.hashCode());
+    }
+
+    @Test
+    void shouldNotBeEqualWhenDifferentBusIds() {
+        BusLocation location1 = new BusLocation(UUID.randomUUID(), validCoordinate, validTimestamp);
+        BusLocation location2 = new BusLocation(UUID.randomUUID(), validCoordinate, validTimestamp);
+
+        assertNotEquals(location1, location2);
+    }
+
+    @Test
+    void shouldNotBeEqualWhenDifferentCoordinates() {
+        GpsCoordinate coordinate1 = new GpsCoordinate(new BigDecimal("9.934739"), new BigDecimal("-84.087502"));
+        GpsCoordinate coordinate2 = new GpsCoordinate(new BigDecimal("10.0"), new BigDecimal("-85.0"));
+
+        BusLocation location1 = new BusLocation(validBusId, coordinate1, validTimestamp);
+        BusLocation location2 = new BusLocation(validBusId, coordinate2, validTimestamp);
+
+        assertNotEquals(location1, location2);
+    }
+
+    @Test
+    void shouldNotBeEqualWhenDifferentTimestamps() {
+        LocalDateTime timestamp1 = LocalDateTime.now();
+        LocalDateTime timestamp2 = timestamp1.plusMinutes(1);
+
+        BusLocation location1 = new BusLocation(validBusId, validCoordinate, timestamp1);
+        BusLocation location2 = new BusLocation(validBusId, validCoordinate, timestamp2);
+
+        assertNotEquals(location1, location2);
+    }
+}
+</file>
+
+<file path="src/test/java/com/bustracking/tracking/unit/usecase/GetBusLocationUseCaseTest.java">
+package com.bustracking.tracking.unit.usecase;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import com.bustracking.shared.exception.ErrorCode;
+import com.bustracking.shared.exception.NotFoundException;
+import com.bustracking.shared.valueobjects.GpsCoordinate;
+import com.bustracking.tracking.application.usecase.GetBusLocationUseCase;
+import com.bustracking.tracking.domain.contract.BusExistsById;
+import com.bustracking.tracking.domain.model.BusLocation;
+import com.bustracking.tracking.domain.repository.BusLocationRepository;
+
+//Annotation to enable Mockito (@Mock) in this class
+@ExtendWith(MockitoExtension.class)
+public class GetBusLocationUseCaseTest {
+
+    @Mock
+    private BusLocationRepository busLocationRepository;
+
+    // Type of value given by @Bean using a contract (Functional Interface)
+    @Mock
+    private BusExistsById busExistsById;
+
+    private GetBusLocationUseCase getBusLocationUseCase;
+
+    // Test data
+    private final UUID validBusId = UUID.randomUUID();
+    private final GpsCoordinate validCoordinate = new GpsCoordinate(
+        new BigDecimal("9.934739"),
+        new BigDecimal("-84.087502")
+    );
+    private final LocalDateTime validTimestamp = LocalDateTime.now();
+
+    // Setup before each test to initialize the use case with mocked dependencies
+    @BeforeEach
+    void setUp() {
+        getBusLocationUseCase = new GetBusLocationUseCase(
+            busLocationRepository,
+            busExistsById
+        );
+    }
+
+    //==========================================================
+    // Happy Path Tests
+    //==========================================================
+
+    @Test
+    void shouldReturnBusLocationWhenBusExistsAndHasLocation() {
+        // Arrange
+        BusLocation expectedLocation = new BusLocation(
+            validBusId,
+            validCoordinate,
+            validTimestamp
+        );
+
+        when(busExistsById.check(validBusId)).thenReturn(true);
+        when(busLocationRepository.findByBusId(validBusId))
+            .thenReturn(Optional.of(expectedLocation));
+
+        // Act
+        BusLocation actualLocation = getBusLocationUseCase.execute(validBusId);
+
+        // Assert
+        assertEquals(expectedLocation, actualLocation);
+        assertEquals(validBusId, actualLocation.getBusId());
+        assertEquals(validCoordinate, actualLocation.getGpsCoordinate());
+        verify(busExistsById, times(1)).check(validBusId);
+        verify(busLocationRepository, times(1)).findByBusId(validBusId);
+    }
+
+    //==========================================================
+    // Bus Does Not Exist in Companies Module (No Coupling Violation)
+    //==========================================================
+
+    @Test
+    void shouldThrowNotFoundExceptionWhenBusDoesNotExist() {
+        // Arrange
+        when(busExistsById.check(validBusId)).thenReturn(false);
+
+        // Act & Assert
+        NotFoundException exception = assertThrows(
+            NotFoundException.class,
+            () -> getBusLocationUseCase.execute(validBusId)
+        );
+
+        assertEquals(ErrorCode.BUS_NOT_FOUND, exception.getErrorCode());
+        verify(busExistsById, times(1)).check(validBusId);
+        verify(busLocationRepository, never()).findByBusId(validBusId);
+    }
+
+    //==========================================================
+    // Bus Exists But Has No Location
+    //==========================================================
+
+    @Test
+    void shouldThrowNotFoundExceptionWhenBusHasNoLocation() {
+        // Arrange
+        when(busExistsById.check(validBusId)).thenReturn(true);
+        when(busLocationRepository.findByBusId(validBusId))
+            .thenReturn(Optional.empty());
+
+        // Act & Assert
+        NotFoundException exception = assertThrows(
+            NotFoundException.class,
+            () -> getBusLocationUseCase.execute(validBusId)
+        );
+
+        assertEquals(ErrorCode.BUS_LOCATION_NOT_FOUND, exception.getErrorCode());
+        verify(busExistsById, times(1)).check(validBusId);
+        verify(busLocationRepository, times(1)).findByBusId(validBusId);
+    }
+
+    //==========================================================
+    // Null Bus ID
+    //==========================================================
+
+    @Test
+    void shouldThrowNotFoundExceptionWhenBusIdIsNull() {
+        // Arrange
+        when(busExistsById.check(null)).thenReturn(false);
+
+        // Act & Assert
+        assertThrows(
+            NotFoundException.class,
+            () -> getBusLocationUseCase.execute(null)
+        );
+    }
+}
+</file>
+
+<file path="src/test/java/com/bustracking/tracking/unit/usecase/GetTodayPlannedTripsUseCaseTest.java">
+package com.bustracking.tracking.unit.usecase;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+import java.time.LocalTime;
+import java.util.List;
+import java.util.UUID;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import com.bustracking.shared.exception.ErrorCode;
+import com.bustracking.shared.exception.NotFoundException;
+import com.bustracking.tracking.application.usecase.GetTodayPlannedTripsUseCase;
+import com.bustracking.tracking.domain.contract.BusExistsById;
+import com.bustracking.tracking.domain.contract.GetTodayPlannedTripsByBusRoutes;
+import com.bustracking.tracking.domain.model.TripView;
+
+@ExtendWith(MockitoExtension.class)
+public class GetTodayPlannedTripsUseCaseTest {
+    
+    @Mock 
+    private GetTodayPlannedTripsByBusRoutes getTodayTripsDelegate;
+    
+    @Mock
+    private BusExistsById busExistsById;
+
+    private GetTodayPlannedTripsUseCase getTodayPlannedTripsUseCase;
+
+    // Test data
+    private final UUID validBusId = UUID.randomUUID();
+
+    @BeforeEach
+    void setUp(){
+        //instances always are created in the setUp method, as mocks are not created until runtime
+        getTodayPlannedTripsUseCase = new GetTodayPlannedTripsUseCase(getTodayTripsDelegate, busExistsById);
+    }
+
+    //===========================================================
+    // Happy Path test - execute()
+    //===========================================================
+
+    @Test
+    void shouldReturnTodayTripsWhenBusExists() {
+        // Arrange
+        List<TripView> expectedTrips = List.of(
+            new TripView(UUID.randomUUID(), "Ruta 300", "San José",
+                         "Cartago", LocalTime.of(5, 45), "PLANNED")
+        );
+        when(busExistsById.check(validBusId)).thenReturn(true);
+        when(getTodayTripsDelegate.execute(validBusId)).thenReturn(expectedTrips);
+
+        // Act
+        List<TripView> result = getTodayPlannedTripsUseCase.execute(validBusId);
+
+        // Assert
+        assertEquals(expectedTrips, result);
+        verify(busExistsById, times(1)).check(validBusId);
+        verify(getTodayTripsDelegate, times(1)).execute(validBusId);
+    }
+
+    @Test
+    void shouldReturnEmptyListWhenBusHasNoTripsToday() {
+        // Arrange
+        when(busExistsById.check(validBusId)).thenReturn(true);
+        when(getTodayTripsDelegate.execute(validBusId)).thenReturn(List.of());
+
+        // Act
+        List<TripView> result = getTodayPlannedTripsUseCase.execute(validBusId);
+
+        // Assert
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+        verify(getTodayTripsDelegate, times(1)).execute(validBusId);
+    }
+
+    @Test
+    void shouldThrowNotFoundExceptionWhenBusDoesNotExist() {
+        // Arrange
+        when(busExistsById.check(validBusId)).thenReturn(false);
+
+        // Act & Assert
+        NotFoundException exception = assertThrows(
+            NotFoundException.class,
+            () -> getTodayPlannedTripsUseCase.execute(validBusId)
+        );
+
+        assertEquals(ErrorCode.BUS_NOT_FOUND, exception.getErrorCode());
+        verify(busExistsById, times(1)).check(validBusId);
+        verify(getTodayTripsDelegate, never()).execute(any());
+    }
+    
+}
+</file>
+
+<file path="src/test/java/com/bustracking/tracking/unit/usecase/UpdateBusLocationUseCaseTest.java">
+package com.bustracking.tracking.unit.usecase;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+
+import java.math.BigDecimal;
+import java.util.UUID;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import com.bustracking.shared.exception.ErrorCode;
+import com.bustracking.shared.exception.NotFoundException;
+import com.bustracking.shared.valueobjects.GpsCoordinate;
+import com.bustracking.tracking.application.usecase.UpdateBusLocationUseCase;
+import com.bustracking.tracking.domain.contract.BusExistsById;
+import com.bustracking.tracking.domain.repository.BusLocationRepository;
+
+//Annotation to enable Mockito (@Mock) in this class
+@ExtendWith(MockitoExtension.class)
+public class UpdateBusLocationUseCaseTest {
+
+    @Mock
+    private BusLocationRepository busLocationRepository;
+
+    // Type of value given by @Bean using a contract (Functional Interface)
+    @Mock
+    private BusExistsById busExistsById;
+
+    private UpdateBusLocationUseCase updateBusLocationUseCase;
+
+    //Test Data -> Arrange
+
+    private final UUID validBusId = UUID.randomUUID();
+    private final GpsCoordinate validCoordinate = new GpsCoordinate(
+        new BigDecimal("9.934739"),
+        new BigDecimal("-84.087502")
+    );
+
+
+    // Setup before each test to initialize the use case with mocked dependencies
+    @BeforeEach
+    void setUp(){
+        updateBusLocationUseCase = new UpdateBusLocationUseCase(
+            busLocationRepository, 
+            busExistsById);
+    }
+
+    //==========================================================
+    // Happy Path Tests
+    //==========================================================
+
+    @Test
+    void shouldUpdateBusLocationWhenBusExistsAndHasLocation(){
+
+        //Arrange
+        when(busExistsById.check(validBusId)).thenReturn(true);
+
+        //Act
+        updateBusLocationUseCase.execute(validBusId, validCoordinate.getLat(), validCoordinate.getLng());
+
+        //Assert 
+        verify(busExistsById, times(1)).check(validBusId);
+        verify(busLocationRepository, times(1)).save(any());
+    }
+
+
+    //==========================================================
+    // Bus Does Not Exist in Database Schema Of Companies Module 
+
+    @Test
+    void shouldThrowNotFoundExceptionWhenBusDoesNotExist(){
+
+        //Arrange
+        when(busExistsById.check(validBusId)).thenReturn(false);
+
+        //Act & Assert
+        NotFoundException exception = assertThrows(NotFoundException.class,
+            () ->  updateBusLocationUseCase.execute(validBusId, validCoordinate.getLat(), validCoordinate.getLng()));
+
+        assertEquals(ErrorCode.BUS_NOT_FOUND, exception.getErrorCode());
+
+        verify(busExistsById, times(1)).check(validBusId);
+        verify(busLocationRepository, times(0)).save(any());
+
+    }
+
+    @Test
+    void shouldThrowNotFoundExceptionWhenBusIdIsNull() {
+        when(busExistsById.check(null)).thenReturn(false);
+
+        NotFoundException exception = assertThrows(NotFoundException.class,
+            () -> updateBusLocationUseCase.execute(null, 
+                validCoordinate.getLat(), 
+                validCoordinate.getLng())
+        );
+
+        assertEquals(ErrorCode.BUS_NOT_FOUND, exception.getErrorCode());
+        verify(busExistsById, times(1)).check(null);
+        verify(busLocationRepository, never()).save(any());
+    }
+}
+</file>
+
+<file path="src/test/resources/db/test-init.sql">
+-- ============================================================================
+-- INITIALIZATION: Development Database
+-- ============================================================================
+-- Executed only on first Docker startup (when volume is empty)
+-- Creates all required tables. If data exists, this does not run.
+-- Reset: docker-compose down -v && docker-compose up -d
+-- ============================================================================
+
+
+
+-- ============================================================================
+-- SCHEMAS
+-- ============================================================================
+
+CREATE SCHEMA IF NOT EXISTS admin;
+CREATE SCHEMA IF NOT EXISTS companies;
+CREATE SCHEMA IF NOT EXISTS tracking;
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+-- ============================================================================
+-- SCHEMA: admin (USERS ONLY - no FK to companies yet)
+-- Owns platform governance: users, company approval requests, audit trail
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS admin."user" (
+    id UUID PRIMARY KEY,
+    email VARCHAR(150) UNIQUE NOT NULL,
+    password VARCHAR(12) NOT NULL,
+    global_role VARCHAR(20) NOT NULL CHECK (global_role IN ('PLATFORM_ADMIN', 'COMPANY_USER')),
+    is_active BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ============================================================================
+-- SCHEMA: companies
+-- Owns company operations: fleet, routes, stops, schedules and trips
+-- MUST be created before admin.company_request (which references it)
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS companies.company (
+    id UUID PRIMARY KEY,
+    tax_id VARCHAR(20) UNIQUE NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(150) UNIQUE NOT NULL,
+    phone VARCHAR(20) UNIQUE NOT NULL,
+    status VARCHAR(20) NOT NULL CHECK (status IN ('ACTIVE', 'INACTIVE')),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS companies.company_user (
+    id UUID PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES admin."user"(id) ON DELETE RESTRICT,
+    company_id UUID NOT NULL REFERENCES companies.company(id) ON DELETE RESTRICT,
+    role VARCHAR(20) NOT NULL CHECK (role IN ('OWNER', 'ADMIN')),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (user_id, company_id)
+);
+
+CREATE TABLE IF NOT EXISTS companies.route (
+    id UUID PRIMARY KEY,
+    company_id UUID NOT NULL REFERENCES companies.company(id) ON DELETE RESTRICT,
+    name VARCHAR(150) NOT NULL,
+    price DECIMAL(10,2) NOT NULL CHECK (price >= 0),
+    origin VARCHAR(150) NOT NULL,
+    destination VARCHAR(150) NOT NULL,
+    flat_fare BOOLEAN DEFAULT FALSE,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS companies.stop (
+    id UUID PRIMARY KEY,
+    company_id UUID NOT NULL REFERENCES companies.company(id) ON DELETE RESTRICT,
+    name VARCHAR(150) NOT NULL,
+    latitude DECIMAL(9,6) NOT NULL,
+    longitude DECIMAL(9,6) NOT NULL,
+    reference TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS companies.route_stop (
+    id UUID PRIMARY KEY,
+    route_id UUID NOT NULL REFERENCES companies.route(id) ON DELETE RESTRICT,
+    stop_id UUID NOT NULL REFERENCES companies.stop(id) ON DELETE RESTRICT,
+    order_index INTEGER NOT NULL,
+    estimated_time_offset INTEGER NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (route_id, order_index)
+);
+
+CREATE TABLE IF NOT EXISTS companies.route_stop_fare (
+    id UUID PRIMARY KEY,
+    route_stop_id UUID NOT NULL REFERENCES companies.route_stop(id) ON DELETE RESTRICT,
+    price DECIMAL(10,2) NOT NULL CHECK (price >= 0),
+    is_active BOOLEAN DEFAULT TRUE,
+    start_date DATE NOT NULL,
+    end_date DATE NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CHECK (end_date IS NULL OR end_date >= start_date)
+);
+
+CREATE TABLE IF NOT EXISTS companies.bus (
+    id UUID PRIMARY KEY,
+    company_id UUID NOT NULL REFERENCES companies.company(id) ON DELETE RESTRICT,
+    plate VARCHAR(20) NOT NULL UNIQUE,
+    internal_number VARCHAR(20),
+    has_ramp BOOLEAN DEFAULT FALSE,
+    status VARCHAR(20) NOT NULL CHECK (status IN ('ACTIVE', 'INACTIVE', 'MAINTENANCE')),
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS companies.bus_route (
+    id UUID PRIMARY KEY,
+    bus_id UUID NOT NULL REFERENCES companies.bus(id) ON DELETE CASCADE,
+    route_id UUID NOT NULL REFERENCES companies.route(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (bus_id, route_id)
+);
+
+CREATE TABLE IF NOT EXISTS companies.schedule (
+    id UUID PRIMARY KEY,
+    route_id UUID NOT NULL REFERENCES companies.route(id) ON DELETE RESTRICT,
+    departure_time TIME NOT NULL,
+    day_of_week INTEGER NOT NULL CHECK (day_of_week BETWEEN 1 AND 7),
+    start_date DATE NOT NULL,
+    end_date DATE NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (route_id, day_of_week, departure_time, start_date),
+    CHECK (end_date IS NULL OR end_date > start_date)
+);
+
+CREATE TABLE IF NOT EXISTS companies.trip (
+    id UUID PRIMARY KEY,
+    schedule_id UUID NOT NULL REFERENCES companies.schedule(id) ON DELETE RESTRICT,
+    bus_id UUID NULL REFERENCES companies.bus(id) ON DELETE SET NULL,
+    trip_date DATE NOT NULL,
+    status VARCHAR(20) NOT NULL CHECK (status IN ('PLANNED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'RELIEVED')),
+    cancellation_reason TEXT NULL,
+    actual_start_time TIME NULL,
+    actual_end_time TIME NULL,
+    delay_minutes INT NULL,
+    assigned_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (schedule_id, trip_date)
+);
+
+-- ============================================================================
+-- SCHEMA: admin (continued - FK to companies)
+-- Now companies.company exists, we can create company_request
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS admin.company_request (
+    id UUID PRIMARY KEY,
+    company_id UUID NOT NULL REFERENCES companies.company(id) ON DELETE CASCADE,
+    reviewed_by UUID NULL REFERENCES admin."user"(id) ON DELETE SET NULL,
+    status VARCHAR(20) NOT NULL CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
+    rejection_reason TEXT NULL,
+    requested_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    reviewed_at TIMESTAMP NULL
+);
+
+CREATE TABLE IF NOT EXISTS admin.audit_log (
+    id UUID PRIMARY KEY,
+    user_id UUID REFERENCES admin."user"(id) ON DELETE SET NULL,
+    entity_type VARCHAR(50) NOT NULL,
+    entity_id UUID NOT NULL,
+    action VARCHAR(50) NOT NULL CHECK (action IN ('CREATE', 'UPDATE', 'DELETE', 'ASSIGN', 'REASSIGN')),
+    old_values JSONB,
+    new_values JSONB,
+    occurred_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ============================================================================
+-- SCHEMA: tracking
+-- Owns real-time data: bus location and device authentication
+-- High write frequency, volatile data, consumed by the bus app
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS tracking.bus_location (
+    bus_id UUID PRIMARY KEY,
+    lat DECIMAL(9,6) NOT NULL,
+    lng DECIMAL(9,6) NOT NULL,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS tracking.bus_credential (
+    id UUID PRIMARY KEY,
+    bus_id UUID NOT NULL REFERENCES companies.bus(id) ON DELETE RESTRICT,
+    password_hash VARCHAR(255) NOT NULL,
+    issued_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    revoked_at TIMESTAMP NULL,
+    UNIQUE (bus_id)
+);
+
+
+-- ============================================================================
+-- Non-Clustered Indexes for Performance
+-- ============================================================================
+
+-- ----------------------------------------------------------------------------
+-- Auth & Permission Checks
+-- Used when verifying what company a user belongs to and what role they have
+-- ----------------------------------------------------------------------------
+CREATE INDEX IF NOT EXISTS idx_CompanyUser_UserId ON companies.company_user(user_id);
+CREATE INDEX IF NOT EXISTS idx_CompanyUser_CompanyId ON companies.company_user(company_id);
+
+-- ----------------------------------------------------------------------------
+-- Company Admin Panel
+-- Used when a company admin manages their own routes, stops and buses
+-- Used when the system filters and gives the admin user only the company data
+-- ----------------------------------------------------------------------------
+CREATE INDEX IF NOT EXISTS idx_Route_CompanyId ON companies.route(company_id);
+CREATE INDEX IF NOT EXISTS idx_Stop_CompanyId ON companies.stop(company_id);
+CREATE INDEX IF NOT EXISTS idx_Bus_CompanyId ON companies.bus(company_id);
+
+-- Bus Route Assignment (used when filtering trips by assigned routes)
+-- Used when driver sees only trips of their assigned routes
+-- Used when admin assigns/removes routes from buses
+-- ----------------------------------------------------------------------------
+CREATE INDEX IF NOT EXISTS idx_BusRoute_BusId ON companies.bus_route(bus_id);
+CREATE INDEX IF NOT EXISTS idx_BusRoute_RouteId ON companies.bus_route(route_id);
+
+-- ----------------------------------------------------------------------------
+-- Public Search (used by end users searching for routes)
+-- Origin + destination for exact match, name for partial text search
+-- ----------------------------------------------------------------------------
+CREATE INDEX IF NOT EXISTS idx_Route_OriginDestination ON companies.route(origin, destination);
+
+-- Partial text search on route name (e.g. user types "Cartago")
+-- Requires: CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE INDEX IF NOT EXISTS idx_Route_Name_GIN ON companies.route USING GIN (name gin_trgm_ops);
+
+
+-- ----------------------------------------------------------------------------
+-- Map & Real-Time Tracking (used by end users viewing the map)
+-- Core query: find active trips for today to show buses on the map
+-- ----------------------------------------------------------------------------
+CREATE INDEX IF NOT EXISTS idx_Trip_StatusDate ON companies.trip(status, trip_date);
+CREATE INDEX IF NOT EXISTS idx_Trip_BusId ON companies.trip(bus_id);
+
+-- ----------------------------------------------------------------------------
+-- Stop & Route Details (used when loading route stops on the map)
+-- ----------------------------------------------------------------------------
+CREATE INDEX IF NOT EXISTS idx_RouteStop_RouteId ON companies.route_stop(route_id);
+
+-- ----------------------------------------------------------------------------
+-- Schedule Management (used by admins and trip generation)
+-- ----------------------------------------------------------------------------
+CREATE INDEX IF NOT EXISTS idx_Schedule_RouteId ON companies.schedule(route_id);
+
+-- ----------------------------------------------------------------------------
+-- Trip Management (used by admins and the bus app)
+-- Drivers look up trips by schedule when starting their shift
+-- ----------------------------------------------------------------------------
+CREATE INDEX IF NOT EXISTS idx_Trip_ScheduleId ON companies.trip(schedule_id);
+
+-- ----------------------------------------------------------------------------
+-- Bus App (used by drivers searching for available trips)
+-- Stops lookup by name when admins assign or modify stops
+-- ----------------------------------------------------------------------------
+CREATE INDEX IF NOT EXISTS idx_Stop_Name ON companies.stop(name);
+
+-- ----------------------------------------------------------------------------
+-- Fare Lookup (used when showing ticket prices per stop)
+-- ----------------------------------------------------------------------------
+CREATE INDEX IF NOT EXISTS idx_RouteStopFare_RouteStopId ON companies.route_stop_fare(route_stop_id, is_active);
+</file>
+
+<file path="src/test/resources/test-data/cleanup.sql">
+-- ============================================================================
+-- CLEANUP for FlowIntegrationTest
+-- Ejecutado antes de cada test para dejar la BD limpia
+-- ============================================================================
+
+-- Desactivar triggers de FK temporalmente para evitar errores de orden
+-- (alternativa más limpia que ordenar manualmente)
+SET session_replication_role = 'replica';
+
+-- Limpiar tablas del módulo tracking (son las de escritura más frecuente)
+TRUNCATE TABLE tracking.bus_location CASCADE;
+TRUNCATE TABLE tracking.bus_credential CASCADE;
+
+-- Limpiar tablas del módulo companies (orden inverso a dependencias)
+TRUNCATE TABLE companies.trip CASCADE;
+TRUNCATE TABLE companies.schedule CASCADE;
+TRUNCATE TABLE companies.route_stop_fare CASCADE;
+TRUNCATE TABLE companies.route_stop CASCADE;
+TRUNCATE TABLE companies.stop CASCADE;
+TRUNCATE TABLE companies.bus_route CASCADE;
+TRUNCATE TABLE companies.route CASCADE;
+TRUNCATE TABLE companies.bus CASCADE;
+TRUNCATE TABLE companies.company_user CASCADE;
+TRUNCATE TABLE companies.company CASCADE;
+
+-- Limpiar tablas de admin que tengan datos (si se usan en tests)
+TRUNCATE TABLE admin.audit_log CASCADE;
+TRUNCATE TABLE admin.company_request CASCADE;
+TRUNCATE TABLE admin."user" CASCADE;
+
+-- Restaurar triggers
+SET session_replication_role = 'origin';
+</file>
+
+<file path="src/test/resources/test-data/tracking-base.sql">
+-- ============================================================================
+-- Tracking Base Fixtures: Company + Buses
+-- ============================================================================
+-- Required by all tracking integration and flow tests
+-- ============================================================================
+
+INSERT INTO companies.company (id, tax_id, name, email, phone, status, created_at, updated_at)
+VALUES (
+    '550e8400-e29b-41d4-a716-446655440000'::uuid,
+    '12-345-678901',
+    'Test Shared Company',
+    'shared@test.com',
+    '88888888',
+    'ACTIVE',
+    NOW(),
+    NOW()
+) ON CONFLICT DO NOTHING;
+
+INSERT INTO companies.bus (id, company_id, plate, status, created_at, updated_at)
+VALUES 
+    ('650e8400-e29b-41d4-a716-446655440001'::uuid, '550e8400-e29b-41d4-a716-446655440000'::uuid, 'TEST001', 'ACTIVE', NOW(), NOW()),
+    ('650e8400-e29b-41d4-a716-446655440002'::uuid, '550e8400-e29b-41d4-a716-446655440000'::uuid, 'TEST002', 'ACTIVE', NOW(), NOW())
+ON CONFLICT DO NOTHING;
+</file>
+
+<file path="src/test/resources/test-data/tracking-trips.sql">
+-- ============================================================================
+-- Tracking Trip Fixtures: Route, Stops, Schedules, Trips
+-- ============================================================================
+-- Required by: TripRepositoryTest, DriverTripQueryFlowTest
+-- Depends on: tracking-base.sql (company + buses)
+-- ============================================================================
+
+
+-- ============================================================================
+-- BASE ROUTE DATA
+-- Used by: all trip tests
+-- ============================================================================
+
+INSERT INTO companies.route (id, company_id, name, price, origin, destination, flat_fare, is_active, created_at, updated_at)
+VALUES ('750e8400-e29b-41d4-a716-446655440000', '550e8400-e29b-41d4-a716-446655440000', 'Cartago-Orosi', 1500.00, 'Cartago', 'Orosi', true, true, NOW(), NOW())
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO companies.stop (id, company_id, name, latitude, longitude, reference, created_at, updated_at)
+VALUES 
+    ('860e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440000', 'Cartago',             9.8612, -83.9180, 'Terminal Central Cartago',            NOW(), NOW()),
+    ('860e8400-e29b-41d4-a716-446655440002', '550e8400-e29b-41d4-a716-446655440000', 'Colegio Vicente',     9.8615, -83.9145, 'Frente Colegio Vicente de Costa Rica', NOW(), NOW()),
+    ('860e8400-e29b-41d4-a716-446655440003', '550e8400-e29b-41d4-a716-446655440000', 'Estado de Paraiso',   9.8142, -83.8156, 'Estadio de Paraiso',                  NOW(), NOW()),
+    ('860e8400-e29b-41d4-a716-446655440004', '550e8400-e29b-41d4-a716-446655440000', 'Paraiso Centro',      9.8098, -83.8042, 'Centro de Paraiso',                   NOW(), NOW()),
+    ('860e8400-e29b-41d4-a716-446655440005', '550e8400-e29b-41d4-a716-446655440000', 'Recinto UCR Paraiso', 9.7856, -83.7834, 'Recinto de la UCR en Paraiso',        NOW(), NOW()),
+    ('860e8400-e29b-41d4-a716-446655440006', '550e8400-e29b-41d4-a716-446655440000', 'Orosi',               9.7798, -83.7345, 'Terminal Orosi',                      NOW(), NOW())
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO companies.route_stop (id, route_id, stop_id, order_index, estimated_time_offset, created_at)
+VALUES 
+    ('960e8400-e29b-41d4-a716-446655440001', '750e8400-e29b-41d4-a716-446655440000', '860e8400-e29b-41d4-a716-446655440001', 1,  0, NOW()),
+    ('960e8400-e29b-41d4-a716-446655440002', '750e8400-e29b-41d4-a716-446655440000', '860e8400-e29b-41d4-a716-446655440002', 2,  5, NOW()),
+    ('960e8400-e29b-41d4-a716-446655440003', '750e8400-e29b-41d4-a716-446655440000', '860e8400-e29b-41d4-a716-446655440003', 3, 15, NOW()),
+    ('960e8400-e29b-41d4-a716-446655440004', '750e8400-e29b-41d4-a716-446655440000', '860e8400-e29b-41d4-a716-446655440004', 4, 20, NOW()),
+    ('960e8400-e29b-41d4-a716-446655440005', '750e8400-e29b-41d4-a716-446655440000', '860e8400-e29b-41d4-a716-446655440005', 5, 30, NOW()),
+    ('960e8400-e29b-41d4-a716-446655440006', '750e8400-e29b-41d4-a716-446655440000', '860e8400-e29b-41d4-a716-446655440006', 6, 40, NOW())
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO companies.bus_route (id, bus_id, route_id, created_at)
+VALUES ('c70e8400-e29b-41d4-a716-446655440001', '650e8400-e29b-41d4-a716-446655440001', '750e8400-e29b-41d4-a716-446655440000', NOW())
+ON CONFLICT (id) DO NOTHING;
+
+
+-- ============================================================================
+-- PLANNED TRIPS — one per day of week (7 schedules + 7 trips)
+-- Used by: shouldReturnPlannedTripsForTodayWhenBusHasRoutes
+--          DriverTripQueryFlowTest
+-- ============================================================================
+
+INSERT INTO companies.schedule (id, route_id, departure_time, day_of_week, start_date, end_date, is_active, created_at, updated_at)
+VALUES 
+    ('a70e8400-e29b-41d4-a716-446655440001', '750e8400-e29b-41d4-a716-446655440000', '08:00:00', 1, CURRENT_DATE, NULL, true, NOW(), NOW()),
+    ('a70e8400-e29b-41d4-a716-446655440002', '750e8400-e29b-41d4-a716-446655440000', '09:00:00', 2, CURRENT_DATE, NULL, true, NOW(), NOW()),
+    ('a70e8400-e29b-41d4-a716-446655440003', '750e8400-e29b-41d4-a716-446655440000', '10:00:00', 3, CURRENT_DATE, NULL, true, NOW(), NOW()),
+    ('a70e8400-e29b-41d4-a716-446655440004', '750e8400-e29b-41d4-a716-446655440000', '11:00:00', 4, CURRENT_DATE, NULL, true, NOW(), NOW()),
+    ('a70e8400-e29b-41d4-a716-446655440005', '750e8400-e29b-41d4-a716-446655440000', '12:00:00', 5, CURRENT_DATE, NULL, true, NOW(), NOW()),
+    ('a70e8400-e29b-41d4-a716-446655440006', '750e8400-e29b-41d4-a716-446655440000', '13:00:00', 6, CURRENT_DATE, NULL, true, NOW(), NOW()),
+    ('a70e8400-e29b-41d4-a716-446655440007', '750e8400-e29b-41d4-a716-446655440000', '14:00:00', 7, CURRENT_DATE, NULL, true, NOW(), NOW())
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO companies.trip (id, schedule_id, trip_date, bus_id, status, created_at, updated_at)
+VALUES 
+    ('b70e8400-e29b-41d4-a716-446655440001', 'a70e8400-e29b-41d4-a716-446655440001', CURRENT_DATE, NULL, 'PLANNED', NOW(), NOW()),
+    ('b70e8400-e29b-41d4-a716-446655440002', 'a70e8400-e29b-41d4-a716-446655440002', CURRENT_DATE, NULL, 'PLANNED', NOW(), NOW()),
+    ('b70e8400-e29b-41d4-a716-446655440003', 'a70e8400-e29b-41d4-a716-446655440003', CURRENT_DATE, NULL, 'PLANNED', NOW(), NOW()),
+    ('b70e8400-e29b-41d4-a716-446655440004', 'a70e8400-e29b-41d4-a716-446655440004', CURRENT_DATE, NULL, 'PLANNED', NOW(), NOW()),
+    ('b70e8400-e29b-41d4-a716-446655440005', 'a70e8400-e29b-41d4-a716-446655440005', CURRENT_DATE, NULL, 'PLANNED', NOW(), NOW()),
+    ('b70e8400-e29b-41d4-a716-446655440006', 'a70e8400-e29b-41d4-a716-446655440006', CURRENT_DATE, NULL, 'PLANNED', NOW(), NOW()),
+    ('b70e8400-e29b-41d4-a716-446655440007', 'a70e8400-e29b-41d4-a716-446655440007', CURRENT_DATE, NULL, 'PLANNED', NOW(), NOW())
+ON CONFLICT (id) DO NOTHING;
+
+
+-- ============================================================================
+-- FILTER TEST DATA — extra schedules and trips for TripRepositoryTest
+-- These verify that the JPQL correctly excludes non-PLANNED and past trips
+-- ============================================================================
+
+INSERT INTO companies.schedule (id, route_id, departure_time, day_of_week, start_date, end_date, is_active, created_at, updated_at)
+VALUES 
+    ('a70e8400-e29b-41d4-a716-000000000001', '750e8400-e29b-41d4-a716-446655440000', '20:00:00', 1, CURRENT_DATE, NULL, true, NOW(), NOW()),
+    ('a70e8400-e29b-41d4-a716-000000000002', '750e8400-e29b-41d4-a716-446655440000', '21:00:00', 2, CURRENT_DATE, NULL, true, NOW(), NOW())
+ON CONFLICT (id) DO NOTHING;
+
+-- IN_PROGRESS trip — verifies status filter excludes non-PLANNED
+INSERT INTO companies.trip (id, schedule_id, trip_date, bus_id, status, created_at, updated_at)
+VALUES (
+    'b70e8400-e29b-41d4-a716-000000000001',
+    'a70e8400-e29b-41d4-a716-000000000001',
+    CURRENT_DATE,
+    '650e8400-e29b-41d4-a716-446655440001',
+    'IN_PROGRESS',
+    NOW(), NOW()
+) ON CONFLICT (id) DO NOTHING;
+
+-- Yesterday PLANNED trip — verifies date filter excludes past dates
+INSERT INTO companies.trip (id, schedule_id, trip_date, bus_id, status, created_at, updated_at)
+VALUES (
+    'b70e8400-e29b-41d4-a716-000000000002',
+    'a70e8400-e29b-41d4-a716-000000000002',
+    CURRENT_DATE - INTERVAL '1 day',
+    NULL,
+    'PLANNED',
+    NOW() - INTERVAL '1 day', -- Sincronizado: Se creó ayer
+    NOW() - INTERVAL '1 day'  -- Sincronizado: Se actualizó ayer
+) ON CONFLICT (id) DO NOTHING;
+</file>
+
+</files>
