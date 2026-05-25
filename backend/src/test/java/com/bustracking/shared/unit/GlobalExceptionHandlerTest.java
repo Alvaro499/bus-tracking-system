@@ -67,4 +67,18 @@ class GlobalExceptionHandlerTest {
         assertEquals(502, response.getStatusCode().value());
         assertNotNull(response.getBody());
     }
+
+
+    /**
+     * // Un solo test que verifica la integración Spring + handler
+// Podría vivir en GlobalExceptionHandlerTest o en un test propio
+@Test
+void shouldReturn404WhenUseCaseThrowsNotFoundException() {
+    when(getBusLocationUseCase.execute(any()))
+        .thenThrow(new NotFoundException(...));
+
+    mockMvc.perform(get("/tracking/buses/{id}/location", validBusId))
+        .andExpect(status().isNotFound());
+}
+     */
 }
