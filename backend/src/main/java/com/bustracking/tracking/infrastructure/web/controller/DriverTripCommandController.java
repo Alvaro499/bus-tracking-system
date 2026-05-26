@@ -13,6 +13,7 @@ import com.bustracking.tracking.application.usecase.StartTripUseCase;
 @RestController
 @RequestMapping("/tracking/trips")
 public class DriverTripCommandController {
+
     private final StartTripUseCase startTripUseCase;
 
     public DriverTripCommandController(StartTripUseCase startTripUseCase) {
