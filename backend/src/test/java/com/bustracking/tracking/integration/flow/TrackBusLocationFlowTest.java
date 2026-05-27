@@ -34,7 +34,7 @@ import com.bustracking.shared.testinfrastructure.FlowIntegrationTest;
     FlowIntegrationTest.CLEANUP,
     FlowIntegrationTest.BASE
 }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-public class BusLocationFlowTest extends FlowIntegrationTest{
+public class TrackBusLocationFlowTest extends FlowIntegrationTest{
     
     @Autowired
     private MockMvc mockMvc;

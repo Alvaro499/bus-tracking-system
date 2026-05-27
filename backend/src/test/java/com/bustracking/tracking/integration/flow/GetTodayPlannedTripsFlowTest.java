@@ -26,7 +26,7 @@ import com.bustracking.shared.testinfrastructure.FlowIntegrationTest;
     FlowIntegrationTest.BASE,
     FlowIntegrationTest.TRIPS
 }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-public class DriverTodayTripsFlowTest extends FlowIntegrationTest {
+public class GetTodayPlannedTripsFlowTest extends FlowIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
