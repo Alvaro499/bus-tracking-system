@@ -21,10 +21,11 @@ import com.bustracking.shared.testinfrastructure.FlowIntegrationTest;
  *
  * Covers: HU-17 (obtener viajes del día del bus autenticado)
  */
-@Sql({
-    "/test-data/tracking-base.sql",
-    "/test-data/tracking-trips.sql"
-})
+@Sql(scripts = {
+    FlowIntegrationTest.CLEANUP,
+    FlowIntegrationTest.BASE,
+    FlowIntegrationTest.TRIPS
+}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 public class DriverTodayTripsFlowTest extends FlowIntegrationTest {
 
     @Autowired

@@ -30,9 +30,10 @@ import com.bustracking.shared.testinfrastructure.FlowIntegrationTest;
  * Covers: HU-01 (ver buses en el mapa) + HU-16 (enviar ubicación desde el bus)
  */
 
-@Sql({
-    "/test-data/tracking-base.sql"
-})
+@Sql(scripts = {
+    FlowIntegrationTest.CLEANUP,
+    FlowIntegrationTest.BASE
+}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 public class BusLocationFlowTest extends FlowIntegrationTest{
     
     @Autowired
