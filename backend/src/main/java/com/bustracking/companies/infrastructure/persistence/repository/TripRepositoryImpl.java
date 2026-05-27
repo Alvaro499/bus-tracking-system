@@ -2,12 +2,15 @@ package com.bustracking.companies.infrastructure.persistence.repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Repository;
 
 import com.bustracking.companies.domain.dto.TripScheduleProjection;
+import com.bustracking.companies.domain.model.Trip;
 import com.bustracking.companies.domain.repository.TripRepository;
+import com.bustracking.companies.infrastructure.persistence.entity.TripJpa;
 
 @Repository
 public class TripRepositoryImpl implements TripRepository {
@@ -32,5 +35,64 @@ public class TripRepositoryImpl implements TripRepository {
                 r.status()
             ))
             .toList();
+    }
+
+    @Override
+    public Optional<Trip> findById(UUID tripId) {
+        return tripJpaRepository.findById(tripId).map(r -> new Trip(
+            r.getId(),
+            r.getScheduleId(),
+            r.getBusId(),
+            r.getTripDate(),
+            r.getCancellationReason(),
+            r.getStatus(),
+            r.getActualStartTime(),
+            r.getActualEndTime(),
+            r.getDelayMinutes(),
+            r.getAssignedAt(),
+            r.getCreatedAt(),
+            r.getUpdatedAt()
+        ));
+    }
+
+    @Override
+    public Trip save(Trip trip) {
+        TripJpa tripJpa = toJpa(trip);
+        TripJpa saved = tripJpaRepository.save(tripJpa);
+        return toDomain(saved);
+    }
+
+        private Trip toDomain(TripJpa jpa) {
+        return new Trip(
+            jpa.getId(),
+            jpa.getScheduleId(),
+            jpa.getBusId(),
+            jpa.getTripDate(),
+            jpa.getCancellationReason(),
+            jpa.getStatus(),
+            jpa.getActualStartTime(),
+            jpa.getActualEndTime(),
+            jpa.getDelayMinutes(),
+            jpa.getAssignedAt(),
+            jpa.getCreatedAt(),
+            jpa.getUpdatedAt()
+        );
+    }
+
+    private TripJpa toJpa(Trip trip) {
+        return new TripJpa(
+            trip.getId(),
+            trip.getScheduleId(),
+            trip.getBusId(),
+            trip.getTripDate(),
+            trip.getCancellationReason(),
+            trip.getStatus(),
+            trip.getActualStartTime(),
+            trip.getActualEndTime(),
+            trip.getDelayMinutes(),
+            trip.getAssignedAt(),
+            trip.getCreatedAt(),
+            trip.getUpdatedAt()
+        );
     }
 }

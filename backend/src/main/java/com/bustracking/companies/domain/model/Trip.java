@@ -5,6 +5,7 @@ import com.bustracking.shared.exception.BusinessRuleException;
 import com.bustracking.shared.exception.ErrorCode;
 import com.bustracking.shared.exception.ValidationException;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -16,6 +17,7 @@ import java.util.UUID;
 
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
 public class Trip {
 
     private UUID id;

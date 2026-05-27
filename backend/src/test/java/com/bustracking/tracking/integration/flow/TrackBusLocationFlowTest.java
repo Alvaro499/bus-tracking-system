@@ -1,5 +1,6 @@
 package com.bustracking.tracking.integration.flow;
 
+import static com.bustracking.shared.testinfrastructure.TestSqlScripts.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -30,10 +31,9 @@ import com.bustracking.shared.testinfrastructure.FlowIntegrationTest;
  * Covers: HU-01 (ver buses en el mapa) + HU-16 (enviar ubicación desde el bus)
  */
 
-@Sql({
-    "/test-data/tracking-base.sql"
-})
-public class BusLocationFlowTest extends FlowIntegrationTest{
+@Sql(scripts = {CLEANUP, BASE},
+     executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+public class TrackBusLocationFlowTest extends FlowIntegrationTest{
     
     @Autowired
     private MockMvc mockMvc;

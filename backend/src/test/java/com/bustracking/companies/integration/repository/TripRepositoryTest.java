@@ -1,5 +1,6 @@
 package com.bustracking.companies.integration.repository;
 
+import static com.bustracking.shared.testinfrastructure.TestSqlScripts.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
@@ -15,10 +16,8 @@ import com.bustracking.companies.infrastructure.persistence.repository.TripJpaRe
 import com.bustracking.companies.infrastructure.persistence.repository.TripRepositoryImpl;
 import com.bustracking.shared.testinfrastructure.RepositoryIntegrationTest;
 
-@Sql({
-    "/test-data/tracking-base.sql",
-    "/test-data/tracking-trips.sql"
-})
+@Sql(scripts = {CLEANUP, BASE, TRIPS},
+     executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class TripRepositoryTest extends RepositoryIntegrationTest {
 
     @Autowired
