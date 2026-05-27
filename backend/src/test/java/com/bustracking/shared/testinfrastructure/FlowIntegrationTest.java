@@ -14,7 +14,5 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 public abstract class FlowIntegrationTest extends PostgresTestContainer {
 
-    protected static final String CLEANUP = "/test-data/cleanup.sql";
-    protected static final String BASE = "/test-data/tracking-base.sql";
-    protected static final String TRIPS = "/test-data/tracking-trips.sql";
+
 }
