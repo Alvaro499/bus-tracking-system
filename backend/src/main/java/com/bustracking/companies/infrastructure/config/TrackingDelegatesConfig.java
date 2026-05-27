@@ -90,7 +90,6 @@ public class TrackingDelegatesConfig {
                     ErrorCode.TRIP_NOT_FOUND,
                     "Trip not found",
                     "Trip with ID " + tripId + " not found for Bus ID " + busId);
-
             }
             // We extract the Trip entity
             Trip trip = optionalTrip.get();
