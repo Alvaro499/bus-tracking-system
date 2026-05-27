@@ -1,5 +1,6 @@
 package com.bustracking.tracking.integration.flow;
 
+import static com.bustracking.shared.testinfrastructure.TestSqlScripts.*;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -31,9 +32,9 @@ import com.bustracking.shared.testinfrastructure.FlowIntegrationTest;
  * Covers: HU-17 (CA-02, CA-03)
  */
 @Sql(scripts = {
-    FlowIntegrationTest.CLEANUP,
-    FlowIntegrationTest.BASE,
-    FlowIntegrationTest.TRIPS
+    CLEANUP,
+    BASE,
+    TRIPS
 }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class StartTripFlowTest extends FlowIntegrationTest {
 

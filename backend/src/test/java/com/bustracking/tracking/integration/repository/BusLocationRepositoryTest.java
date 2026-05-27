@@ -1,5 +1,6 @@
 package com.bustracking.tracking.integration.repository;
 
+import static com.bustracking.shared.testinfrastructure.TestSqlScripts.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.math.BigDecimal;
@@ -30,10 +31,9 @@ import com.bustracking.tracking.infrastructure.persistence.repository.BusLocatio
  * - Real DB: detect mapping issues, constraint violations
  * - Shared fixtures: company + buses loaded from test-data/
  */
-@Sql({
-    "/test-data/tracking-base.sql",
-    "/test-data/tracking-trips.sql"
-})
+
+@Sql(scripts = {CLEANUP, BASE},
+     executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class BusLocationRepositoryTest extends RepositoryIntegrationTest {
 
     @Autowired

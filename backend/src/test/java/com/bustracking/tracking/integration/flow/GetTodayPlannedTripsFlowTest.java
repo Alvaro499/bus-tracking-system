@@ -1,5 +1,6 @@
 package com.bustracking.tracking.integration.flow;
 
+import static com.bustracking.shared.testinfrastructure.TestSqlScripts.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -22,9 +23,9 @@ import com.bustracking.shared.testinfrastructure.FlowIntegrationTest;
  * Covers: HU-17 (obtener viajes del día del bus autenticado)
  */
 @Sql(scripts = {
-    FlowIntegrationTest.CLEANUP,
-    FlowIntegrationTest.BASE,
-    FlowIntegrationTest.TRIPS
+    CLEANUP,
+    BASE,
+    TRIPS
 }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 public class GetTodayPlannedTripsFlowTest extends FlowIntegrationTest {
 
