@@ -9,7 +9,8 @@ import com.bustracking.shared.infrastructure.error.GlobalExceptionHandler;
 
 /*
 
-    @WebMvcTest: starts only the web layer, including controllers, filters, and Spring MVC configuration. No persistence layer, no security, and no services.
+    @WebMvcTest: starts only the web layer, including controllers, filters, and Spring MVC configuration. 
+    No persistence layer, no security, and no services.
 
 */
 
