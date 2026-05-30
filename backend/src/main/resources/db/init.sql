@@ -158,7 +158,7 @@ CREATE TABLE IF NOT EXISTS companies.trip_stop (
     id UUID PRIMARY KEY,
     trip_id UUID NOT NULL REFERENCES companies.trip(id) ON DELETE RESTRICT,
     route_stop_id UUID NOT NULL REFERENCES companies.route_stop(id) ON DELETE RESTRICT,
-    reached_at TIMESTAMP NULL,
+    completed_at TIMESTAMP NULL,
     UNIQUE (trip_id, route_stop_id)
 );
 
