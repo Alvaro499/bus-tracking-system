@@ -72,6 +72,36 @@ export function TripDetailContainer({ tripId }: TripDetailContainerProps) {
   const { trip, stops } = tripDetail;
   const isInProgress = trip.status === 'IN_PROGRESS';
 
+  const handleConfirmStop = (stopId: string) => {
+      if (tripDetail === null) return;
+
+    const updatedStops = [];
+
+    for (let i = 0; i < tripDetail.stops.length; i++) {
+      const stop = tripDetail.stops[i];
+
+      if (stop.routeStop.id === stopId) {
+
+        const stopConfirmada = {
+          routeStop: stop.routeStop,
+          stop: stop.stop,
+          completedAt: new Date().toISOString()
+        };
+        updatedStops.push(stopConfirmada);
+      } else {
+        updatedStops.push(stop);
+      }
+    }
+
+    // We update the state
+    const newTripDetail = {
+      trip: tripDetail.trip,
+      stops: updatedStops
+    };
+
+    setTripDetail(newTripDetail);
+  }
+
   return (
     <div className="p-4 max-w-md mx-auto space-y-4">
       {/* Cabecera del viaje */}
@@ -103,7 +133,7 @@ export function TripDetailContainer({ tripId }: TripDetailContainerProps) {
       <Card>
         <CardContent>
           <h3 className="font-semibold mb-2">Paradas</h3>
-          <TripStopsList stops={stops} />
+          <TripStopsList stops={stops} onConfirmStop={handleConfirmStop} />
         </CardContent>
       </Card>
 
