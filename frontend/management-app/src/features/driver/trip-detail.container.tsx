@@ -24,8 +24,10 @@ export function TripDetailContainer({ tripId }: TripDetailContainerProps) {
   
   // To show a loading state while fetching the trip detail for the first time
   const [loading, setLoading] = useState(true);
-  const [apiError, setApiError] = useState<ApiErrorClass | null>(null);
+  const [fetchTripDetailError, setFetchTripDetailError] = useState<ApiErrorClass | null>(null);
   const [lastTransmissionTime, setLastTransmissionTime] = useState<Date | null>(null);
+  const [confirmStopError, setConfirmStopError] = useState<string | null>(null);
+
 
   // They both start as null
   const { coords, error: geoError } = useGeolocation();
@@ -35,9 +37,9 @@ export function TripDetailContainer({ tripId }: TripDetailContainerProps) {
       setLoading(true);
       const data = await tripService.getTripDetail(tripId);
       setTripDetail(data);
-      setApiError(null);
+      setFetchTripDetailError(null);
     } catch (err) {
-      if (err instanceof ApiErrorClass) setApiError(err);
+      if (err instanceof ApiErrorClass) setFetchTripDetailError(err);
     } finally {
       setLoading(false);
     }
@@ -65,41 +67,52 @@ export function TripDetailContainer({ tripId }: TripDetailContainerProps) {
   }, 5000);
 
   if (loading) return <p className="p-4">Cargando viaje...</p>;
-  if (apiError) return <p className="p-4 text-destructive">{apiError.userMessage}</p>;
+  if (fetchTripDetailError) return <p className="p-4 text-destructive">{fetchTripDetailError.userMessage}</p>;
   if (!tripDetail) return <p className="p-4">No se encontró el viaje.</p>;
 
 
   const { trip, stops } = tripDetail;
   const isInProgress = trip.status === 'IN_PROGRESS';
 
-  const handleConfirmStop = (stopId: string) => {
-      if (tripDetail === null) return;
+  const handleConfirmStop = async (stopId: string) => {
+    if (tripDetail === null) return;
 
-    const updatedStops = [];
+    try{
+      await tripService.confirmStop(tripDetail.trip.id, stopId);
 
-    for (let i = 0; i < tripDetail.stops.length; i++) {
-      const stop = tripDetail.stops[i];
+      const updatedStops = [];
 
-      if (stop.routeStop.id === stopId) {
+      for (let i = 0; i < tripDetail.stops.length; i++) {
+        const stop = tripDetail.stops[i];
 
-        const stopConfirmada = {
-          routeStop: stop.routeStop,
-          stop: stop.stop,
-          completedAt: new Date().toISOString()
-        };
-        updatedStops.push(stopConfirmada);
-      } else {
-        updatedStops.push(stop);
+        if (stop.routeStop.id === stopId) {
+
+          const stopConfirmada = {
+            routeStop: stop.routeStop,
+            stop: stop.stop,
+            completedAt: new Date().toISOString()
+          };
+          updatedStops.push(stopConfirmada);
+        } else {
+          updatedStops.push(stop);
+        }
+      }
+
+      // We update the state
+      const newTripDetail = {
+        trip: tripDetail.trip,
+        stops: updatedStops
+      };
+
+      setTripDetail(newTripDetail);
+    }catch (err) {
+
+      if (err instanceof ApiErrorClass) {
+        setConfirmStopError(err.userMessage);
+      }else{
+        setConfirmStopError('Error al confirmar parada');
       }
     }
-
-    // We update the state
-    const newTripDetail = {
-      trip: tripDetail.trip,
-      stops: updatedStops
-    };
-
-    setTripDetail(newTripDetail);
   }
 
   return (

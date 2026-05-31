@@ -13,6 +13,13 @@ export const tripService = {
     // httpClient.get<TripDetail>(`/tracking/trips/${tripId}/detail`);
     return MOCK_TRIP_DETAIL;
   },
+
+  async confirmStop(tripId: string, stopId: string): Promise<void> {
+    await httpClient.post(
+      `/tracking/trips/${tripId}/stops/${stopId}/confirm`,
+      { completedAt: new Date().toISOString() }
+    );
+  },
 };
 
 const MOCK_TRIP_DETAIL: TripDetail = {
