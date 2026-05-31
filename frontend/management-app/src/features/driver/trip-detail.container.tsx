@@ -2,12 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { tripService } from '@/infrastructure/services/tripService';
-import { TripCard } from './components/TripCard';
 import { ApiErrorClass } from '@/lib/errors/apiError';
-import type { Trip } from '@/domain/models/Trip';
-import type { Route } from '@/domain/models/Route';
-import type { RouteStop } from '@/domain/models/RouteStop';
-import type { Stop } from '@/domain/models/Stop';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { TripDetail } from '@/domain/models/TripDetail';
@@ -25,13 +21,15 @@ const BUS_ID = '650e8400-e29b-41d4-a716-446655440001';
 
 export function TripDetailContainer({ tripId }: TripDetailContainerProps) {
   const [tripDetail, setTripDetail] = useState<TripDetail | null>(null);
+  
+  // To show a loading state while fetching the trip detail for the first time
   const [loading, setLoading] = useState(true);
   const [apiError, setApiError] = useState<ApiErrorClass | null>(null);
   const [lastTransmissionTime, setLastTransmissionTime] = useState<Date | null>(null);
 
+  // They both start as null
   const { coords, error: geoError } = useGeolocation();
 
-  // Cargar detalle del viaje (mock)
   const fetchTripDetail = useCallback(async () => {
     try {
       setLoading(true);
@@ -45,24 +43,31 @@ export function TripDetailContainer({ tripId }: TripDetailContainerProps) {
     }
   }, [tripId]);
 
+  // Executes after the first render and every time the tripId changes
   useEffect(() => {
     fetchTripDetail();
   }, [fetchTripDetail]);
 
-  // Transmisión de ubicación (solo si el viaje está IN_PROGRESS)
+  // Location is transmitted  (only when trip is IN_PROGRESS)
   usePolling(async () => {
-    if (!coords || !tripDetail || tripDetail.trip.status !== 'IN_PROGRESS') return;
+    const hasCoords = coords !== null;
+    const hasTripDetail = tripDetail !== null;
+    const isTripInProgress = tripDetail !== null && tripDetail.trip.status === 'IN_PROGRESS';
+    if (!hasCoords || !hasTripDetail || !isTripInProgress) {
+      return;
+    }
+
     try {
       await busLocationService.updateBusLocation(BUS_ID, coords.lat, coords.lng);
       setLastTransmissionTime(new Date());
     } catch (err) {
-      // Podríamos mostrar un indicador de error local si quisiéramos
     }
   }, 5000);
 
   if (loading) return <p className="p-4">Cargando viaje...</p>;
   if (apiError) return <p className="p-4 text-destructive">{apiError.userMessage}</p>;
   if (!tripDetail) return <p className="p-4">No se encontró el viaje.</p>;
+
 
   const { trip, stops } = tripDetail;
   const isInProgress = trip.status === 'IN_PROGRESS';
@@ -94,7 +99,7 @@ export function TripDetailContainer({ tripId }: TripDetailContainerProps) {
         </CardContent>
       </Card>
 
-      {/* Lista de paradas */}
+      {/* List of stops */}
       <Card>
         <CardContent>
           <h3 className="font-semibold mb-2">Paradas</h3>
@@ -102,7 +107,7 @@ export function TripDetailContainer({ tripId }: TripDetailContainerProps) {
         </CardContent>
       </Card>
 
-      {/* Botones de acción */}
+      {/* Action buttons */}
       {isInProgress && (
         <div className="flex gap-2">
           <Button variant="secondary" className="flex-1">Finalizar viaje</Button>

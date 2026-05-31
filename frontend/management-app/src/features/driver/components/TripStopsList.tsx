@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { TripDetail } from '@/domain/models/TripDetail';
+import { TripStop } from '@/domain/models/TripStop';
 import { cn } from '@/lib/utils';
 
 interface TripStopsListProps {
@@ -7,25 +8,32 @@ interface TripStopsListProps {
 }
 
 export function TripStopsList({ stops }: TripStopsListProps) {
-  // Encontramos el índice de la primera parada no completada
-  const nextStopIndex = stops.findIndex(s => !s.completed);
+  // First, we found the first non-completed stop from the list
+  // this is the current stop where the bus is at the moment
+  let currentUncompletedStopIndex  = -1;
+  for (let i = 0; i < stops.length; i++) {
+    if (stops[i].completedAt === null) {
+      currentUncompletedStopIndex  = i;
+      break;
+    }
+  }
 
   return (
     <ul className="max-h-64 overflow-y-auto space-y-1">
-      {stops.map((stop, index) => {
-        const isCompleted = stop.completed;
-        const isNext = index === nextStopIndex;
+      {stops.map(function(currentStop, currentIndex) {
+        const isCompleted = currentStop.completedAt !== null;
+        const isActiveStop = currentIndex === currentUncompletedStopIndex;
 
         return (
-          <li key={stop.routeStop.id} className="flex items-center justify-between py-1">
+          <li key={currentStop.routeStop.id} className="flex items-center justify-between py-1">
             <span className={cn(
               'text-sm',
               isCompleted && 'line-through text-muted-foreground',
-              isNext && 'font-semibold'
+              isActiveStop && 'font-semibold'
             )}>
-              {isCompleted ? '✓' : '→'} {stop.stop.name}
+              {isCompleted ? '✓' : '→'} {currentStop.stop.name}
             </span>
-            {isNext && (
+            {isActiveStop && (
               <Button size="sm" variant="outline" disabled>
                 Confirmar
               </Button>
