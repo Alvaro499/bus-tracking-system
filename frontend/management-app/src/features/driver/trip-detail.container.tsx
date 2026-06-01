@@ -74,6 +74,27 @@ export function TripDetailContainer({ tripId }: TripDetailContainerProps) {
   const { trip, stops } = tripDetail;
   const isInProgress = trip.status === 'IN_PROGRESS';
 
+  const handleFinishTrip = async (tripId: string) =>{
+
+    // Verify all stops are completed
+    const areAllStopsCompleted = stops.every(stop => stop.completedAt !== null);
+
+    if (!areAllStopsCompleted) {
+      alert('No se pueden finalizar el viaje. Aún hay paradas pendientes por confirmar.');
+      return;
+    }
+
+
+
+    await tripService.finishTrip(trip.id, delayMinutes);
+
+  }
+
+  ----------------- Falta Iniciar la fecha cuando se toma el viaje
+  ----------------- El tiempo (actualStarTime , endTime) lo decide la bd, el frontend, o el backed?
+  ------------------     assigned_at TIMESTAMP, y     actual_start_time TIME NULL redundantes?
+
+
   const handleConfirmStop = async (stopId: string) => {
     if (tripDetail === null) return;
 
@@ -153,8 +174,12 @@ export function TripDetailContainer({ tripId }: TripDetailContainerProps) {
       {/* Action buttons */}
       {isInProgress && (
         <div className="flex gap-2">
-          <Button variant="secondary" className="flex-1">Finalizar viaje</Button>
-          <Button variant="destructive" className="flex-1">Cancelar viaje</Button>
+          <Button variant="secondary" className="flex-1" onClick={() => handleFinishTrip(trip.id)}>
+            Finalizar viaje
+          </Button>
+          <Button variant="destructive" className="flex-1">
+            Cancelar viaje
+          </Button>
         </div>
       )}
     </div>

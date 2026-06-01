@@ -20,6 +20,13 @@ export const tripService = {
       { completedAt: new Date().toISOString() }
     );
   },
+
+  async finishTrip(tripId: string, routeStopId: string): Promise<void> {
+    await httpClient.post(
+      `/tracking/trips/${tripId}/finish`,
+      { routeStopId }
+    );
+  }
 };
 
 const MOCK_TRIP_DETAIL: TripDetail = {
