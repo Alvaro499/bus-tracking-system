@@ -27,7 +27,7 @@ export function TripDetailContainer({ tripId }: TripDetailContainerProps) {
   const [fetchTripDetailError, setFetchTripDetailError] = useState<ApiErrorClass | null>(null);
   const [lastTransmissionTime, setLastTransmissionTime] = useState<Date | null>(null);
   const [confirmStopError, setConfirmStopError] = useState<string | null>(null);
-
+  const [finishTripError, setFinishTripError] = useState<string | null>(null);
 
   // They both start as null
   const { coords, error: geoError } = useGeolocation();
@@ -77,22 +77,53 @@ export function TripDetailContainer({ tripId }: TripDetailContainerProps) {
   const handleFinishTrip = async (tripId: string) =>{
 
     // Verify all stops are completed
-    const areAllStopsCompleted = stops.every(stop => stop.completedAt !== null);
+    let allStopsCompleted = true;
+    for (let i = 0; i < stops.length; i++) {
+      if (stops[i].completedAt === null) {
+        allStopsCompleted = false;
+        break;
+      }
 
-    if (!areAllStopsCompleted) {
-      alert('No se pueden finalizar el viaje. Aún hay paradas pendientes por confirmar.');
+    }
+    
+    if (!allStopsCompleted) {
+      alert('No se puede finalizar el viaje. Aún hay paradas pendientes por confirmar.');
       return;
     }
 
+    const delayMinutes = 0; // temporal mock
 
+    try {
+        await tripService.finishTrip(tripId, delayMinutes);
 
-    await tripService.finishTrip(trip.id, delayMinutes);
+        // 3. Actualizar el estado local: marcar el viaje como COMPLETED
+        if (tripDetail !== null) {
+          const updatedTrip = {
+            id: tripDetail.trip.id,
+            routeName: tripDetail.trip.routeName,
+            origin: tripDetail.trip.origin,
+            destination: tripDetail.trip.destination,
+            departureTime: tripDetail.trip.departureTime,
+            status: 'COMPLETED'
+          };
+
+          const newTripDetail = {
+            trip: updatedTrip,
+            stops: tripDetail.stops
+          };
+
+          setTripDetail(newTripDetail);
+          setFinishTripError(null);
+        }
+      } catch (err) {
+        if (err instanceof ApiErrorClass) {
+          setFinishTripError(err.userMessage);
+        } else {
+          setFinishTripError('Error al finalizar el viaje.');
+        }
+      }
 
   }
-
-  ----------------- Falta Iniciar la fecha cuando se toma el viaje
-  ----------------- El tiempo (actualStarTime , endTime) lo decide la bd, el frontend, o el backed?
-  ------------------     assigned_at TIMESTAMP, y     actual_start_time TIME NULL redundantes?
 
 
   const handleConfirmStop = async (stopId: string) => {

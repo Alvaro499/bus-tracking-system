@@ -21,10 +21,10 @@ export const tripService = {
     );
   },
 
-  async finishTrip(tripId: string, routeStopId: string): Promise<void> {
+  async finishTrip(tripId: string, delayMinutes: number): Promise<void> {
     await httpClient.post(
       `/tracking/trips/${tripId}/finish`,
-      { routeStopId }
+      { delayMinutes: delayMinutes }
     );
   }
 };
