@@ -199,15 +199,18 @@ export function TripDetailContainer({ tripId }: TripDetailContainerProps) {
         <CardContent>
           <h3 className="font-semibold mb-2">Paradas</h3>
           <TripStopsList stops={stops} onConfirmStop={handleConfirmStop} />
+          {finishTripError && (
+            <p className="text-xs text-red-500 mb-1">{finishTripError}</p>
+          )}
         </CardContent>
       </Card>
 
       {/* Action buttons */}
       {isInProgress && (
         <div className="flex gap-2">
-          <Button variant="secondary" className="flex-1" onClick={() => handleFinishTrip(trip.id)}>
-            Finalizar viaje
-          </Button>
+        <Button variant="secondary" className="flex-1" onClick={() => handleFinishTrip(trip.id)}>
+          Finalizar viaje
+        </Button>
           <Button variant="destructive" className="flex-1">
             Cancelar viaje
           </Button>
