@@ -125,7 +125,6 @@ export function TripDetailContainer({ tripId }: TripDetailContainerProps) {
 
   }
 
-
   const handleConfirmStop = async (stopId: string) => {
     if (tripDetail === null) return;
 
