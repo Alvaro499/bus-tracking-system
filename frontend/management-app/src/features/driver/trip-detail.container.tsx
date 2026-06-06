@@ -11,23 +11,30 @@ import { busLocationService } from '@/infrastructure/services/busLocationService
 import { useGeolocation } from '@/shared/hooks/useGeolocation';
 import { usePolling } from '@/shared/hooks/usePolling';
 import { TripStopsList } from './components/TripStopsList';
+import { Popover, PopoverContent, PopoverDescription, PopoverHeader, PopoverTitle, PopoverTrigger } from '@/components/ui/popover';
 
 
 interface TripDetailContainerProps {
   tripId: string;
 }
 
-const BUS_ID = '650e8400-e29b-41d4-a716-446655440001'; 
+const BUS_ID = '650e8400-e29b-41d4-a716-446655440001';
 
 export function TripDetailContainer({ tripId }: TripDetailContainerProps) {
   const [tripDetail, setTripDetail] = useState<TripDetail | null>(null);
-  
+
   // To show a loading state while fetching the trip detail for the first time
   const [loading, setLoading] = useState(true);
   const [fetchTripDetailError, setFetchTripDetailError] = useState<ApiErrorClass | null>(null);
   const [lastTransmissionTime, setLastTransmissionTime] = useState<Date | null>(null);
   const [confirmStopError, setConfirmStopError] = useState<string | null>(null);
   const [finishTripError, setFinishTripError] = useState<string | null>(null);
+
+  // New state for cancel reason and its error
+  const [cancelReason, setCancelReason] = useState<string>('');
+  const [cancelTripError, setCancelTripError] = useState<string | null>(null);
+
+  const [isCancelPopoverOpen, setIsCancelPopoverOpen] = useState<boolean>(false);
 
   // They both start as null
   const { coords, error: geoError } = useGeolocation();
@@ -74,7 +81,7 @@ export function TripDetailContainer({ tripId }: TripDetailContainerProps) {
   const { trip, stops } = tripDetail;
   const isInProgress = trip.status === 'IN_PROGRESS';
 
-  const handleFinishTrip = async (tripId: string) =>{
+  const handleFinishTrip = async (tripId: string) => {
 
     // Verify all stops are completed
     let allStopsCompleted = true;
@@ -85,7 +92,7 @@ export function TripDetailContainer({ tripId }: TripDetailContainerProps) {
       }
 
     }
-    
+
     if (!allStopsCompleted) {
       alert('No se puede finalizar el viaje. Aún hay paradas pendientes por confirmar.');
       return;
@@ -94,41 +101,40 @@ export function TripDetailContainer({ tripId }: TripDetailContainerProps) {
     const delayMinutes = 0; // temporal mock
 
     try {
-        await tripService.finishTrip(tripId, delayMinutes);
+      await tripService.finishTrip(tripId, delayMinutes);
 
-        // 3. Actualizar el estado local: marcar el viaje como COMPLETED
-        if (tripDetail !== null) {
-          const updatedTrip = {
-            id: tripDetail.trip.id,
-            routeName: tripDetail.trip.routeName,
-            origin: tripDetail.trip.origin,
-            destination: tripDetail.trip.destination,
-            departureTime: tripDetail.trip.departureTime,
-            status: 'COMPLETED'
-          };
+      if (tripDetail !== null) {
+        const updatedTrip = {
+          id: tripDetail.trip.id,
+          routeName: tripDetail.trip.routeName,
+          origin: tripDetail.trip.origin,
+          destination: tripDetail.trip.destination,
+          departureTime: tripDetail.trip.departureTime,
+          status: 'COMPLETED'
+        };
 
-          const newTripDetail = {
-            trip: updatedTrip,
-            stops: tripDetail.stops
-          };
+        const newTripDetail = {
+          trip: updatedTrip,
+          stops: tripDetail.stops
+        };
 
-          setTripDetail(newTripDetail);
-          setFinishTripError(null);
-        }
-      } catch (err) {
-        if (err instanceof ApiErrorClass) {
-          setFinishTripError(err.userMessage);
-        } else {
-          setFinishTripError('Error al finalizar el viaje.');
-        }
+        setTripDetail(newTripDetail);
+        setFinishTripError(null);
       }
+    } catch (err) {
+      if (err instanceof ApiErrorClass) {
+        setFinishTripError(err.userMessage);
+      } else {
+        setFinishTripError('Error al finalizar el viaje.');
+      }
+    }
 
   }
 
   const handleConfirmStop = async (stopId: string) => {
     if (tripDetail === null) return;
 
-    try{
+    try {
       await tripService.confirmStop(tripDetail.trip.id, stopId);
 
       const updatedStops = [];
@@ -156,14 +162,54 @@ export function TripDetailContainer({ tripId }: TripDetailContainerProps) {
       };
 
       setTripDetail(newTripDetail);
-    }catch (err) {
+    } catch (err) {
 
       if (err instanceof ApiErrorClass) {
         setConfirmStopError(err.userMessage);
-      }else{
+      } else {
         setConfirmStopError('Error al confirmar parada');
       }
     }
+  }
+
+  const handleCancelTrip = async () => {
+
+    if (cancelReason.trim() === '') {
+      alert('Debe ingresar un motivo de cancelación.');
+      return;
+    }
+
+    // Enviar
+    try {
+      await tripService.cancelTrip(tripId, cancelReason);
+
+      if (tripDetail !== null) {
+        const updatedTrip = {
+          id: tripDetail.trip.id,
+          routeName: tripDetail.trip.routeName,
+          origin: tripDetail.trip.origin,
+          destination: tripDetail.trip.destination,
+          departureTime: tripDetail.trip.departureTime,
+          status: 'CANCELED'
+        };
+
+        const newTripDetail = {
+          trip: updatedTrip,
+          stops: tripDetail.stops
+        };
+
+        setIsCancelPopoverOpen(false);
+        setCancelReason('');
+      }
+    } catch (err) {
+      if (err instanceof ApiErrorClass) {
+        setCancelTripError(err.userMessage);
+      } else {
+        setCancelTripError('Error al cancelar el viaje.');
+      }
+    }
+
+
   }
 
   return (
@@ -207,14 +253,56 @@ export function TripDetailContainer({ tripId }: TripDetailContainerProps) {
       {/* Action buttons */}
       {isInProgress && (
         <div className="flex gap-2">
-        <Button variant="secondary" className="flex-1" onClick={() => handleFinishTrip(trip.id)}>
-          Finalizar viaje
-        </Button>
-          <Button variant="destructive" className="flex-1">
-            Cancelar viaje
+          <Button variant="secondary" className="flex-1" onClick={() => handleFinishTrip(trip.id)}>
+            Finalizar viaje
           </Button>
+          <Popover open={isCancelPopoverOpen} onOpenChange={setIsCancelPopoverOpen}>
+            <PopoverTrigger asChild>
+              <Button variant="destructive" className="flex-1">
+                Cancelar viaje
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80">
+              <PopoverHeader>
+                <PopoverTitle>Cancelar viaje</PopoverTitle>
+                <PopoverDescription>
+                  Ingrese el motivo de la cancelación.
+                </PopoverDescription>
+              </PopoverHeader>
+              <div className="space-y-2">
+                <textarea
+                  className="w-full border rounded p-2 text-sm"
+                  rows={3}
+                  placeholder="Falla mecánica..."
+                  value={cancelReason}
+                  onChange={function (e) { setCancelReason(e.target.value); }}
+                />
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={function () { setIsCancelPopoverOpen(false); }}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleCancelTrip}
+                  >
+                    Confirmar cancelación
+                  </Button>
+                </div>
+              </div>
+              {cancelTripError && (
+                <p className="text-xs text-red-500 mt-2">{cancelTripError}</p>
+              )}
+            </PopoverContent>
+          </Popover>
         </div>
       )}
     </div>
   );
 }
+
+
