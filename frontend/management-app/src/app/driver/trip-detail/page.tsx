@@ -1,11 +1,11 @@
 import { TripDetailContainer } from '../../../features/driver/trip-detail.container';
 
 export default function TripDetailPage() {
-    const mockTripId = 'trip-123';
-      return <TripDetailContainer tripId={mockTripId} />;
+  const mockTripId = 'b70e8400-e29b-41d4-a716-446655440001';
+  return <TripDetailContainer tripId={mockTripId} />;
 }
 
-
+//http://localhost:3000/driver/trips/b70e8400-e29b-41d4-a716-446655440001
 
 /**
  * Future TripDetailPage with dynamic routing:
