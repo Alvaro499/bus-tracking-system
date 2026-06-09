@@ -4,11 +4,11 @@ import { TripDetail } from '@/domain/models/TripDetail';
 
 const MOCK_TRIP_DETAIL: TripDetail = {
     trip: {
-        id: 'b70e8400-e29b-41d4-a716-446655440001',               // primer viaje del seed
+        id: 'b70e8400-e29b-41d4-a716-446655440001',
         routeName: 'Cartago-Orosi',
         origin: 'Cartago',
         destination: 'Orosi',
-        departureTime: '08:00:00',                                 // horario del seed
+        departureTime: '08:00:00',
         status: 'IN_PROGRESS',
     },
     stops: [
