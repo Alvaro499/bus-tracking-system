@@ -36,6 +36,9 @@ export function TripDetailContainer({ tripId }: TripDetailContainerProps) {
 
   const [isCancelPopoverOpen, setIsCancelPopoverOpen] = useState<boolean>(false);
 
+  //To disable every button while any process is in progress (fetching, confirming stop, finishing trip, canceling trip)
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+
   // They both start as null
   const { coords, error: geoError } = useGeolocation();
 
@@ -83,7 +86,7 @@ export function TripDetailContainer({ tripId }: TripDetailContainerProps) {
 
   const handleFinishTrip = async (tripId: string) => {
 
-    // Verify all stops are completed
+    // Verify if all stops are completed
     let allStopsCompleted = true;
     for (let i = 0; i < stops.length; i++) {
       if (stops[i].completedAt === null) {
@@ -97,6 +100,8 @@ export function TripDetailContainer({ tripId }: TripDetailContainerProps) {
       alert('No se puede finalizar el viaje. Aún hay paradas pendientes por confirmar.');
       return;
     }
+
+    setIsProcessing(true);
 
     const delayMinutes = 0; // temporal mock
 
@@ -127,6 +132,8 @@ export function TripDetailContainer({ tripId }: TripDetailContainerProps) {
       } else {
         setFinishTripError('Error al finalizar el viaje.');
       }
+    } finally {
+      setIsProcessing(false);
     }
 
   }
@@ -134,6 +141,7 @@ export function TripDetailContainer({ tripId }: TripDetailContainerProps) {
   const handleConfirmStop = async (stopId: string) => {
     if (tripDetail === null) return;
 
+    setIsProcessing(true);
     try {
       await tripService.confirmStop(tripDetail.trip.id, stopId);
 
@@ -169,6 +177,8 @@ export function TripDetailContainer({ tripId }: TripDetailContainerProps) {
       } else {
         setConfirmStopError('Error al confirmar parada');
       }
+    } finally {
+      setIsProcessing(false);
     }
   }
 
@@ -179,7 +189,7 @@ export function TripDetailContainer({ tripId }: TripDetailContainerProps) {
       return;
     }
 
-    // Enviar
+    setIsProcessing(true);
     try {
       await tripService.cancelTrip(tripId, cancelReason);
 
@@ -198,6 +208,8 @@ export function TripDetailContainer({ tripId }: TripDetailContainerProps) {
           stops: tripDetail.stops
         };
 
+        setTripDetail(newTripDetail);
+        setCancelTripError(null);
         setIsCancelPopoverOpen(false);
         setCancelReason('');
       }
@@ -207,9 +219,9 @@ export function TripDetailContainer({ tripId }: TripDetailContainerProps) {
       } else {
         setCancelTripError('Error al cancelar el viaje.');
       }
+    } finally {
+      setIsProcessing(false);
     }
-
-
   }
 
   return (
@@ -243,7 +255,7 @@ export function TripDetailContainer({ tripId }: TripDetailContainerProps) {
       <Card>
         <CardContent>
           <h3 className="font-semibold mb-2">Paradas</h3>
-          <TripStopsList stops={stops} onConfirmStop={handleConfirmStop} />
+          <TripStopsList stops={stops} onConfirmStop={handleConfirmStop} disabled={!isInProgress || isProcessing || isCancelPopoverOpen}/>
           {finishTripError && (
             <p className="text-xs text-red-500 mb-1">{finishTripError}</p>
           )}
@@ -253,12 +265,12 @@ export function TripDetailContainer({ tripId }: TripDetailContainerProps) {
       {/* Action buttons */}
       {isInProgress && (
         <div className="flex gap-2">
-          <Button variant="secondary" className="flex-1" onClick={() => handleFinishTrip(trip.id)}>
+          <Button variant="secondary" className="flex-1" onClick={() => handleFinishTrip(trip.id)} disabled={!isInProgress || isProcessing  || isCancelPopoverOpen}>
             Finalizar viaje
           </Button>
           <Popover open={isCancelPopoverOpen} onOpenChange={setIsCancelPopoverOpen}>
             <PopoverTrigger asChild>
-              <Button variant="destructive" className="flex-1">
+              <Button variant="destructive" className="flex-1" disabled={!isInProgress || isProcessing || isCancelPopoverOpen}>
                 Cancelar viaje
               </Button>
             </PopoverTrigger>
@@ -282,6 +294,7 @@ export function TripDetailContainer({ tripId }: TripDetailContainerProps) {
                     variant="outline"
                     size="sm"
                     onClick={function () { setIsCancelPopoverOpen(false); }}
+                    disabled={isProcessing}
                   >
                     Cancelar
                   </Button>
@@ -289,6 +302,7 @@ export function TripDetailContainer({ tripId }: TripDetailContainerProps) {
                     variant="destructive"
                     size="sm"
                     onClick={handleCancelTrip}
+                    disabled={isProcessing}
                   >
                     Confirmar cancelación
                   </Button>

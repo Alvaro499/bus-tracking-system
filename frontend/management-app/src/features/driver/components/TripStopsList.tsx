@@ -4,10 +4,11 @@ import { cn } from '@/lib/utils';
 
 interface TripStopsListProps {
   stops: TripDetail['stops'];
-  onConfirmStop: (stopId: string) => void;
+  onConfirmStop: (stopId: string) => void
+  disabled: boolean;
 }
 
-export function TripStopsList({ stops, onConfirmStop }: TripStopsListProps) {
+export function TripStopsList({ stops, onConfirmStop, disabled }: TripStopsListProps) {
   // First, we found the first non-completed stop from the list
   // this is the current stop where the bus is at the moment
   let currentUncompletedStopIndex  = -1;
@@ -34,7 +35,7 @@ export function TripStopsList({ stops, onConfirmStop }: TripStopsListProps) {
               {isCompleted ? '✓' : '→'} {currentStop.stop.name}
             </span>
             {isActiveStop && (
-              <Button size="sm" variant="outline" onClick={() => onConfirmStop(currentStop.routeStop.id)}>
+              <Button size="sm" variant="outline" onClick={() => onConfirmStop(currentStop.routeStop.id)} disabled={disabled}>
                 Confirmar
               </Button>
             )}
