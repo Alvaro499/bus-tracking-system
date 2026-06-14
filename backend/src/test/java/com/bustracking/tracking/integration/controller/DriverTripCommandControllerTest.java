@@ -33,13 +33,13 @@ class DriverTripCommandControllerTest extends ControllerIntegrationTest {
     // =========================================================
 
     @Test
-    void shouldReturn200WhenTripIsStartedSuccessfully() throws Exception {
+    void shouldReturn204WhenTripIsStartedSuccessfully() throws Exception {
         // Arrange
         doNothing().when(startTripUseCase).execute(eq(validTripId), any());
 
         // Act & Assert
         mockMvc.perform(post("/tracking/trips/{tripId}/start", validTripId))
-            .andExpect(status().isOk());
+            .andExpect(status().isNoContent());
 
         // Verifica que el caso de uso se llamó con el tripId y cualquier busId
         verify(startTripUseCase).execute(eq(validTripId), any());
