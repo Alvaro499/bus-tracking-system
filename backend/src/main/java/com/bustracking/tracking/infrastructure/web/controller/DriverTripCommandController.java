@@ -26,6 +26,8 @@ public class DriverTripCommandController {
         // TODO: extraer busId del JWI a futuro
         UUID busId = UUID.fromString("650e8400-e29b-41d4-a716-446655440001");
         startTripUseCase.execute(tripId, busId);
-        return ResponseEntity.ok().build();
+        //return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
+
     }
 }

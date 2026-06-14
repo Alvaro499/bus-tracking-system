@@ -61,7 +61,7 @@ class StartTripFlowTest extends FlowIntegrationTest {
 
         // Paso 1: Iniciar el viaje
         mockMvc.perform(post("/tracking/trips/{tripId}/start", PLANNED_TRIP_ID))
-            .andExpect(status().isOk());
+            .andExpect(status().isNoContent());
 
         // Paso 2: Verificar que ya no aparece en los planificados de hoy
         mockMvc.perform(get("/tracking/trips/today"))
@@ -88,7 +88,7 @@ class StartTripFlowTest extends FlowIntegrationTest {
     void shouldReturn422_WhenStartingAlreadyInProgressTrip() throws Exception {
         // First start succeeds
         mockMvc.perform(post("/tracking/trips/{tripId}/start", PLANNED_TRIP_ID))
-            .andExpect(status().isOk());
+            .andExpect(status().isNoContent());
 
         // Second attempt on the same trip fails with business rule violation
         mockMvc.perform(post("/tracking/trips/{tripId}/start", PLANNED_TRIP_ID))

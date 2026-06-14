@@ -29,6 +29,10 @@ async function request<T>(path: string, options: RequestInit): Promise<T> {
     throw new ApiErrorClass(body.code, body.message, response.status, body.timestamp);
   }
 
+  // We avoid an parsing error when the response has no content
+  if (response.status === 204) {
+    return null as unknown as T;
+  }
   return response.json();
 }
 

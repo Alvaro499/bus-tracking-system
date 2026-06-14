@@ -1,9 +1,10 @@
-import { httpClient } from '@/lib/httpClient';
-import type { Trip } from '@/domain/models/Trip';
+import { realTripService } from './tripService.real';
+import { mockTripService } from './mocks/tripService.mock';
 
-
-export const tripService = {
-  async getTodayPlannedTrips(): Promise<Trip[]> {
-    return httpClient.get<Trip[]>('/tracking/trips/today');
-  },
-};
+export const tripService = (function () {
+  if (process.env.NEXT_PUBLIC_USE_MOCKS === 'true') {
+    return mockTripService;
+  } else {
+    return realTripService;
+  }
+})();
