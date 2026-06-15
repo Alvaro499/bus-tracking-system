@@ -114,6 +114,7 @@ public class TrackingDelegatesConfig {
             @Override
             public TripDetailView execute(UUID tripId) {
 
+                
                 Optional<TripScheduleProjection> tripProjection = tripRepository.findTripScheduleById(tripId);
                 
                 if (tripProjection.isEmpty()) {

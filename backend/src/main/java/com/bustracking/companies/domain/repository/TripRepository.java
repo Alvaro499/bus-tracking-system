@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.bustracking.companies.domain.dto.TripScheduleProjection;
+import com.bustracking.companies.domain.dto.TripStopDetailProjection;
 import com.bustracking.companies.domain.model.Trip;
 
 
@@ -12,4 +13,9 @@ public interface TripRepository {
     List<TripScheduleProjection> findTodayPlannedTripsByBusRoutes(UUID busId);
     Optional<Trip> findById(UUID tripId);
     Trip save(Trip trip);
+
+    Optional<TripScheduleProjection> findTripScheduleById(UUID tripId);
+    List<TripStopDetailProjection> findStopsByTripId(UUID tripId);
 }
+
+
