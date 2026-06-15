@@ -1,9 +1,13 @@
 package com.bustracking.companies.infrastructure.config;
 
 import java.util.Optional;
+import java.util.List;
+import java.util.UUID;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.bustracking.companies.domain.dto.TripScheduleProjection;
+import com.bustracking.companies.domain.dto.TripStopDetailProjection;
 import com.bustracking.companies.domain.model.Trip;
 import com.bustracking.companies.domain.repository.BusRepository;
 import com.bustracking.companies.domain.repository.TripRepository;
@@ -11,8 +15,13 @@ import com.bustracking.shared.exception.ErrorCode;
 import com.bustracking.shared.exception.NotFoundException;
 import com.bustracking.tracking.domain.contract.BusExistsById;
 import com.bustracking.tracking.domain.contract.GetTodayPlannedTripsByBusRoutes;
+import com.bustracking.tracking.domain.contract.GetTripDetail;
 import com.bustracking.tracking.domain.contract.StartTrip;
 import com.bustracking.tracking.domain.model.TripView;
+import com.bustracking.tracking.domain.model.TripDetailView;
+import com.bustracking.tracking.domain.model.TripStopDetailView;
+import com.bustracking.tracking.domain.model.RouteStopView;
+import com.bustracking.tracking.domain.model.StopView;
 
 /**
  * Configuration for Tracking Module Delegates
@@ -80,7 +89,6 @@ public class TrackingDelegatesConfig {
 
     @Bean 
     public StartTrip startTrip() {
-
         // We use lambda expression avoiding creating an unneessary class.
         return (tripId, busId) -> {
             Optional<Trip> optionalTrip = tripRepository.findById(tripId);
@@ -97,6 +105,69 @@ public class TrackingDelegatesConfig {
             trip.start(busId);
             // We save the updated trip back to the repository
             tripRepository.save(trip);
+        };
+    }
+
+    @Bean
+    public GetTripDetail getTripDetail(TripRepository tripRepository) {
+        return new GetTripDetail() {
+            @Override
+            public TripDetailView execute(UUID tripId) {
+
+                Optional<TripScheduleProjection> tripProjection = tripRepository.findTripScheduleById(tripId);
+                
+                if (tripProjection.isEmpty()) {
+                    throw new NotFoundException(
+                        ErrorCode.TRIP_NOT_FOUND,
+                        "Trip not found",
+                        "Trip with ID " + tripId + " does not exist"
+                    );
+                }
+                
+                TripScheduleProjection tripProj = tripProjection.get();
+                
+                // 2. We create a TripView with the basic trip info (without stops)
+                TripView tripView = new TripView(
+                    tripProj.id(),
+                    tripProj.routeName(),
+                    tripProj.origin(),
+                    tripProj.destination(),
+                    tripProj.departureTime(),
+                    tripProj.status().name()
+                );
+                
+                // 3. We obtain the stops for the trip using the new method in the repository
+                List<TripStopDetailProjection> stopProjections = tripRepository.findStopsByTripId(tripId);
+                
+                // 4. We convert the stops to TripStopDetailView
+                List<TripStopDetailView> stops = new java.util.ArrayList<>();
+                for (TripStopDetailProjection stopProj : stopProjections) {
+                    RouteStopView routeStop = new RouteStopView(
+                        stopProj.routeStopId(),
+                        stopProj.stopId(),
+                        stopProj.orderIndex(),
+                        stopProj.estimatedTimeOffset()
+                    );
+                    
+                    StopView stop = new StopView(
+                        stopProj.stopId(),
+                        stopProj.stopName(),
+                        stopProj.stopLat(),
+                        stopProj.stopLng(),
+                        stopProj.stopReference()
+                    );
+                    
+                    TripStopDetailView tripStop = new TripStopDetailView(
+                        routeStop,
+                        stop,
+                        stopProj.completedAt()
+                    );
+                    
+                    stops.add(tripStop);
+                }
+                // 5. We return a TripDetailView containing both the trip info and the list of stops
+                return new TripDetailView(tripView, stops);
+            }
         };
     }
 }
