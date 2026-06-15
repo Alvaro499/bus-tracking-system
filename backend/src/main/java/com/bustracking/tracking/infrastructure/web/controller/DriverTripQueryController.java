@@ -5,11 +5,13 @@ import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.bustracking.tracking.application.usecase.GetTodayPlannedTripsUseCase;
 import com.bustracking.tracking.domain.model.TripView;
+import com.bustracking.tracking.infrastructure.web.dto.response.TripDetailResponse;
 import com.bustracking.tracking.infrastructure.web.dto.response.TripResponse;
 
 @RestController
@@ -41,5 +43,13 @@ public class DriverTripQueryController {
             .toList();
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{tripId}/detail")
+    public ResponseEntity<TripDetailResponse> getTripDetail(@PathVariable UUID tripId) {
+        return null;
+
+        
+
     }
 }
