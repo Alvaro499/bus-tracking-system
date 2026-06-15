@@ -8,6 +8,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Repository;
 
 import com.bustracking.companies.domain.dto.TripScheduleProjection;
+import com.bustracking.companies.domain.dto.TripStopDetailProjection;
 import com.bustracking.companies.domain.model.Trip;
 import com.bustracking.companies.domain.repository.TripRepository;
 import com.bustracking.companies.infrastructure.persistence.entity.TripJpa;
@@ -62,7 +63,7 @@ public class TripRepositoryImpl implements TripRepository {
         return toDomain(saved);
     }
 
-        private Trip toDomain(TripJpa jpa) {
+    private Trip toDomain(TripJpa jpa) {
         return new Trip(
             jpa.getId(),
             jpa.getScheduleId(),
@@ -94,5 +95,17 @@ public class TripRepositoryImpl implements TripRepository {
             trip.getCreatedAt(),
             trip.getUpdatedAt()
         );
+    }
+
+    @Override
+    public Optional<TripScheduleProjection> findTripScheduleById(UUID tripId) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'findTripScheduleById'");
+    }
+
+    @Override
+    public List<TripStopDetailProjection> findStopsByTripId(UUID tripId) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'findStopsByTripId'");
     }
 }
