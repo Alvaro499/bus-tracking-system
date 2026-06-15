@@ -56,6 +56,39 @@ public class TripRepositoryImpl implements TripRepository {
         ));
     }
 
+    
+    @Override
+    public Optional<TripScheduleProjection> findTripScheduleById(UUID tripId) {
+
+        return tripJpaRepository.findTripScheduleById(tripId)
+            .map(r -> new TripScheduleProjection(
+                r.id(),
+                r.routeName(),
+                r.origin(),
+                r.destination(),
+                r.departureTime(),
+                r.status()
+            ));
+    }
+
+    @Override
+    public List<TripStopDetailProjection> findStopsByTripId(UUID tripId) {
+        return tripJpaRepository.findStopsByTripId(tripId)
+            .stream()
+            .map(r -> new TripStopDetailProjection(
+                r.routeStopId(),
+                r.stopId(),
+                r.stopName(),
+                r.stopLat(),
+                r.stopLng(),
+                r.stopReference(),
+                r.orderIndex(),
+                r.estimatedTimeOffset(),
+                r.completedAt()
+            ))
+            .toList();
+    }
+
     @Override
     public Trip save(Trip trip) {
         TripJpa tripJpa = toJpa(trip);
@@ -95,17 +128,5 @@ public class TripRepositoryImpl implements TripRepository {
             trip.getCreatedAt(),
             trip.getUpdatedAt()
         );
-    }
-
-    @Override
-    public Optional<TripScheduleProjection> findTripScheduleById(UUID tripId) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'findTripScheduleById'");
-    }
-
-    @Override
-    public List<TripStopDetailProjection> findStopsByTripId(UUID tripId) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'findStopsByTripId'");
     }
 }
