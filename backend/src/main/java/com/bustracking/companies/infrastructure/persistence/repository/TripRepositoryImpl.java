@@ -129,4 +129,3 @@ public class TripRepositoryImpl implements TripRepository {
             trip.getUpdatedAt()
         );
     }
-}
