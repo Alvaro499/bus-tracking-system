@@ -20,7 +20,6 @@ public class StartTripUseCase {
         this.busExistsById = busExistsById;
     }
 
-
     public void execute(UUID tripId, UUID busId){
 
         // We validate if the bus exists before starting the trip.
