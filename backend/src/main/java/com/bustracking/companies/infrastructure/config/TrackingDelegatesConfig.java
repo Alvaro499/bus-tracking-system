@@ -11,6 +11,7 @@ import com.bustracking.companies.domain.dto.TripStopDetailProjection;
 import com.bustracking.companies.domain.model.Trip;
 import com.bustracking.companies.domain.repository.BusRepository;
 import com.bustracking.companies.domain.repository.TripRepository;
+import com.bustracking.companies.infrastructure.delegate.TripDetailDelegate;
 import com.bustracking.shared.exception.ErrorCode;
 import com.bustracking.shared.exception.NotFoundException;
 import com.bustracking.tracking.domain.contract.BusExistsById;
@@ -108,67 +109,9 @@ public class TrackingDelegatesConfig {
         };
     }
 
+    // When someone ask for GetTripDetail, we return an instance of TripDetailDelegate, which implements GetTripDetail interface.
     @Bean
-    public GetTripDetail getTripDetail(TripRepository tripRepository) {
-        return new GetTripDetail() {
-            @Override
-            public TripDetailView execute(UUID tripId) {
-
-                
-                Optional<TripScheduleProjection> tripProjection = tripRepository.findTripScheduleById(tripId);
-                
-                if (tripProjection.isEmpty()) {
-                    throw new NotFoundException(
-                        ErrorCode.TRIP_NOT_FOUND,
-                        "Trip not found",
-                        "Trip with ID " + tripId + " does not exist"
-                    );
-                }
-                
-                TripScheduleProjection tripProj = tripProjection.get();
-                
-                // 2. We create a TripView with the basic trip info (without stops)
-                TripView tripView = new TripView(
-                    tripProj.id(),
-                    tripProj.routeName(),
-                    tripProj.origin(),
-                    tripProj.destination(),
-                    tripProj.departureTime(),
-                    tripProj.status().name()
-                );
-                
-                // 3. We obtain the stops for the trip using the new method in the repository
-                List<TripStopDetailProjection> stopProjections = tripRepository.findStopsByTripId(tripId);
-                
-                // 4. We convert the stops to TripStopDetailView
-                List<TripStopDetailView> stops = new java.util.ArrayList<>();
-                for (TripStopDetailProjection stopProj : stopProjections) {
-                    RouteStopView routeStop = new RouteStopView(
-                        stopProj.routeStopId(),
-                        stopProj.stopId(),
-                        stopProj.orderIndex(),
-                        stopProj.estimatedTimeOffset()
-                    );
-                    
-                    StopView stop = new StopView(
-                        stopProj.stopId(),
-                        stopProj.stopName(),
-                        stopProj.stopLat(),
-                        stopProj.stopLng(),
-                        stopProj.stopReference()
-                    );
-                    
-                    TripStopDetailView tripStop = new TripStopDetailView(
-                        routeStop,
-                        stop,
-                        stopProj.completedAt()
-                    );
-                    
-                    stops.add(tripStop);
-                }
-                // 5. We return a TripDetailView containing both the trip info and the list of stops
-                return new TripDetailView(tripView, stops);
-            }
-        };
+    public GetTripDetail getTripDetail(TripDetailDelegate delegate) {
+        return delegate;
     }
 }

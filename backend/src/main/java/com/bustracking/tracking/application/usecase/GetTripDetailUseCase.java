@@ -10,6 +10,7 @@ import com.bustracking.tracking.domain.contract.BusExistsById;
 import com.bustracking.tracking.domain.contract.GetTripDetail;
 import com.bustracking.tracking.domain.model.TripDetailView;
 
+
 @Service
 public class GetTripDetailUseCase {
 
