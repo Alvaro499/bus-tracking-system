@@ -1,6 +1,5 @@
 package com.bustracking.tracking.infrastructure.web.controller;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -12,10 +11,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.bustracking.tracking.application.usecase.GetTodayPlannedTripsUseCase;
 import com.bustracking.tracking.application.usecase.GetTripDetailUseCase;
-import com.bustracking.tracking.domain.model.RouteStopView;
-import com.bustracking.tracking.domain.model.StopView;
 import com.bustracking.tracking.domain.model.TripDetailView;
-import com.bustracking.tracking.domain.model.TripStopDetailView;
+
 import com.bustracking.tracking.domain.model.TripView;
 import com.bustracking.tracking.infrastructure.mappers.TripDetailMapper;
 import com.bustracking.tracking.infrastructure.web.dto.response.TripDetailResponse;
