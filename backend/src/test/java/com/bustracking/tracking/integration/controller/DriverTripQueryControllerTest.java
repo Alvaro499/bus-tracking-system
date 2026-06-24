@@ -17,7 +17,9 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.bustracking.shared.testinfrastructure.ControllerIntegrationTest;
 import com.bustracking.tracking.application.usecase.GetTodayPlannedTripsUseCase;
+import com.bustracking.tracking.application.usecase.GetTripDetailUseCase;
 import com.bustracking.tracking.domain.model.TripView;
+import com.bustracking.tracking.infrastructure.mappers.TripDetailMapper;
 import com.bustracking.tracking.infrastructure.web.controller.DriverTripQueryController;
 
 @WebMvcTest(DriverTripQueryController.class)
@@ -28,6 +30,12 @@ class DriverTripQueryControllerTest extends ControllerIntegrationTest {
 
     @MockitoBean
     private GetTodayPlannedTripsUseCase getTodayPlannedTripsUseCase;
+
+    @MockitoBean
+    private GetTripDetailUseCase getTripDetailUseCase;
+
+    @MockitoBean
+    private TripDetailMapper tripDetailMapper;
 
     // Test data
     private final TripView plannedTrip = new TripView(
