@@ -1,13 +1,9 @@
 package com.bustracking.companies.infrastructure.config;
 
 import java.util.Optional;
-import java.util.List;
-import java.util.UUID;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.bustracking.companies.domain.dto.TripScheduleProjection;
-import com.bustracking.companies.domain.dto.TripStopDetailProjection;
 import com.bustracking.companies.domain.model.Trip;
 import com.bustracking.companies.domain.repository.BusRepository;
 import com.bustracking.companies.domain.repository.TripRepository;
@@ -19,10 +15,6 @@ import com.bustracking.tracking.domain.contract.GetTodayPlannedTripsByBusRoutes;
 import com.bustracking.tracking.domain.contract.GetTripDetail;
 import com.bustracking.tracking.domain.contract.StartTrip;
 import com.bustracking.tracking.domain.model.TripView;
-import com.bustracking.tracking.domain.model.TripDetailView;
-import com.bustracking.tracking.domain.model.TripStopDetailView;
-import com.bustracking.tracking.domain.model.RouteStopView;
-import com.bustracking.tracking.domain.model.StopView;
 
 /**
  * Configuration for Tracking Module Delegates
