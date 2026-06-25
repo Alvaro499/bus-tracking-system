@@ -27,7 +27,7 @@ public class TripDetailMapperTest {
 
     @Test
     void shouldMapTripDetailViewToResponse_WhenTripHasMultipleStops() {
-        // ─── 1. Arrange – Construir datos de entrada ───
+        // ─Arrange
         TripView tripView = new TripView(
                 UUID.fromString("b70e8400-e29b-41d4-a716-446655440001"),
                 "Ruta 300",
