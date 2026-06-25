@@ -78,6 +78,10 @@ public class GetTodayPlannedTripsUseCaseTest {
         verify(getTodayTripsDelegate, times(1)).execute(validBusId);
     }
 
+    //===========================================================
+    // Sad Path test - execute()
+    //===========================================================
+
     @Test
     void shouldThrowNotFoundExceptionWhenBusDoesNotExist() {
         // Arrange

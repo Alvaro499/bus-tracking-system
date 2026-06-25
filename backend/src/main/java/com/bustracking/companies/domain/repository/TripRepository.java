@@ -15,6 +15,8 @@ public interface TripRepository {
     Trip save(Trip trip);
 
     Optional<TripScheduleProjection> findTripScheduleById(UUID tripId);
+    
+    // A trip with no stops is also valid, so we return an empty list instead of Optional
     List<TripStopDetailProjection> findStopsByTripId(UUID tripId);
 }
 
