@@ -63,7 +63,7 @@ public class TripDetailMapperTest {
         TripDetailResponse response = mapper.toResponse(detailView);
 
         // Assert
-        // Trip
+          // Trip
         TripResponse tripResponse = response.trip();
         assertEquals(tripView.getId(), tripResponse.id());
         assertEquals(tripView.getRouteName(), tripResponse.routeName());
@@ -72,11 +72,11 @@ public class TripDetailMapperTest {
         assertEquals(tripView.getDepartureTime(), tripResponse.departureTime());
         assertEquals(tripView.getStatus(), tripResponse.status());
 
-        // Stop List
+                 // Stop List
         List<TripStopDetailResponse> stops = response.stops();
         assertEquals(2, stops.size());
 
-        // First Stop (completed)
+                 // First Stop (completed)
         TripStopDetailResponse stopResponse1 = stops.get(0);
         assertEquals(routeStop1.getId(), stopResponse1.routeStop().id());
         assertEquals(routeStop1.getStopId(), stopResponse1.routeStop().stopId());
