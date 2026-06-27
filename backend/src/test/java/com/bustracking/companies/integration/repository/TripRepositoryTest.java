@@ -17,7 +17,7 @@ import com.bustracking.companies.infrastructure.persistence.repository.TripJpaRe
 import com.bustracking.companies.infrastructure.persistence.repository.TripRepositoryImpl;
 import com.bustracking.shared.testinfrastructure.RepositoryIntegrationTest;
 
-@Sql(scripts = { CLEANUP, BASE, TRIPS }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+@Sql(scripts = { CLEANUP}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class TripRepositoryTest extends RepositoryIntegrationTest {
 
     @Autowired
@@ -34,6 +34,7 @@ class TripRepositoryTest extends RepositoryIntegrationTest {
     }
 
     @Nested
+    @Sql(scripts = {BASE, TRIP_COMMON, PLANNED_TRIPS, TRIP_FILTER_DATA})
     class FindTodayPlannedTripsByBusRoutes {
 
         // =========================================================
@@ -95,6 +96,7 @@ class TripRepositoryTest extends RepositoryIntegrationTest {
     // findTripScheduleById
     // =========================================================
     @Nested
+    @Sql(scripts = {BASE, TRIP_COMMON, TRIP_DETAIL})
     class FindTripScheduleById {
 
         // =========================================================
@@ -113,6 +115,7 @@ class TripRepositoryTest extends RepositoryIntegrationTest {
     // findStopsByTripId
     // =========================================================
     @Nested
+    @Sql(scripts = {BASE, TRIP_COMMON, TRIP_DETAIL})
     class FindStopsByTripId {
 
         @Test
