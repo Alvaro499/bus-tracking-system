@@ -97,6 +97,9 @@ class TripRepositoryTest extends RepositoryIntegrationTest {
     @Nested
     class FindTripScheduleById {
 
+        // =========================================================
+        // findTripScheduleById — Happy Path
+        // =========================================================
         @Test
         void shouldReturnTripWhenIdExists() {
         }
