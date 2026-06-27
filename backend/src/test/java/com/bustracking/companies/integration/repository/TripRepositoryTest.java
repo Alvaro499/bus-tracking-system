@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
@@ -16,8 +17,7 @@ import com.bustracking.companies.infrastructure.persistence.repository.TripJpaRe
 import com.bustracking.companies.infrastructure.persistence.repository.TripRepositoryImpl;
 import com.bustracking.shared.testinfrastructure.RepositoryIntegrationTest;
 
-@Sql(scripts = {CLEANUP, BASE, TRIPS},
-     executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+@Sql(scripts = { CLEANUP, BASE, TRIPS }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class TripRepositoryTest extends RepositoryIntegrationTest {
 
     @Autowired
@@ -33,60 +33,100 @@ class TripRepositoryTest extends RepositoryIntegrationTest {
         repository = new TripRepositoryImpl(tripJpaRepository);
     }
 
+    @Nested
+    class FindTodayPlannedTripsByBusRoutes {
+
+        // =========================================================
+        // findTodayPlannedTripsByBusRoutes — Happy Path
+        // =========================================================
+
+        @Test
+        void shouldReturnPlannedTripsForTodayWhenBusHasRoutes() {
+            List<TripScheduleProjection> result = repository.findTodayPlannedTripsByBusRoutes(BUS_ID_1);
+
+            assertFalse(result.isEmpty());
+            assertEquals("Cartago-Orosi", result.get(0).routeName());
+            assertEquals("Cartago", result.get(0).origin());
+            assertEquals("Orosi", result.get(0).destination());
+            assertEquals("PLANNED", result.get(0).status().name());
+        }
+
+        @Test
+        void shouldReturnEmptyListWhenBusHasNoTripsToday() {
+            // BUS_ID_2 exists in tracking-base.sql but has no routes or trips
+            List<TripScheduleProjection> result = repository.findTodayPlannedTripsByBusRoutes(BUS_ID_2);
+
+            assertTrue(result.isEmpty());
+        }
+
+        // =========================================================
+        // findTodayPlannedTripsByBusRoutes — Filters
+        // =========================================================
+
+        @Test
+        void shouldNotReturnTripsFromOtherBusRoutes() {
+            List<TripScheduleProjection> result = repository.findTodayPlannedTripsByBusRoutes(UUID.randomUUID());
+
+            assertTrue(result.isEmpty());
+        }
+
+        @Test
+        void shouldNotReturnTripsWithStatusInProgress() {
+            // IN_PROGRESS trip loaded by tracking-trips.sql (filter test data section)
+            List<TripScheduleProjection> result = repository.findTodayPlannedTripsByBusRoutes(BUS_ID_1);
+
+            assertFalse(result.isEmpty());
+            result.forEach(trip -> assertEquals("PLANNED", trip.status().name()));
+        }
+
+        @Test
+        void shouldNotReturnTripsFromYesterday() {
+            // Yesterday PLANNED trip loaded by tracking-trips.sql (filter test data
+            // section)
+            List<TripScheduleProjection> result = repository.findTodayPlannedTripsByBusRoutes(BUS_ID_1);
+
+            assertFalse(result.isEmpty());
+            result.forEach(trip -> assertEquals("PLANNED", trip.status().name()));
+        }
+
+    }
+
     // =========================================================
-    // findTodayPlannedTripsByBusRoutes — Happy Path
+    // findTripScheduleById
     // =========================================================
+    @Nested
+    class FindTripScheduleById {
 
-    @Test
-    void shouldReturnPlannedTripsForTodayWhenBusHasRoutes() {
-        List<TripScheduleProjection> result =
-            repository.findTodayPlannedTripsByBusRoutes(BUS_ID_1);
+        @Test
+        void shouldReturnTripWhenIdExists() {
+        }
 
-        assertFalse(result.isEmpty());
-        assertEquals("Cartago-Orosi", result.get(0).routeName());
-        assertEquals("Cartago", result.get(0).origin());
-        assertEquals("Orosi", result.get(0).destination());
-        assertEquals("PLANNED", result.get(0).status().name());
-    }
-
-    @Test
-    void shouldReturnEmptyListWhenBusHasNoTripsToday() {
-        // BUS_ID_2 exists in tracking-base.sql but has no routes or trips
-        List<TripScheduleProjection> result =
-            repository.findTodayPlannedTripsByBusRoutes(BUS_ID_2);
-
-        assertTrue(result.isEmpty());
+        @Test
+        void shouldReturnEmptyOptionalWhenIdDoesNotExist() {
+        }
     }
 
     // =========================================================
-    // findTodayPlannedTripsByBusRoutes — Filters
+    // findStopsByTripId
     // =========================================================
+    @Nested
+    class FindStopsByTripId {
 
-    @Test
-    void shouldNotReturnTripsFromOtherBusRoutes() {
-        List<TripScheduleProjection> result =
-            repository.findTodayPlannedTripsByBusRoutes(UUID.randomUUID());
+        @Test
+        void shouldReturnStopsOrderedByIndexWhenTripExists() {
+        }
 
-        assertTrue(result.isEmpty());
+        @Test
+        void shouldReturnEmptyListWhenTripHasNoStops() {
+        }
+
+        @Test
+        void shouldReturnCompletedAtNullWhenStopNotCompleted() {
+        }
+
+        @Test
+        void shouldReturnCompletedAtWhenStopCompleted() {
+        }
     }
 
-    @Test
-    void shouldNotReturnTripsWithStatusInProgress() {
-        // IN_PROGRESS trip loaded by tracking-trips.sql (filter test data section)
-        List<TripScheduleProjection> result =
-            repository.findTodayPlannedTripsByBusRoutes(BUS_ID_1);
-
-        assertFalse(result.isEmpty());
-        result.forEach(trip -> assertEquals("PLANNED", trip.status().name()));
-    }
-
-    @Test
-    void shouldNotReturnTripsFromYesterday() {
-        // Yesterday PLANNED trip loaded by tracking-trips.sql (filter test data section)
-        List<TripScheduleProjection> result =
-            repository.findTodayPlannedTripsByBusRoutes(BUS_ID_1);
-
-        assertFalse(result.isEmpty());
-        result.forEach(trip -> assertEquals("PLANNED", trip.status().name()));
-    }
 }
