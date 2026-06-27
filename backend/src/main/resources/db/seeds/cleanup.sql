@@ -1,47 +1,28 @@
--- ============================================================================
--- GLOBAL CLEANUP
--- ============================================================================
--- Deletes data in dependency order to avoid FK violations
--- Execute before base seeds and HU seeds
--- ============================================================================
 
--- ----------------------------------------------------------------------------
--- tracking
--- ----------------------------------------------------------------------------
-DELETE FROM tracking.bus_location;
-DELETE FROM tracking.bus_credential;
+-- Desactivar triggers de FK temporalmente para evitar errores de orden
+-- (alternativa más limpia que ordenar manualmente)
+SET session_replication_role = 'replica';
 
--- ----------------------------------------------------------------------------
--- companies (deepest dependencies first)
--- ----------------------------------------------------------------------------
-DELETE FROM companies.trip;
+-- Limpiar tablas del módulo tracking (son las de escritura más frecuente)
+TRUNCATE TABLE tracking.bus_location CASCADE;
+TRUNCATE TABLE tracking.bus_credential CASCADE;
 
-DELETE FROM companies.schedule;
+-- Limpiar tablas del módulo companies (orden inverso a dependencias)
+TRUNCATE TABLE companies.trip CASCADE;
+TRUNCATE TABLE companies.schedule CASCADE;
+TRUNCATE TABLE companies.route_stop_fare CASCADE;
+TRUNCATE TABLE companies.route_stop CASCADE;
+TRUNCATE TABLE companies.stop CASCADE;
+TRUNCATE TABLE companies.bus_route CASCADE;
+TRUNCATE TABLE companies.route CASCADE;
+TRUNCATE TABLE companies.bus CASCADE;
+TRUNCATE TABLE companies.company_user CASCADE;
+TRUNCATE TABLE companies.company CASCADE;
 
-DELETE FROM companies.route_stop_fare;
+-- Limpiar tablas de admin que tengan datos (si se usan en tests)
+TRUNCATE TABLE admin.audit_log CASCADE;
+TRUNCATE TABLE admin.company_request CASCADE;
+TRUNCATE TABLE admin."user" CASCADE;
 
-DELETE FROM companies.route_stop;
-
-DELETE FROM companies.bus_route;
-
-DELETE FROM companies.stop;
-
-DELETE FROM companies.route;
-
-DELETE FROM companies.bus;
-
-DELETE FROM companies.company_user;
-
--- ----------------------------------------------------------------------------
--- admin
--- ----------------------------------------------------------------------------
-DELETE FROM admin.company_request;
-
-DELETE FROM admin.audit_log;
-
--- ----------------------------------------------------------------------------
--- root entities
--- ----------------------------------------------------------------------------
-DELETE FROM companies.company;
-
-DELETE FROM admin."user";
+-- Restaurar triggers
+SET session_replication_role = 'origin';

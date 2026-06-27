@@ -25,7 +25,8 @@ import com.bustracking.shared.testinfrastructure.FlowIntegrationTest;
 @Sql(scripts = {
     CLEANUP,
     BASE,
-    TRIPS
+    TRIP_COMMON,
+    PLANNED_TRIPS
 }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 public class GetTodayPlannedTripsFlowTest extends FlowIntegrationTest {
 

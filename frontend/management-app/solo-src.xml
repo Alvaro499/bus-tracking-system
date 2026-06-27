@@ -1,0 +1,1967 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: src/**/*
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+src/app/driver/page.tsx
+src/app/driver/trip-detail/page.tsx
+src/app/driver/trips/page.tsx
+src/app/favicon.ico
+src/app/globals.css
+src/app/layout.tsx
+src/app/page.module.css
+src/app/page.tsx
+src/components/ui/button.tsx
+src/components/ui/card.tsx
+src/components/ui/popover.tsx
+src/domain/models/BusLocation.ts
+src/domain/models/Route.ts
+src/domain/models/RouteStop.ts
+src/domain/models/Stop.ts
+src/domain/models/Trip.ts
+src/domain/models/TripDetail.ts
+src/domain/models/TripStop.ts
+src/features/driver/components/TripCard.tsx
+src/features/driver/components/TripStopsList.tsx
+src/features/driver/driver.container.tsx
+src/features/driver/trip-detail.container.tsx
+src/features/driver/trip-list.container.tsx
+src/infrastructure/services/busLocationService.ts
+src/infrastructure/services/mocks/tripService.mock.ts
+src/infrastructure/services/tripService.real.ts
+src/infrastructure/services/tripService.ts
+src/lib/errors/apiError.ts
+src/lib/errors/GlobalErrorBoundary.tsx
+src/lib/httpClient.ts
+src/lib/utils.ts
+src/shared/hooks/useGeolocation.ts
+src/shared/hooks/usePolling.ts
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="src/app/driver/page.tsx">
+import { DriverContainer } from '../../features/driver/driver.container';
+
+export default function DriverPage() {
+  return <DriverContainer />;
+}
+</file>
+
+<file path="src/app/driver/trip-detail/page.tsx">
+import { TripDetailContainer } from '../../../features/driver/trip-detail.container';
+
+export default function TripDetailPage() {
+  const mockTripId = 'b70e8400-e29b-41d4-a716-446655440001';
+  return <TripDetailContainer tripId={mockTripId} />;
+}
+
+//http://localhost:3000/driver/trips/b70e8400-e29b-41d4-a716-446655440001
+
+/**
+ * Future TripDetailPage with dynamic routing:
+interface TripDetailPageProps {
+  params: Promise<{ tripId: string }>;
+}
+
+export default async function TripDetailPage({ params }: TripDetailPageProps) {
+  const { tripId } = await params;
+  return <TripDetailContainer tripId={tripId} />;
+}
+ * 
+ */
+</file>
+
+<file path="src/app/driver/trips/page.tsx">
+import { TripListContainer } from '@/features/driver/trip-list.container';
+
+export default function TripsPage() {
+  return <TripListContainer />;
+}
+</file>
+
+<file path="src/app/globals.css">
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --font-heading: var(--font-sans);
+    --font-sans: var(--font-sans);
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.145 0 0);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.145 0 0);
+    --primary: oklch(0.205 0 0);
+    --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0);
+    --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0);
+    --muted-foreground: oklch(0.556 0 0);
+    --accent: oklch(0.97 0 0);
+    --accent-foreground: oklch(0.205 0 0);
+    --destructive: oklch(0.577 0.245 27.325);
+    --border: oklch(0.922 0 0);
+    --input: oklch(0.922 0 0);
+    --ring: oklch(0.708 0 0);
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --radius: 0.625rem;
+    --sidebar: oklch(0.985 0 0);
+    --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-primary: oklch(0.205 0 0);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.97 0 0);
+    --sidebar-accent-foreground: oklch(0.205 0 0);
+    --sidebar-border: oklch(0.922 0 0);
+    --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+    --background: oklch(0.145 0 0);
+    --foreground: oklch(0.985 0 0);
+    --card: oklch(0.205 0 0);
+    --card-foreground: oklch(0.985 0 0);
+    --popover: oklch(0.205 0 0);
+    --popover-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.922 0 0);
+    --primary-foreground: oklch(0.205 0 0);
+    --secondary: oklch(0.269 0 0);
+    --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.269 0 0);
+    --muted-foreground: oklch(0.708 0 0);
+    --accent: oklch(0.269 0 0);
+    --accent-foreground: oklch(0.985 0 0);
+    --destructive: oklch(0.704 0.191 22.216);
+    --border: oklch(1 0 0 / 10%);
+    --input: oklch(1 0 0 / 15%);
+    --ring: oklch(0.556 0 0);
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --sidebar: oklch(0.205 0 0);
+    --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.488 0.243 264.376);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.269 0 0);
+    --sidebar-accent-foreground: oklch(0.985 0 0);
+    --sidebar-border: oklch(1 0 0 / 10%);
+    --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    }
+  body {
+    @apply bg-background text-foreground;
+    }
+  html {
+    @apply font-sans;
+    }
+}
+</file>
+
+<file path="src/app/layout.tsx">
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import { GlobalErrorBoundary } from "@/lib/errors/GlobalErrorBoundary";
+import "./globals.css";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: "Create Next App",
+  description: "Generated by create next app",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body>
+        <GlobalErrorBoundary>
+          {children}
+        </GlobalErrorBoundary>
+      </body>
+    </html>
+  );
+}
+</file>
+
+<file path="src/app/page.module.css">
+.page {
+  --background: #fafafa;
+  --foreground: #fff;
+
+  --text-primary: #000;
+  --text-secondary: #666;
+
+  --button-primary-hover: #383838;
+  --button-secondary-hover: #f2f2f2;
+  --button-secondary-border: #ebebeb;
+
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-geist-sans);
+  background-color: var(--background);
+}
+
+.main {
+  display: flex;
+  flex: 1;
+  width: 100%;
+  max-width: 800px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  background-color: var(--foreground);
+  padding: 120px 60px;
+}
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  gap: 24px;
+}
+
+.intro h1 {
+  max-width: 320px;
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 48px;
+  letter-spacing: -2.4px;
+  text-wrap: balance;
+  color: var(--text-primary);
+}
+
+.intro p {
+  max-width: 440px;
+  font-size: 18px;
+  line-height: 32px;
+  text-wrap: balance;
+  color: var(--text-secondary);
+}
+
+.intro a {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.ctas {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  max-width: 440px;
+  gap: 16px;
+  font-size: 14px;
+}
+
+.ctas a {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 128px;
+  border: 1px solid transparent;
+  transition: 0.2s;
+  cursor: pointer;
+  width: fit-content;
+  font-weight: 500;
+}
+
+a.primary {
+  background: var(--text-primary);
+  color: var(--background);
+  gap: 8px;
+}
+
+a.secondary {
+  border-color: var(--button-secondary-border);
+}
+
+/* Enable hover only on non-touch devices */
+@media (hover: hover) and (pointer: fine) {
+  a.primary:hover {
+    background: var(--button-primary-hover);
+    border-color: transparent;
+  }
+
+  a.secondary:hover {
+    background: var(--button-secondary-hover);
+    border-color: transparent;
+  }
+}
+
+@media (max-width: 600px) {
+  .main {
+    padding: 48px 24px;
+  }
+
+  .intro {
+    gap: 16px;
+  }
+
+  .intro h1 {
+    font-size: 32px;
+    line-height: 40px;
+    letter-spacing: -1.92px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .logo {
+    filter: invert();
+  }
+
+  .page {
+    --background: #000;
+    --foreground: #000;
+
+    --text-primary: #ededed;
+    --text-secondary: #999;
+
+    --button-primary-hover: #ccc;
+    --button-secondary-hover: #1a1a1a;
+    --button-secondary-border: #1a1a1a;
+  }
+}
+</file>
+
+<file path="src/app/page.tsx">
+import Image from "next/image";
+import styles from "./page.module.css";
+
+export default function Home() {
+  return (
+    <div className={styles.page}>
+      <main className={styles.main}>
+        <Image
+          className={styles.logo}
+          src="/next.svg"
+          alt="Next.js logo"
+          width={100}
+          height={20}
+          priority
+        />
+        <div className={styles.intro}>
+          <h1>To get started, edit the page.tsx file.</h1>
+          <p>
+            Looking for a starting point or more instructions? Head over to{" "}
+            <a
+              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Templates
+            </a>{" "}
+            or the{" "}
+            <a
+              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Learning
+            </a>{" "}
+            center.
+          </p>
+        </div>
+        <div className={styles.ctas}>
+          <a
+            className={styles.primary}
+            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Image
+              className={styles.logo}
+              src="/vercel.svg"
+              alt="Vercel logomark"
+              width={16}
+              height={16}
+            />
+            Deploy Now
+          </a>
+          <a
+            className={styles.secondary}
+            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Documentation
+          </a>
+        </div>
+      </main>
+    </div>
+  );
+}
+</file>
+
+<file path="src/components/ui/button.tsx">
+import * as React from "react"
+import { cva, type VariantProps } from "class-variance-authority"
+import { Slot } from "radix-ui"
+
+import { cn } from "@/lib/utils"
+
+const buttonVariants = cva(
+  "group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  {
+    variants: {
+      variant: {
+        default: "bg-primary text-primary-foreground [a]:hover:bg-primary/80",
+        outline:
+          "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
+        secondary:
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80 aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
+        ghost:
+          "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
+        destructive:
+          "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
+        link: "text-primary underline-offset-4 hover:underline",
+      },
+      size: {
+        default:
+          "h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
+        xs: "h-6 gap-1 rounded-[min(var(--radius-md),10px)] px-2 text-xs in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
+        sm: "h-7 gap-1 rounded-[min(var(--radius-md),12px)] px-2.5 text-[0.8rem] in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
+        lg: "h-9 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
+        icon: "size-8",
+        "icon-xs":
+          "size-6 rounded-[min(var(--radius-md),10px)] in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",
+        "icon-sm":
+          "size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg",
+        "icon-lg": "size-9",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
+)
+
+function Button({
+  className,
+  variant = "default",
+  size = "default",
+  asChild = false,
+  ...props
+}: React.ComponentProps<"button"> &
+  VariantProps<typeof buttonVariants> & {
+    asChild?: boolean
+  }) {
+  const Comp = asChild ? Slot.Root : "button"
+
+  return (
+    <Comp
+      data-slot="button"
+      data-variant={variant}
+      data-size={size}
+      className={cn(buttonVariants({ variant, size, className }))}
+      {...props}
+    />
+  )
+}
+
+export { Button, buttonVariants }
+</file>
+
+<file path="src/components/ui/card.tsx">
+import * as React from "react"
+
+import { cn } from "@/lib/utils"
+
+function Card({
+  className,
+  size = "default",
+  ...props
+}: React.ComponentProps<"div"> & { size?: "default" | "sm" }) {
+  return (
+    <div
+      data-slot="card"
+      data-size={size}
+      className={cn(
+        "group/card flex flex-col gap-4 overflow-hidden rounded-xl bg-card py-4 text-sm text-card-foreground ring-1 ring-foreground/10 has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:gap-3 data-[size=sm]:py-3 data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="card-header"
+      className={cn(
+        "group/card-header @container/card-header grid auto-rows-min items-start gap-1 rounded-t-xl px-4 group-data-[size=sm]/card:px-3 has-data-[slot=card-action]:grid-cols-[1fr_auto] has-data-[slot=card-description]:grid-rows-[auto_auto] [.border-b]:pb-4 group-data-[size=sm]/card:[.border-b]:pb-3",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="card-title"
+      className={cn(
+        "font-heading text-base leading-snug font-medium group-data-[size=sm]/card:text-sm",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="card-description"
+      className={cn("text-sm text-muted-foreground", className)}
+      {...props}
+    />
+  )
+}
+
+function CardAction({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="card-action"
+      className={cn(
+        "col-start-2 row-span-2 row-start-1 self-start justify-self-end",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function CardContent({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="card-content"
+      className={cn("px-4 group-data-[size=sm]/card:px-3", className)}
+      {...props}
+    />
+  )
+}
+
+function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="card-footer"
+      className={cn(
+        "flex items-center rounded-b-xl border-t bg-muted/50 p-4 group-data-[size=sm]/card:p-3",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+export {
+  Card,
+  CardHeader,
+  CardFooter,
+  CardTitle,
+  CardAction,
+  CardDescription,
+  CardContent,
+}
+</file>
+
+<file path="src/components/ui/popover.tsx">
+"use client"
+
+import * as React from "react"
+import { Popover as PopoverPrimitive } from "radix-ui"
+
+import { cn } from "@/lib/utils"
+
+function Popover({
+  ...props
+}: React.ComponentProps<typeof PopoverPrimitive.Root>) {
+  return <PopoverPrimitive.Root data-slot="popover" {...props} />
+}
+
+function PopoverTrigger({
+  ...props
+}: React.ComponentProps<typeof PopoverPrimitive.Trigger>) {
+  return <PopoverPrimitive.Trigger data-slot="popover-trigger" {...props} />
+}
+
+function PopoverContent({
+  className,
+  align = "center",
+  sideOffset = 4,
+  ...props
+}: React.ComponentProps<typeof PopoverPrimitive.Content>) {
+  return (
+    <PopoverPrimitive.Portal>
+      <PopoverPrimitive.Content
+        data-slot="popover-content"
+        align={align}
+        sideOffset={sideOffset}
+        className={cn(
+          "z-50 flex w-72 origin-(--radix-popover-content-transform-origin) flex-col gap-2.5 rounded-lg bg-popover p-2.5 text-sm text-popover-foreground shadow-md ring-1 ring-foreground/10 outline-hidden duration-100 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+          className
+        )}
+        {...props}
+      />
+    </PopoverPrimitive.Portal>
+  )
+}
+
+function PopoverAnchor({
+  ...props
+}: React.ComponentProps<typeof PopoverPrimitive.Anchor>) {
+  return <PopoverPrimitive.Anchor data-slot="popover-anchor" {...props} />
+}
+
+function PopoverHeader({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="popover-header"
+      className={cn("flex flex-col gap-0.5 text-sm", className)}
+      {...props}
+    />
+  )
+}
+
+function PopoverTitle({ className, ...props }: React.ComponentProps<"h2">) {
+  return (
+    <div
+      data-slot="popover-title"
+      className={cn("font-medium", className)}
+      {...props}
+    />
+  )
+}
+
+function PopoverDescription({
+  className,
+  ...props
+}: React.ComponentProps<"p">) {
+  return (
+    <p
+      data-slot="popover-description"
+      className={cn("text-muted-foreground", className)}
+      {...props}
+    />
+  )
+}
+
+export {
+  Popover,
+  PopoverAnchor,
+  PopoverContent,
+  PopoverDescription,
+  PopoverHeader,
+  PopoverTitle,
+  PopoverTrigger,
+}
+</file>
+
+<file path="src/domain/models/BusLocation.ts">
+export interface BusLocation{
+    busId: string;
+    lat: number;
+    lng: number;
+    updatedAt: string;
+}
+</file>
+
+<file path="src/domain/models/Route.ts">
+export interface Route {
+    id: string;
+    name: string;
+    origin: string;
+    destination: string;
+
+}
+</file>
+
+<file path="src/domain/models/RouteStop.ts">
+export interface RouteStop {
+
+    id: string;
+    stopId: string,
+    orderIndex: number
+    estimatedTimeOffset: number;
+}
+</file>
+
+<file path="src/domain/models/Stop.ts">
+export interface Stop{
+
+    id: string;
+    name: string;
+    latitude: number;
+    longitude: number;
+    reference: string;
+
+}
+</file>
+
+<file path="src/domain/models/Trip.ts">
+/**
+ * It represents a trip for the driver.
+ * It maps directly to the TripResponse from the backend.
+ */
+
+export interface Trip {
+  id: string;
+  routeName: string;
+  origin: string;
+  destination: string;
+  departureTime: string; // Formato "HH:mm:ss"
+  status: string;
+}
+</file>
+
+<file path="src/domain/models/TripDetail.ts">
+import { RouteStop } from "./RouteStop";
+import { Stop } from "./Stop";
+import { Trip } from "./Trip";
+
+// DTO that represents what the bckend should return
+export interface TripDetail {
+  trip: Trip;
+  stops: Array<{
+    routeStop: RouteStop;
+    stop: Stop;
+    completedAt: string | null;
+  }>;
+}
+</file>
+
+<file path="src/domain/models/TripStop.ts">
+export interface TripStop {
+  id: string;
+  tripId: string;
+  routeStopId: string;
+  completedAt: string | null;
+}
+</file>
+
+<file path="src/features/driver/components/TripCard.tsx">
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Clock, MapPin } from 'lucide-react';
+import type { Trip } from '@/domain/models/Trip';
+
+interface TripCardProps {
+  trip: Trip;
+  onTakeTrip: (tripId: string) => void;
+}
+
+function formatTime(isoTime: string): string {
+  const [hours, minutes] = isoTime.split(':');
+  const h = parseInt(hours, 10);
+  const ampm = h >= 12 ? 'p.m.' : 'a.m.';
+  const hour12 = h % 12 || 12;
+  return `${hour12}:${minutes} ${ampm}`;
+}
+
+export function TripCard({ trip, onTakeTrip }: TripCardProps) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg font-semibold">
+          Ruta: {trip.routeName}
+        </CardTitle>
+        <CardDescription className="flex items-center gap-1 text-muted-foreground">
+          <MapPin size={14} />
+          {trip.origin} → {trip.destination}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center gap-2 text-sm">
+          <Clock size={14} className="text-muted-foreground" />
+          <span className="font-medium">Salida:</span>
+          <span>{formatTime(trip.departureTime)}</span>
+        </div>
+      </CardContent>
+      <CardFooter>
+        <Button 
+          className="w-full" 
+          onClick={() => onTakeTrip(trip.id)}
+          disabled={trip.status !== 'PLANNED'}
+        >
+          Tomar
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+}
+</file>
+
+<file path="src/features/driver/components/TripStopsList.tsx">
+import { Button } from '@/components/ui/button';
+import { TripDetail } from '@/domain/models/TripDetail';
+import { cn } from '@/lib/utils';
+
+interface TripStopsListProps {
+  stops: TripDetail['stops'];
+  onConfirmStop: (stopId: string) => void
+  disabled: boolean;
+}
+
+export function TripStopsList({ stops, onConfirmStop, disabled }: TripStopsListProps) {
+  // First, we found the first non-completed stop from the list
+  // this is the current stop where the bus is at the moment
+  let currentUncompletedStopIndex  = -1;
+  for (let i = 0; i < stops.length; i++) {
+    if (stops[i].completedAt === null) {
+      currentUncompletedStopIndex  = i;
+      break;
+    }
+  }
+
+  return (
+    <ul className="max-h-64 overflow-y-auto space-y-1">
+      {stops.map(function(currentStop, currentIndex) {
+        const isCompleted = currentStop.completedAt !== null;
+        const isActiveStop = currentIndex === currentUncompletedStopIndex;
+
+        return (
+          <li key={currentStop.routeStop.id} className="flex items-center justify-between py-1">
+            <span className={cn(
+              'text-sm',
+              isCompleted && 'line-through text-muted-foreground',
+              isActiveStop && 'font-semibold'
+            )}>
+              {isCompleted ? '✓' : '→'} {currentStop.stop.name}
+            </span>
+            {isActiveStop && (
+              <Button size="sm" variant="outline" onClick={() => onConfirmStop(currentStop.routeStop.id)} disabled={disabled}>
+                Confirmar
+              </Button>
+            )}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+</file>
+
+<file path="src/features/driver/driver.container.tsx">
+'use client';
+
+import { useState } from 'react';
+import { useGeolocation } from '../../shared/hooks/useGeolocation';
+import { usePolling } from '../../shared/hooks/usePolling';
+import { busLocationService } from '../../infrastructure/services/busLocationService';
+import { ApiErrorClass } from '@/lib/errors/apiError';
+
+const BUS_ID = '650e8400-e29b-41d4-a716-446655440001';
+const POLLING_INTERVAL = 5000;
+
+/**
+ * Driver location tracking container.
+ * Calls busLocationService which uses httpClient.
+ * Errors flow to GlobalErrorBoundary - no try-catch needed.
+ */
+export function DriverContainer() {
+  const { coords, error: geoError } = useGeolocation();
+  const [status, setStatus] = useState<string>('Obteniendo ubicación...');
+  const [apiError, setApiError] = useState<ApiErrorClass | null>(null);
+
+
+  usePolling(async () => {
+    if (!coords) return;
+    try {
+      await busLocationService.updateBusLocation(BUS_ID, coords.lat, coords.lng);
+      setStatus(`Última actualización: ${new Date().toLocaleTimeString()}`);
+      setApiError(null);
+    } catch (err) {
+      if (err instanceof ApiErrorClass) {
+        setApiError(err);
+      }
+    }
+  }, POLLING_INTERVAL);
+
+  if (geoError) return <p>{geoError}</p>;
+  if (apiError) return <p>{apiError.userMessage}</p>;
+  return <p>{status}</p>;
+}
+</file>
+
+<file path="src/features/driver/trip-detail.container.tsx">
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import { tripService } from '@/infrastructure/services/tripService';
+import { ApiErrorClass } from '@/lib/errors/apiError';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { TripDetail } from '@/domain/models/TripDetail';
+import { busLocationService } from '@/infrastructure/services/busLocationService';
+import { useGeolocation } from '@/shared/hooks/useGeolocation';
+import { usePolling } from '@/shared/hooks/usePolling';
+import { TripStopsList } from './components/TripStopsList';
+import { Popover, PopoverContent, PopoverDescription, PopoverHeader, PopoverTitle, PopoverTrigger } from '@/components/ui/popover';
+
+
+interface TripDetailContainerProps {
+  tripId: string;
+}
+
+const BUS_ID = '650e8400-e29b-41d4-a716-446655440001';
+
+export function TripDetailContainer({ tripId }: TripDetailContainerProps) {
+  const [tripDetail, setTripDetail] = useState<TripDetail | null>(null);
+
+  // To show a loading state while fetching the trip detail for the first time
+  const [loading, setLoading] = useState(true);
+  const [fetchTripDetailError, setFetchTripDetailError] = useState<ApiErrorClass | null>(null);
+  const [lastTransmissionTime, setLastTransmissionTime] = useState<Date | null>(null);
+  const [confirmStopError, setConfirmStopError] = useState<string | null>(null);
+  const [finishTripError, setFinishTripError] = useState<string | null>(null);
+
+  // New state for cancel reason and its error
+  const [cancelReason, setCancelReason] = useState<string>('');
+  const [cancelTripError, setCancelTripError] = useState<string | null>(null);
+
+  const [isCancelPopoverOpen, setIsCancelPopoverOpen] = useState<boolean>(false);
+
+  //To disable every button while any process is in progress (fetching, confirming stop, finishing trip, canceling trip)
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+
+  // They both start as null
+  const { coords, error: geoError } = useGeolocation();
+
+  const fetchTripDetail = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await tripService.getTripDetail(tripId);
+      setTripDetail(data);
+      setFetchTripDetailError(null);
+    } catch (err) {
+      if (err instanceof ApiErrorClass) setFetchTripDetailError(err);
+    } finally {
+      setLoading(false);
+    }
+  }, [tripId]);
+
+  // Executes after the first render and every time the tripId changes
+  useEffect(() => {
+    fetchTripDetail();
+  }, [fetchTripDetail]);
+
+  // Location is transmitted  (only when trip is IN_PROGRESS)
+  usePolling(async () => {
+    const hasCoords = coords !== null;
+    const hasTripDetail = tripDetail !== null;
+    const isTripInProgress = tripDetail !== null && tripDetail.trip.status === 'IN_PROGRESS';
+    if (!hasCoords || !hasTripDetail || !isTripInProgress) {
+      return;
+    }
+
+    try {
+      await busLocationService.updateBusLocation(BUS_ID, coords.lat, coords.lng);
+      setLastTransmissionTime(new Date());
+    } catch (err) {
+    }
+  }, 5000);
+
+  if (loading) return <p className="p-4">Cargando viaje...</p>;
+  if (fetchTripDetailError) return <p className="p-4 text-destructive">{fetchTripDetailError.userMessage}</p>;
+  if (!tripDetail) return <p className="p-4">No se encontró el viaje.</p>;
+
+
+  const { trip, stops } = tripDetail;
+  const isInProgress = trip.status === 'IN_PROGRESS';
+
+  const handleFinishTrip = async (tripId: string) => {
+
+    // Verify if all stops are completed
+    let allStopsCompleted = true;
+    for (let i = 0; i < stops.length; i++) {
+      if (stops[i].completedAt === null) {
+        allStopsCompleted = false;
+        break;
+      }
+
+    }
+
+    if (!allStopsCompleted) {
+      alert('No se puede finalizar el viaje. Aún hay paradas pendientes por confirmar.');
+      return;
+    }
+
+    setIsProcessing(true);
+
+    const delayMinutes = 0; // temporal mock
+
+    try {
+      await tripService.finishTrip(tripId, delayMinutes);
+
+      if (tripDetail !== null) {
+        const updatedTrip = {
+          id: tripDetail.trip.id,
+          routeName: tripDetail.trip.routeName,
+          origin: tripDetail.trip.origin,
+          destination: tripDetail.trip.destination,
+          departureTime: tripDetail.trip.departureTime,
+          status: 'COMPLETED'
+        };
+
+        const newTripDetail = {
+          trip: updatedTrip,
+          stops: tripDetail.stops
+        };
+
+        setTripDetail(newTripDetail);
+        setFinishTripError(null);
+      }
+    } catch (err) {
+      if (err instanceof ApiErrorClass) {
+        setFinishTripError(err.userMessage);
+      } else {
+        setFinishTripError('Error al finalizar el viaje.');
+      }
+    } finally {
+      setIsProcessing(false);
+    }
+
+  }
+
+  const handleConfirmStop = async (stopId: string) => {
+    if (tripDetail === null) return;
+
+    setIsProcessing(true);
+    try {
+      await tripService.confirmStop(tripDetail.trip.id, stopId);
+
+      const updatedStops = [];
+
+      for (let i = 0; i < tripDetail.stops.length; i++) {
+        const stop = tripDetail.stops[i];
+
+        if (stop.routeStop.id === stopId) {
+
+          const stopConfirmada = {
+            routeStop: stop.routeStop,
+            stop: stop.stop,
+            completedAt: new Date().toISOString()
+          };
+          updatedStops.push(stopConfirmada);
+        } else {
+          updatedStops.push(stop);
+        }
+      }
+
+      // We update the state
+      const newTripDetail = {
+        trip: tripDetail.trip,
+        stops: updatedStops
+      };
+
+      setTripDetail(newTripDetail);
+    } catch (err) {
+
+      if (err instanceof ApiErrorClass) {
+        setConfirmStopError(err.userMessage);
+      } else {
+        setConfirmStopError('Error al confirmar parada');
+      }
+    } finally {
+      setIsProcessing(false);
+    }
+  }
+
+  const handleCancelTrip = async () => {
+
+    if (cancelReason.trim() === '') {
+      alert('Debe ingresar un motivo de cancelación.');
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      await tripService.cancelTrip(tripId, cancelReason);
+
+      if (tripDetail !== null) {
+        const updatedTrip = {
+          id: tripDetail.trip.id,
+          routeName: tripDetail.trip.routeName,
+          origin: tripDetail.trip.origin,
+          destination: tripDetail.trip.destination,
+          departureTime: tripDetail.trip.departureTime,
+          status: 'CANCELED'
+        };
+
+        const newTripDetail = {
+          trip: updatedTrip,
+          stops: tripDetail.stops
+        };
+
+        setTripDetail(newTripDetail);
+        setCancelTripError(null);
+        setIsCancelPopoverOpen(false);
+        setCancelReason('');
+      }
+    } catch (err) {
+      if (err instanceof ApiErrorClass) {
+        setCancelTripError(err.userMessage);
+      } else {
+        setCancelTripError('Error al cancelar el viaje.');
+      }
+    } finally {
+      setIsProcessing(false);
+    }
+  }
+
+  return (
+    <div className="p-4 max-w-md mx-auto space-y-4">
+      {/* Cabecera del viaje */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Viaje en curso — Ruta {trip.routeName}</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            {trip.origin} → {trip.destination} — {trip.departureTime}
+          </p>
+        </CardHeader>
+        <CardContent>
+          {isInProgress ? (
+            <div className="flex items-center gap-2 text-sm text-green-600">
+              <span className="h-2 w-2 rounded-full bg-green-600 animate-pulse" />
+              Transmitiendo ubicación...
+              {lastTransmissionTime && (
+                <span className="text-muted-foreground">
+                  Última transmisión: hace {Math.round((Date.now() - lastTransmissionTime.getTime()) / 1000)} seg
+                </span>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm">Viaje {trip.status === 'PLANNED' ? 'por iniciar' : 'finalizado'}</p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* List of stops */}
+      <Card>
+        <CardContent>
+          <h3 className="font-semibold mb-2">Paradas</h3>
+          <TripStopsList stops={stops} onConfirmStop={handleConfirmStop} disabled={!isInProgress || isProcessing || isCancelPopoverOpen}/>
+          {finishTripError && (
+            <p className="text-xs text-red-500 mb-1">{finishTripError}</p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Action buttons */}
+      {isInProgress && (
+        <div className="flex gap-2">
+          <Button variant="secondary" className="flex-1" onClick={() => handleFinishTrip(trip.id)} disabled={!isInProgress || isProcessing  || isCancelPopoverOpen}>
+            Finalizar viaje
+          </Button>
+          <Popover open={isCancelPopoverOpen} onOpenChange={setIsCancelPopoverOpen}>
+            <PopoverTrigger asChild>
+              <Button variant="destructive" className="flex-1" disabled={!isInProgress || isProcessing || isCancelPopoverOpen}>
+                Cancelar viaje
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80">
+              <PopoverHeader>
+                <PopoverTitle>Cancelar viaje</PopoverTitle>
+                <PopoverDescription>
+                  Ingrese el motivo de la cancelación.
+                </PopoverDescription>
+              </PopoverHeader>
+              <div className="space-y-2">
+                <textarea
+                  className="w-full border rounded p-2 text-sm"
+                  rows={3}
+                  placeholder="Falla mecánica..."
+                  value={cancelReason}
+                  onChange={function (e) { setCancelReason(e.target.value); }}
+                />
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={function () { setIsCancelPopoverOpen(false); }}
+                    disabled={isProcessing}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleCancelTrip}
+                    disabled={isProcessing}
+                  >
+                    Confirmar cancelación
+                  </Button>
+                </div>
+              </div>
+              {cancelTripError && (
+                <p className="text-xs text-red-500 mt-2">{cancelTripError}</p>
+              )}
+            </PopoverContent>
+          </Popover>
+        </div>
+      )}
+    </div>
+  );
+}
+</file>
+
+<file path="src/features/driver/trip-list.container.tsx">
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import { tripService } from '@/infrastructure/services/tripService';
+import { TripCard } from './components/TripCard';
+import { ApiErrorClass } from '@/lib/errors/apiError';
+import type { Trip } from '@/domain/models/Trip';
+
+export function TripListContainer() {
+  const [trips, setTrips] = useState<Trip[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [apiError, setApiError] = useState<ApiErrorClass | null>(null);
+
+  const fetchTrips = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await tripService.getTodayPlannedTrips();
+      setTrips(data);
+      setApiError(null);
+    } catch (err) {
+      if (err instanceof ApiErrorClass) {
+        setApiError(err);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchTrips();
+  }, [fetchTrips]);
+
+  const handleTakeTrip = (tripId: string) => {
+    // TODO: Implementar cuando el backend tenga el endpoint para iniciar un viaje
+    console.log('Tomar viaje:', tripId);
+  };
+
+  if (loading) {
+    return <p className="p-4 text-muted-foreground">Cargando viajes...</p>;
+  }
+
+  if (apiError) {
+    return (
+      <div className="p-4">
+        <p className="text-destructive font-medium">Error al cargar viajes</p>
+        <p className="text-sm text-muted-foreground">{apiError.userMessage}</p>
+        <button 
+          onClick={fetchTrips}
+          className="mt-2 text-sm underline"
+        >
+          Reintentar
+        </button>
+      </div>
+    );
+  }
+
+  if (trips.length === 0) {
+    return (
+      <div className="p-4 text-center">
+        <p className="text-muted-foreground">No tienes viajes planificados para hoy.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-4 space-y-4 max-w-md mx-auto">
+      <h1 className="text-xl font-bold mb-4">Viajes disponibles — Hoy</h1>
+      {trips.map((trip) => (
+        <TripCard key={trip.id} trip={trip} onTakeTrip={handleTakeTrip} />
+      ))}
+    </div>
+  );
+}
+</file>
+
+<file path="src/infrastructure/services/busLocationService.ts">
+import { httpClient } from '@/lib/httpClient';
+
+/**
+ * Service for managing bus location updates.
+ * Delegates all HTTP handling to httpClient.
+ * Errors flow up to GlobalErrorBoundary without try-catch.
+ */
+export const busLocationService = {
+  /**
+   * Updates the location of a bus.
+   * Throws ApiErrorClass if backend returns error.
+   */
+  async updateBusLocation(busId: string, lat: number, lng: number): Promise<void> {
+    await httpClient.post(`/tracking/buses/${busId}/location`, { lat, lng });
+  },
+};
+
+
+/*
+
+ Older Version:
+ export async function updateBusLocation(busId: string, lat: number, lng: number): Promise<void> {
+  await fetch(`${BASE_URL}/tracking/buses/${busId}/location`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ lat, lng }),
+  });
+}
+*/
+</file>
+
+<file path="src/infrastructure/services/mocks/tripService.mock.ts">
+import type { Trip } from '@/domain/models/Trip';
+import { TripDetail } from '@/domain/models/TripDetail';
+
+const MOCK_TRIP_DETAIL: TripDetail = {
+    trip: {
+        id: 'b70e8400-e29b-41d4-a716-446655440001',
+        routeName: 'Cartago-Orosi',
+        origin: 'Cartago',
+        destination: 'Orosi',
+        departureTime: '08:00:00',
+        status: 'IN_PROGRESS',
+    },
+    stops: [
+        {
+            routeStop: {
+                id: '960e8400-e29b-41d4-a716-446655440001',
+                stopId: '860e8400-e29b-41d4-a716-446655440001',
+                orderIndex: 1,
+                estimatedTimeOffset: 0,
+            },
+            stop: {
+                id: '860e8400-e29b-41d4-a716-446655440001',
+                name: 'Cartago',
+                latitude: 9.8612,
+                longitude: -83.9180,
+                reference: 'Terminal Central Cartago',
+            },
+            completedAt: new Date().toISOString(),   // completada (inicio del viaje)
+        },
+        {
+            routeStop: {
+                id: '960e8400-e29b-41d4-a716-446655440002',
+                stopId: '860e8400-e29b-41d4-a716-446655440002',
+                orderIndex: 2,
+                estimatedTimeOffset: 5,
+            },
+            stop: {
+                id: '860e8400-e29b-41d4-a716-446655440002',
+                name: 'Colegio Vicente de Costa Rica',
+                latitude: 9.8615,
+                longitude: -83.9145,
+                reference: 'Frente Colegio Vicente de Costa Rica',
+            },
+            completedAt: new Date().toISOString(),   // completada
+        },
+        {
+            routeStop: {
+                id: '960e8400-e29b-41d4-a716-446655440003',
+                stopId: '860e8400-e29b-41d4-a716-446655440003',
+                orderIndex: 3,
+                estimatedTimeOffset: 15,
+            },
+            stop: {
+                id: '860e8400-e29b-41d4-a716-446655440003',
+                name: 'Estadio de Paraíso',
+                latitude: 9.8142,
+                longitude: -83.8156,
+                reference: 'Estadio de Paraíso',
+            },
+            completedAt: null,                       // pendiente (parada activa)
+        },
+        {
+            routeStop: {
+                id: '960e8400-e29b-41d4-a716-446655440004',
+                stopId: '860e8400-e29b-41d4-a716-446655440004',
+                orderIndex: 4,
+                estimatedTimeOffset: 20,
+            },
+            stop: {
+                id: '860e8400-e29b-41d4-a716-446655440004',
+                name: 'Paraíso Centro',
+                latitude: 9.8098,
+                longitude: -83.8042,
+                reference: 'Centro de Paraíso',
+            },
+            completedAt: null,
+        },
+        {
+            routeStop: {
+                id: '960e8400-e29b-41d4-a716-446655440005',
+                stopId: '860e8400-e29b-41d4-a716-446655440005',
+                orderIndex: 5,
+                estimatedTimeOffset: 30,
+            },
+            stop: {
+                id: '860e8400-e29b-41d4-a716-446655440005',
+                name: 'Recinto UCR Paraíso',
+                latitude: 9.7856,
+                longitude: -83.7834,
+                reference: 'Recinto de la UCR en Paraíso',
+            },
+            completedAt: null,
+        },
+        {
+            routeStop: {
+                id: '960e8400-e29b-41d4-a716-446655440006',
+                stopId: '860e8400-e29b-41d4-a716-446655440006',
+                orderIndex: 6,
+                estimatedTimeOffset: 40,
+            },
+            stop: {
+                id: '860e8400-e29b-41d4-a716-446655440006',
+                name: 'Orosi',
+                latitude: 9.7798,
+                longitude: -83.7345,
+                reference: 'Terminal Orosi',
+            },
+            completedAt: null,
+        },
+    ],
+};
+
+export const mockTripService = {
+    async getTodayPlannedTrips(): Promise<Trip[]> {
+        return [
+            {
+                id: 'b70e8400-e29b-41d4-a716-446655440001',
+                routeName: 'Cartago-Orosi',
+                origin: 'Cartago',
+                destination: 'Orosi',
+                departureTime: '08:00:00',
+                status: 'PLANNED'
+            },
+            {
+                id: 'b70e8400-e29b-41d4-a716-446655440002',
+                routeName: 'Cartago-Orosi',
+                origin: 'Cartago',
+                destination: 'Orosi',
+                departureTime: '09:00:00',
+                status: 'PLANNED'
+            },
+            {
+                id: 'b70e8400-e29b-41d4-a716-446655440003',
+                routeName: 'Cartago-Orosi',
+                origin: 'Cartago',
+                destination: 'Orosi',
+                departureTime: '10:00:00',
+                status: 'PLANNED'
+            },
+            {
+                id: 'b70e8400-e29b-41d4-a716-446655440004',
+                routeName: 'Cartago-Orosi',
+                origin: 'Cartago',
+                destination: 'Orosi',
+                departureTime: '11:00:00',
+                status: 'PLANNED'
+            },
+            {
+                id: 'b70e8400-e29b-41d4-a716-446655440005',
+                routeName: 'Cartago-Orosi',
+                origin: 'Cartago',
+                destination: 'Orosi',
+                departureTime: '12:00:00',
+                status: 'PLANNED'
+            },
+            {
+                id: 'b70e8400-e29b-41d4-a716-446655440006',
+                routeName: 'Cartago-Orosi',
+                origin: 'Cartago',
+                destination: 'Orosi',
+                departureTime: '13:00:00',
+                status: 'PLANNED'
+            }
+        ];
+    },
+
+    async getTripDetail(_tripId: string): Promise<TripDetail> {
+        return MOCK_TRIP_DETAIL;
+    },
+
+    async confirmStop(_tripId: string, _stopId: string): Promise<void> {
+        // no hace nada, solo simula éxito
+    },
+
+    async finishTrip(_tripId: string, _delayMinutes: number): Promise<void> {
+        // no hace nada
+    },
+
+    async cancelTrip(_tripId: string, _cancelationReason: string): Promise<void> {
+        // no hace nada
+    },
+};
+</file>
+
+<file path="src/infrastructure/services/tripService.real.ts">
+import { httpClient } from '@/lib/httpClient';
+import type { Trip } from '@/domain/models/Trip';
+import { TripDetail } from '@/domain/models/TripDetail';
+
+export const realTripService = {
+  async getTodayPlannedTrips(): Promise<Trip[]> {
+    return httpClient.get<Trip[]>('/tracking/trips/today');
+  },
+
+  async getTripDetail(tripId: string): Promise<TripDetail> {
+    return httpClient.get<TripDetail>(`/tracking/trips/${tripId}/detail`);
+  },
+
+  async confirmStop(tripId: string, stopId: string): Promise<void> {
+    await httpClient.post(
+      `/tracking/trips/${tripId}/stops/${stopId}/confirm`,
+      { completedAt: new Date().toISOString() }
+    );
+  },
+
+  async finishTrip(tripId: string, delayMinutes: number): Promise<void> {
+    await httpClient.post(
+      `/tracking/trips/${tripId}/finish`,
+      { delayMinutes: delayMinutes }
+    );
+  },
+
+  async cancelTrip(tripId: string, cancelationReason: string): Promise<void> {
+    await httpClient.post(
+      `/tracking/trips/${tripId}/cancel`,
+      { cancelationReason: cancelationReason }
+    );
+  },
+};
+</file>
+
+<file path="src/infrastructure/services/tripService.ts">
+import { realTripService } from './tripService.real';
+import { mockTripService } from './mocks/tripService.mock';
+
+export const tripService = (function () {
+  if (process.env.NEXT_PUBLIC_USE_MOCKS === 'true') {
+    return mockTripService;
+  } else {
+    return realTripService;
+  }
+})();
+</file>
+
+<file path="src/lib/errors/apiError.ts">
+/**
+ * Standard API error response structure from backend.
+ * Mirrors the backend's ErrorResponse format.
+ */
+export interface ApiErrorResponse {
+  code: string;
+  message: string;
+  timestamp: number;
+}
+
+/**
+ * Custom error class for API responses.
+ * Thrown by httpClient when backend returns 4xx or 5xx.
+ * 
+ * @example
+ * throw new ApiErrorClass('BUS_NOT_FOUND', 'Bus no encontrado', 404, Date.now())
+ */
+export class ApiErrorClass extends Error {
+  public readonly code: string;
+  public readonly userMessage: string;
+  public readonly status: number;
+  public readonly timestamp: number;
+
+  constructor(code: string, userMessage: string, status: number, timestamp: number) {
+    super(userMessage);
+    this.name = 'ApiErrorClass';
+    this.code = code;
+    this.userMessage = userMessage;
+    this.status = status;
+    this.timestamp = timestamp;
+  }
+}
+</file>
+
+<file path="src/lib/errors/GlobalErrorBoundary.tsx">
+'use client';
+
+import { Component, ReactNode } from 'react';
+import { ApiErrorClass } from './apiError';
+
+interface Props {
+  children: ReactNode;
+}
+
+interface State {
+  error: ApiErrorClass | null;
+}
+
+/**
+ * Global Error Boundary - equivalent to @ExceptionHandler in backend.
+ * Captures any ApiErrorClass that bubbles up from child components.
+ * Decides what to render based on error.code, not error.userMessage.
+ * 
+ * This is the only place where UI decisions are made based on error codes.
+ */
+export class GlobalErrorBoundary extends Component<Props, State> {
+  state: State = { error: null };
+
+  /**
+   * React calls this method when a child component throws an error.
+   * This is the Error Boundary lifecycle method.
+   */
+  static getDerivedStateFromError(error: unknown): State {
+    // If it's already an ApiErrorClass, use it directly
+    if (error instanceof ApiErrorClass) {
+      return { error };
+    }
+
+    // If it's any other error (bug, null pointer, etc), wrap it
+    return {
+      error: new ApiErrorClass(
+        'UNEXPECTED_ERROR',
+        'Ocurrió un error inesperado',
+        500,
+        Date.now()
+      ),
+    };
+  }
+
+  /**
+   * Optional: Log the error to a service for monitoring.
+   * Backend equivalent: log.error() in @ExceptionHandler
+   */
+  componentDidCatch(error: unknown, errorInfo: any) {
+    console.error('Error captured by GlobalErrorBoundary:', error, errorInfo);
+  }
+
+  render() {
+    const { error } = this.state;
+
+    if (error) {
+      // Decide what to show based on error.code (the contract with backend)
+      // NOT based on error.userMessage (that's only for users)
+      switch (error.code) {
+        case 'BUS_NOT_FOUND':
+          return (
+            <div style={{ padding: '20px', color: 'red' }}>
+              <h2>Bus no encontrado</h2>
+              <p>El bus solicitado no existe en el sistema.</p>
+            </div>
+          );
+
+        case 'INVALID_COORDINATES':
+          return (
+            <div style={{ padding: '20px', color: 'red' }}>
+              <h2>Coordenadas inválidas</h2>
+              <p>Las coordenadas enviadas no son válidas.</p>
+            </div>
+          );
+
+        case 'UNAUTHORIZED':
+          return (
+            <div style={{ padding: '20px', color: 'red' }}>
+              <h2>No autorizado</h2>
+              <p>Debes iniciar sesión para acceder.</p>
+            </div>
+          );
+
+        case 'UNEXPECTED_ERROR':
+        default:
+          return (
+            <div style={{ padding: '20px', color: 'red' }}>
+              <h2>Error inesperado</h2>
+              <p>{error.userMessage}</p>
+              <details style={{ marginTop: '10px', fontSize: '12px' }}>
+                <summary>Detalles técnicos (dev only)</summary>
+                <pre>{JSON.stringify({ code: error.code, status: error.status }, null, 2)}</pre>
+              </details>
+            </div>
+          );
+      }
+    }
+
+    // No error, render children normally
+    return this.props.children;
+  }
+}
+</file>
+
+<file path="src/lib/httpClient.ts">
+import { ApiErrorClass, ApiErrorResponse } from './errors/apiError';
+
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+
+/**
+ * Core HTTP request handler with centralized error handling.
+ * Throws ApiErrorClass when backend returns 4xx or 5xx.
+ * This is the only place where try-catch for HTTP errors lives.
+ * Classic equivalence:
+        {
+        method: 'POST',                        // viene de ...options
+        body: JSON.stringify({ user: 'juan' }), // viene de ...options
+        headers: {
+            'Content-Type': 'application/json',  // siempre garantizado
+            'Authorization': 'Bearer token123'   // viene de ...options.headers
+        }
+ */
+async function request<T>(path: string, options: RequestInit): Promise<T> {
+  const response = await fetch(`${BASE_URL}${path}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+  if (!response.ok) {
+    const body: ApiErrorResponse = await response.json();
+    throw new ApiErrorClass(body.code, body.message, response.status, body.timestamp);
+  }
+
+  // We avoid an parsing error when the response has no content
+  if (response.status === 204) {
+    return null as unknown as T;
+  }
+  return response.json();
+}
+
+/**
+ * HTTP client with GET and POST methods.
+ * Delegates all error handling to the request() function.
+ * Services and components use this and never deal with try-catch.
+ */
+export const httpClient = {
+  get: function<T>(path: string) {
+    return request<T>(path, { method: 'GET' });
+  },
+
+  post: function<T>(path: string, data: unknown) {
+    return request<T>(path, { method: 'POST', body: JSON.stringify(data) });
+  },
+};
+</file>
+
+<file path="src/lib/utils.ts">
+import { clsx, type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
+
+
+/**
+ * Default utility function generated by shadcn that merges Tailwind CSS classes safely.
+ *
+ * @param clsx   - Combines class names conditionally (similar to the `classnames` library)
+ * @param twMerge - Resolves Tailwind conflicts by keeping the last conflicting utility
+ *
+ * @example
+ * // Without cn() — Tailwind conflict, unclear which px wins
+ * <button className="px-4 py-2 px-6">
+ *
+ * // With cn() — twMerge resolves it, px-6 wins
+ * <button className={cn("px-4 py-2", "px-6")}>
+ */
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+</file>
+
+<file path="src/shared/hooks/useGeolocation.ts">
+/**
+ 
+* This  
+
+@PositionOptions is an interface that defines the config options for the geolcation API.
+
+ */
+
+import { useEffect, useState } from 'react';
+
+interface Coords {
+  lat: number;
+  lng: number;
+}
+
+// Pure function to extract coordinates from GeolocationPosition object 
+function extractCoords(position: GeolocationPosition): Coords {
+  return {
+    lat: position.coords.latitude,
+    lng: position.coords.longitude,
+  };
+}
+
+//Custom hook to manage geolocation state and logic
+export function useGeolocation() {
+  const [coords, setCoords] = useState<Coords | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  // Function used by watchPosition to update state with new coordinates
+  function onSuccess(position: GeolocationPosition) {
+    setCoords(extractCoords(position));
+  }
+
+  // Function used by watchPosition to update state with error message
+  function onError() {
+    setError('Error obteniendo ubicación');
+  }
+
+  // Object with contract (interface) used by watchPosition to configure geolocation options
+  const options: PositionOptions = {
+    enableHighAccuracy: true,
+  };
+
+  useEffect(() => {
+    // This function keeps watching the user's position on secondary thread and calls onSuccess or onError when position changes or an error occurs
+    const watchId = navigator.geolocation.watchPosition(onSuccess, onError, options);
+    //When the component is unmounted, clear the geolocation watch to prevent memory leaks
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, []);
+
+  return { coords, error };
+}
+</file>
+
+<file path="src/shared/hooks/usePolling.ts">
+import {useEffect, useRef} from 'react';
+
+export function usePolling(callback: () => void, intervalMs: number){
+
+    // At the second render of the component which uses this hook, useRef returns the same object as in the first render
+    const savedCallBack = useRef(callback);
+
+    // This useEffect updates the current value of savedCallBack with the new version of the callback function every time it changes,
+    // because savedCallBack is a ref
+    useEffect(() => {
+        savedCallBack.current = callback;
+    }, [callback]);
+
+    // It executes only once, when the component is mounted and sets up an interval 
+    // to execute every new version of the callback by accessing the current value of 
+    // savedCallBack obj (which is in memory thanks to useRef) and clears the interval 
+    // when the component is unmounted
+    useEffect(() => {
+        const executeCallback = () => savedCallBack.current();
+        executeCallback();
+        const id = setInterval(executeCallback, intervalMs);
+        return () => clearInterval(id);
+    }, [intervalMs]);   
+}
+</file>
+
+</files>

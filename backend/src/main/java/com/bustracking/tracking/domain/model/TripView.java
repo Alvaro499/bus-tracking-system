@@ -3,6 +3,7 @@ package com.bustracking.tracking.domain.model;
 import java.time.LocalTime;
 import java.util.UUID;
 
+// This class represents a view of a trip in the bus tracking system module.
 public class TripView {
 
     private final UUID id;

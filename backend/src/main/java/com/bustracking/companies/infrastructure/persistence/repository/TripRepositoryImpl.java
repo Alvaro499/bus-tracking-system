@@ -8,6 +8,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Repository;
 
 import com.bustracking.companies.domain.dto.TripScheduleProjection;
+import com.bustracking.companies.domain.dto.TripStopDetailProjection;
 import com.bustracking.companies.domain.model.Trip;
 import com.bustracking.companies.domain.repository.TripRepository;
 import com.bustracking.companies.infrastructure.persistence.entity.TripJpa;
@@ -21,38 +22,78 @@ public class TripRepositoryImpl implements TripRepository {
         this.tripJpaRepository = tripJpaRepository;
     }
 
+    // =========================================================
+    // HU-17
+    // =========================================================
     @Override
     public List<TripScheduleProjection> findTodayPlannedTripsByBusRoutes(UUID busId) {
         return tripJpaRepository
-            .findTodayPlannedTripsByBusRoutes(busId, LocalDate.now())
-            .stream()
-            .map(r -> new TripScheduleProjection(
-                r.id(),
-                r.routeName(),
-                r.origin(),
-                r.destination(),
-                r.departureTime(),
-                r.status()
-            ))
-            .toList();
+                .findTodayPlannedTripsByBusRoutes(busId, LocalDate.now())
+                .stream()
+                .map(r -> new TripScheduleProjection(
+                        r.id(),
+                        r.routeName(),
+                        r.origin(),
+                        r.destination(),
+                        r.departureTime(),
+                        r.status()))
+                .toList();
     }
 
+    // =========================================================
+    // HU-17
+    // =========================================================
     @Override
     public Optional<Trip> findById(UUID tripId) {
         return tripJpaRepository.findById(tripId).map(r -> new Trip(
-            r.getId(),
-            r.getScheduleId(),
-            r.getBusId(),
-            r.getTripDate(),
-            r.getCancellationReason(),
-            r.getStatus(),
-            r.getActualStartTime(),
-            r.getActualEndTime(),
-            r.getDelayMinutes(),
-            r.getAssignedAt(),
-            r.getCreatedAt(),
-            r.getUpdatedAt()
-        ));
+                r.getId(),
+                r.getScheduleId(),
+                r.getBusId(),
+                r.getTripDate(),
+                r.getCancellationReason(),
+                r.getStatus(),
+                r.getActualStartTime(),
+                r.getActualEndTime(),
+                r.getDelayMinutes(),
+                r.getAssignedAt(),
+                r.getCreatedAt(),
+                r.getUpdatedAt()));
+    }
+
+    // =========================================================
+    // HU-17
+    // =========================================================
+    @Override
+    public Optional<TripScheduleProjection> findTripScheduleById(UUID tripId) {
+
+        return tripJpaRepository.findTripScheduleById(tripId)
+                .map(r -> new TripScheduleProjection(
+                        r.id(),
+                        r.routeName(),
+                        r.origin(),
+                        r.destination(),
+                        r.departureTime(),
+                        r.status()));
+    }
+
+    // =========================================================
+    // HU-17
+    // =========================================================
+    @Override
+    public List<TripStopDetailProjection> findStopsByTripId(UUID tripId) {
+        return tripJpaRepository.findStopsByTripId(tripId)
+                .stream()
+                .map(r -> new TripStopDetailProjection(
+                        r.routeStopId(),
+                        r.stopId(),
+                        r.stopName(),
+                        r.stopLat(),
+                        r.stopLng(),
+                        r.stopReference(),
+                        r.orderIndex(),
+                        r.estimatedTimeOffset(),
+                        r.completedAt()))
+                .toList();
     }
 
     @Override
@@ -62,37 +103,35 @@ public class TripRepositoryImpl implements TripRepository {
         return toDomain(saved);
     }
 
-        private Trip toDomain(TripJpa jpa) {
+    private Trip toDomain(TripJpa jpa) {
         return new Trip(
-            jpa.getId(),
-            jpa.getScheduleId(),
-            jpa.getBusId(),
-            jpa.getTripDate(),
-            jpa.getCancellationReason(),
-            jpa.getStatus(),
-            jpa.getActualStartTime(),
-            jpa.getActualEndTime(),
-            jpa.getDelayMinutes(),
-            jpa.getAssignedAt(),
-            jpa.getCreatedAt(),
-            jpa.getUpdatedAt()
-        );
+                jpa.getId(),
+                jpa.getScheduleId(),
+                jpa.getBusId(),
+                jpa.getTripDate(),
+                jpa.getCancellationReason(),
+                jpa.getStatus(),
+                jpa.getActualStartTime(),
+                jpa.getActualEndTime(),
+                jpa.getDelayMinutes(),
+                jpa.getAssignedAt(),
+                jpa.getCreatedAt(),
+                jpa.getUpdatedAt());
     }
 
     private TripJpa toJpa(Trip trip) {
         return new TripJpa(
-            trip.getId(),
-            trip.getScheduleId(),
-            trip.getBusId(),
-            trip.getTripDate(),
-            trip.getCancellationReason(),
-            trip.getStatus(),
-            trip.getActualStartTime(),
-            trip.getActualEndTime(),
-            trip.getDelayMinutes(),
-            trip.getAssignedAt(),
-            trip.getCreatedAt(),
-            trip.getUpdatedAt()
-        );
+                trip.getId(),
+                trip.getScheduleId(),
+                trip.getBusId(),
+                trip.getTripDate(),
+                trip.getCancellationReason(),
+                trip.getStatus(),
+                trip.getActualStartTime(),
+                trip.getActualEndTime(),
+                trip.getDelayMinutes(),
+                trip.getAssignedAt(),
+                trip.getCreatedAt(),
+                trip.getUpdatedAt());
     }
 }

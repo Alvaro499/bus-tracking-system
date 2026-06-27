@@ -7,10 +7,12 @@ import org.springframework.context.annotation.Configuration;
 import com.bustracking.companies.domain.model.Trip;
 import com.bustracking.companies.domain.repository.BusRepository;
 import com.bustracking.companies.domain.repository.TripRepository;
+import com.bustracking.companies.infrastructure.delegate.TripDetailDelegate;
 import com.bustracking.shared.exception.ErrorCode;
 import com.bustracking.shared.exception.NotFoundException;
 import com.bustracking.tracking.domain.contract.BusExistsById;
 import com.bustracking.tracking.domain.contract.GetTodayPlannedTripsByBusRoutes;
+import com.bustracking.tracking.domain.contract.GetTripDetail;
 import com.bustracking.tracking.domain.contract.StartTrip;
 import com.bustracking.tracking.domain.model.TripView;
 
@@ -80,7 +82,6 @@ public class TrackingDelegatesConfig {
 
     @Bean 
     public StartTrip startTrip() {
-
         // We use lambda expression avoiding creating an unneessary class.
         return (tripId, busId) -> {
             Optional<Trip> optionalTrip = tripRepository.findById(tripId);
@@ -98,5 +99,11 @@ public class TrackingDelegatesConfig {
             // We save the updated trip back to the repository
             tripRepository.save(trip);
         };
+    }
+
+    // When someone ask for GetTripDetail, we return an instance of TripDetailDelegate, which implements GetTripDetail interface.
+    @Bean
+    public GetTripDetail getTripDetail(TripDetailDelegate delegate) {
+        return delegate;
     }
 }
