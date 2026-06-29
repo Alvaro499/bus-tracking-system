@@ -1,0 +1,796 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: src/main/java/com/bustracking/tracking/**
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+src/main/java/com/bustracking/tracking/application/dto/Placeholder.java
+src/main/java/com/bustracking/tracking/application/service/Placeholder.java
+src/main/java/com/bustracking/tracking/application/usecase/GetBusLocationUseCase.java
+src/main/java/com/bustracking/tracking/application/usecase/GetTodayPlannedTripsUseCase.java
+src/main/java/com/bustracking/tracking/application/usecase/StartTripUseCase.java
+src/main/java/com/bustracking/tracking/application/usecase/UpdateBusLocationUseCase.java
+src/main/java/com/bustracking/tracking/domain/contract/BusExistsById.java
+src/main/java/com/bustracking/tracking/domain/contract/GetTodayPlannedTripsByBusRoutes.java
+src/main/java/com/bustracking/tracking/domain/contract/StartTrip.java
+src/main/java/com/bustracking/tracking/domain/model/BusLocation.java
+src/main/java/com/bustracking/tracking/domain/model/Placeholder.java
+src/main/java/com/bustracking/tracking/domain/model/TripView.java
+src/main/java/com/bustracking/tracking/domain/repository/BusLocationRepository.java
+src/main/java/com/bustracking/tracking/infrastructure/persistence/entity/BusLocationJpa.java
+src/main/java/com/bustracking/tracking/infrastructure/persistence/repository/BusLocationJpaRepository.java
+src/main/java/com/bustracking/tracking/infrastructure/persistence/repository/BusLocationRepositoryImpl.java
+src/main/java/com/bustracking/tracking/infrastructure/web/controller/BusLocationController.java
+src/main/java/com/bustracking/tracking/infrastructure/web/controller/DriverTripCommandController.java
+src/main/java/com/bustracking/tracking/infrastructure/web/controller/DriverTripQueryController.java
+src/main/java/com/bustracking/tracking/infrastructure/web/dto/request/UpdateBusLocationRequest.java
+src/main/java/com/bustracking/tracking/infrastructure/web/dto/response/BusLocationResponse.java
+src/main/java/com/bustracking/tracking/infrastructure/web/dto/response/Placeholder.java
+src/main/java/com/bustracking/tracking/infrastructure/web/dto/response/TripResponse.java
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="src/main/java/com/bustracking/tracking/application/dto/Placeholder.java">
+// DTOs - Data Transfer Objects for commands and responses go here
+</file>
+
+<file path="src/main/java/com/bustracking/tracking/application/service/Placeholder.java">
+// Application Services - Orchestrators that group use cases go here
+</file>
+
+<file path="src/main/java/com/bustracking/tracking/application/usecase/GetBusLocationUseCase.java">
+package com.bustracking.tracking.application.usecase;
+
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+
+import com.bustracking.shared.exception.ErrorCode;
+import com.bustracking.shared.exception.NotFoundException;
+import com.bustracking.tracking.domain.contract.BusExistsById;
+import com.bustracking.tracking.domain.model.BusLocation;
+import com.bustracking.tracking.domain.repository.BusLocationRepository;
+
+/**
+ * Use Case: Get Bus Location
+ * 
+ * Responsibilities:
+ * - Validates if the bus exists (via delegate)
+ * - Retrieves the current location of a bus
+ * - Throws not found if bus has no location data
+ * 
+ * Dependencies:
+ * - BusExistsById: Delegate from companies module (only does one thing)
+ * - BusLocationRepository: Internal repository for tracking data
+ */
+@Service
+public class GetBusLocationUseCase {
+
+    private final BusLocationRepository busLocationRepository;
+    private final BusExistsById busExistsById;
+
+    public GetBusLocationUseCase(
+        BusLocationRepository busLocationRepository,
+        BusExistsById busExistsById
+    ) {
+        this.busLocationRepository = busLocationRepository;
+        this.busExistsById = busExistsById;
+    }
+
+    public BusLocation execute(UUID busId) {
+
+        if (!busExistsById.check(busId)) {
+            throw new NotFoundException(
+                ErrorCode.BUS_NOT_FOUND,
+                "Bus not found",
+                "Bus with ID " + busId + " does not exist"
+            );
+        }
+
+        // we receive an optional, so we validate if the bus location exists, if not we throw an exception
+        BusLocation location = busLocationRepository.findByBusId(busId).orElse(null);
+        
+        if (location == null) {
+            throw new NotFoundException(
+                ErrorCode.BUS_LOCATION_NOT_FOUND,
+                "Bus location not found",
+                "Bus with ID " + busId + " has no location registered yet"
+            );
+        }
+
+        return location;
+    }
+
+}
+</file>
+
+<file path="src/main/java/com/bustracking/tracking/application/usecase/GetTodayPlannedTripsUseCase.java">
+package com.bustracking.tracking.application.usecase;
+
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+
+import com.bustracking.shared.exception.ErrorCode;
+import com.bustracking.shared.exception.NotFoundException;
+import com.bustracking.tracking.domain.contract.BusExistsById;
+import com.bustracking.tracking.domain.contract.GetTodayPlannedTripsByBusRoutes;
+import com.bustracking.tracking.domain.model.TripView;
+
+@Service
+public class GetTodayPlannedTripsUseCase {
+
+    private final GetTodayPlannedTripsByBusRoutes getTodayTripsDelegate;
+    private final BusExistsById busExistsById;
+
+    public GetTodayPlannedTripsUseCase(GetTodayPlannedTripsByBusRoutes getTodayTripsDelegate,
+                                BusExistsById busExistsById) {
+        this.getTodayTripsDelegate = getTodayTripsDelegate;
+        this.busExistsById = busExistsById;
+    }
+
+    public List<TripView> execute(UUID busId) {
+        if (!busExistsById.check(busId)) {
+            throw new NotFoundException(
+                ErrorCode.BUS_NOT_FOUND,
+                "Bus not found",
+                "Bus with ID " + busId + " does not exist"
+            );
+        }
+
+        // Companies module using the contract returns the list of today's planned trips for the current bus
+        return getTodayTripsDelegate.execute(busId);
+    }
+
+}
+</file>
+
+<file path="src/main/java/com/bustracking/tracking/application/usecase/StartTripUseCase.java">
+package com.bustracking.tracking.application.usecase;
+
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+
+import com.bustracking.shared.exception.ErrorCode;
+import com.bustracking.shared.exception.NotFoundException;
+import com.bustracking.tracking.domain.contract.BusExistsById;
+import com.bustracking.tracking.domain.contract.StartTrip;
+
+@Service
+public class StartTripUseCase {
+
+    private final StartTrip startTrip;
+    private BusExistsById busExistsById;
+    
+    public StartTripUseCase(StartTrip startTrip, BusExistsById busExistsById) {
+        this.startTrip = startTrip;
+        this.busExistsById = busExistsById;
+    }
+
+
+    public void execute(UUID tripId, UUID busId){
+
+        // We validate if the bus exists before starting the trip.
+        if (!busExistsById.check(busId)) {
+            throw new NotFoundException(
+                ErrorCode.BUS_NOT_FOUND,
+                "Bus not found",
+                "Bus with ID " + busId + " does not exist"
+            );
+        }
+
+        // We delegate the logic of starting the trip to company module
+        startTrip.execute(tripId, busId);
+    }
+    
+}
+</file>
+
+<file path="src/main/java/com/bustracking/tracking/application/usecase/UpdateBusLocationUseCase.java">
+package com.bustracking.tracking.application.usecase;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+
+import com.bustracking.shared.exception.ErrorCode;
+import com.bustracking.shared.exception.NotFoundException;
+import com.bustracking.shared.valueobjects.GpsCoordinate;
+import com.bustracking.tracking.domain.contract.BusExistsById;
+import com.bustracking.tracking.domain.model.BusLocation;
+import com.bustracking.tracking.domain.repository.BusLocationRepository;
+
+/**
+ * Use Case: Update Bus Location
+ * 
+ * Responsibilities:
+ * - Receives data from the PWA (busId, latitude, longitude, timestamp)
+ * - Validates if the bus exists (via delegate)
+ * - Saves the bus location
+ * 
+ * Dependencies:
+ * - BusExistsById: Delegate from companies module (only does one thing)
+ * - BusLocationRepository: Internal repository for tracking data
+ * 
+ * Note: We depend on a delegate (single responsibility) instead of a full
+ * repository interface. This prevents the contract from growing with unrelated methods.
+ */
+@Service
+public class UpdateBusLocationUseCase {
+    
+    private final BusLocationRepository busLocationRepository;
+    private final BusExistsById busExistsById;
+
+    public UpdateBusLocationUseCase(
+        BusLocationRepository busLocationRepository,
+        BusExistsById busExistsById
+    ) {
+        this.busLocationRepository = busLocationRepository;
+        this.busExistsById = busExistsById;
+    }
+
+    public void execute(UUID busId, BigDecimal lat, BigDecimal lng) {
+
+        if (!busExistsById.check(busId)) {
+            throw new NotFoundException(
+                ErrorCode.BUS_NOT_FOUND,
+                "Bus not found",
+                "Bus with ID " + busId + " does not exist"
+            );
+        }
+
+        // Always create a new BusLocation instance (UPSERT handled by repository)
+        GpsCoordinate coordinate = new GpsCoordinate(lat, lng);
+        BusLocation busLocation = new BusLocation(busId, coordinate, LocalDateTime.now());
+        busLocationRepository.save(busLocation);
+    }
+}
+</file>
+
+<file path="src/main/java/com/bustracking/tracking/domain/contract/BusExistsById.java">
+package com.bustracking.tracking.domain.contract;
+
+import java.util.UUID;
+
+/**
+ * Delegate (Functional Interface) - Represents a bus existence check
+ * 
+ * This contract defines the minimal requirement: does a bus with a given ID exist?
+ * By using a delegate instead of a full interface, we prevent this contract from
+ * growing with unrelated methods. It cannot accumulate "garbage" operations for testing.
+ * 
+ * The implementation is provided by the companies module through dependency injection.
+ * 
+ * @see com.bustracking.companies.infrastructure.config.TrackingDelegatesConfig
+ */
+@FunctionalInterface
+public interface BusExistsById {
+    
+    boolean check(UUID busId);
+}
+</file>
+
+<file path="src/main/java/com/bustracking/tracking/domain/contract/GetTodayPlannedTripsByBusRoutes.java">
+package com.bustracking.tracking.domain.contract;
+
+import java.util.List;
+import java.util.UUID;
+
+import com.bustracking.tracking.domain.model.TripView;
+
+/**
+ * Contract for retrieving today's planned trips for a specific bus based on its routes.
+ * This contract is implemented by the Companies module, which provides the actual data retrieval logic.
+ */
+
+public interface GetTodayPlannedTripsByBusRoutes {
+    List<TripView> execute(UUID busId);
+}
+</file>
+
+<file path="src/main/java/com/bustracking/tracking/domain/contract/StartTrip.java">
+package com.bustracking.tracking.domain.contract;
+
+import java.util.UUID;
+
+
+/**
+ * Contract for starting a trip.
+ * Implemented by the companies module, which owns the Trip aggregate
+ * and its business rules.
+ * 
+ * Any possible errors or exceptions are going to be handled by GlobalExceptionHandler
+ */
+
+public interface StartTrip {
+    
+    void execute(UUID tripId, UUID busId);
+}
+</file>
+
+<file path="src/main/java/com/bustracking/tracking/domain/model/BusLocation.java">
+package com.bustracking.tracking.domain.model;
+
+import lombok.Getter;
+
+import java.time.LocalDateTime;
+import java.util.Objects;
+import java.util.UUID;
+
+import com.bustracking.shared.exception.ErrorCode;
+import com.bustracking.shared.exception.ValidationException;
+import com.bustracking.shared.valueobjects.GpsCoordinate;
+
+/**
+ * Value Object that represents the GPS location of a bus at a specific moment.
+ * 
+ * Immutable by design: does not have its own identity, represents a snapshot
+ * of a bus's location at a point in time. To update a location, create a new instance.
+ * 
+ */
+@Getter
+public final class BusLocation {
+
+    private final UUID busId; // it comes from company module
+    private final GpsCoordinate gpsCoordinate;
+    private final LocalDateTime updatedAt;
+
+
+    public BusLocation(UUID busId, GpsCoordinate gpsCoordinate, LocalDateTime updatedAt) {
+        validate(busId, gpsCoordinate, updatedAt);
+        this.busId = busId;
+        //already validated in the GpsCoordinate value object
+        this.gpsCoordinate = gpsCoordinate;
+        this.updatedAt = updatedAt;
+    }
+
+    private void validate(UUID busId, GpsCoordinate gpsCoordinate, LocalDateTime updatedAt) {
+        if (busId == null) {
+            throw new ValidationException(
+                ErrorCode.MISSING_REQUIRED_FIELD,
+                "Bus ID is required",
+                "busId cannot be null in BusLocation"
+            );
+        }
+        
+        if (gpsCoordinate == null) {
+            throw new ValidationException(
+                ErrorCode.MISSING_REQUIRED_FIELD,
+                "GPS Coordinate is required",
+                "gpsCoordinate cannot be null in BusLocation"
+            );
+        }
+        
+        if (updatedAt == null) {
+            throw new ValidationException(
+                ErrorCode.MISSING_REQUIRED_FIELD,
+                "Updated timestamp is required",
+                "updatedAt cannot be null in BusLocation"
+            );
+        }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof BusLocation)) return false;
+        BusLocation that = (BusLocation) o;
+        return Objects.equals(busId, that.busId) &&
+               Objects.equals(gpsCoordinate, that.gpsCoordinate) &&
+               Objects.equals(updatedAt, that.updatedAt);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(busId, gpsCoordinate, updatedAt);
+    }
+}
+</file>
+
+<file path="src/main/java/com/bustracking/tracking/domain/model/Placeholder.java">
+// Domain Models - Entities of the Tracking module go here
+</file>
+
+<file path="src/main/java/com/bustracking/tracking/domain/model/TripView.java">
+package com.bustracking.tracking.domain.model;
+
+import java.time.LocalTime;
+import java.util.UUID;
+
+public class TripView {
+
+    private final UUID id;
+    private final String routeName;
+    private final String origin;
+    private final String destination;
+    private final LocalTime departureTime;
+    private final String status;
+
+    public TripView(UUID id, String routeName, String origin,
+                    String destination, LocalTime departureTime, String status) {
+        this.id = id;
+        this.routeName = routeName;
+        this.origin = origin;
+        this.destination = destination;
+        this.departureTime = departureTime;
+        this.status = status;
+    }
+
+    public UUID getId() { return id; }
+    public String getRouteName() { return routeName; }
+    public String getOrigin() { return origin; }
+    public String getDestination() { return destination; }
+    public LocalTime getDepartureTime() { return departureTime; }
+    public String getStatus() { return status; }
+}
+</file>
+
+<file path="src/main/java/com/bustracking/tracking/domain/repository/BusLocationRepository.java">
+package com.bustracking.tracking.domain.repository;
+
+import java.util.Optional;
+import java.util.UUID;
+import com.bustracking.tracking.domain.model.BusLocation;
+
+public interface BusLocationRepository {
+    
+    //upsert method to save or update the bus location
+    void save(BusLocation busLocation);
+
+    Optional<BusLocation> findByBusId(UUID busId);
+
+
+    //List<BusLocation> findAllByBusIds(List<UUID> busIds);
+
+}
+</file>
+
+<file path="src/main/java/com/bustracking/tracking/infrastructure/persistence/entity/BusLocationJpa.java">
+package com.bustracking.tracking.infrastructure.persistence.entity;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Entity
+@Table(name = "bus_location", schema = "tracking")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class BusLocationJpa {
+
+    @Id
+    @Column(name = "bus_id")
+    private UUID busId;
+
+    @Column(nullable = false, precision = 9, scale = 6)
+    private BigDecimal lat;
+
+    @Column(nullable = false, precision = 9, scale = 6)
+    private BigDecimal lng;
+
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof BusLocationJpa)) return false;
+        return busId != null && busId.equals(((BusLocationJpa) o).getBusId());
+    }
+
+    @Override
+    public int hashCode() {
+        return 31;
+    }
+}
+</file>
+
+<file path="src/main/java/com/bustracking/tracking/infrastructure/persistence/repository/BusLocationJpaRepository.java">
+package com.bustracking.tracking.infrastructure.persistence.repository;
+
+import java.util.UUID;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.bustracking.tracking.infrastructure.persistence.entity.BusLocationJpa;
+
+public interface BusLocationJpaRepository extends JpaRepository<BusLocationJpa, UUID> {
+
+}
+</file>
+
+<file path="src/main/java/com/bustracking/tracking/infrastructure/persistence/repository/BusLocationRepositoryImpl.java">
+package com.bustracking.tracking.infrastructure.persistence.repository;
+
+import java.util.Optional;
+import java.util.UUID;
+
+import org.springframework.stereotype.Repository;
+
+import com.bustracking.shared.valueobjects.GpsCoordinate;
+import com.bustracking.tracking.domain.model.BusLocation;
+import com.bustracking.tracking.domain.repository.BusLocationRepository;
+import com.bustracking.tracking.infrastructure.persistence.entity.BusLocationJpa;
+
+@Repository
+public class BusLocationRepositoryImpl implements BusLocationRepository {
+    
+    private final BusLocationJpaRepository busLocationJpaRepository;
+
+    public BusLocationRepositoryImpl(BusLocationJpaRepository busLocationJpaRepository) {
+        this.busLocationJpaRepository = busLocationJpaRepository;
+    }
+
+    @Override
+    public void save(BusLocation busLocation){
+        busLocationJpaRepository.save(toJpa(busLocation));
+    }
+
+    @Override
+    public Optional<BusLocation> findByBusId(UUID busId) {
+        return busLocationJpaRepository.findById(busId)
+                .map(this::toDomain);
+    }
+
+
+    private BusLocationJpa toJpa(BusLocation busLocation){
+        return new BusLocationJpa(
+            busLocation.getBusId(),
+            busLocation.getGpsCoordinate().getLat(),
+            busLocation.getGpsCoordinate().getLng(),
+            busLocation.getUpdatedAt()
+        );
+    }
+
+    private BusLocation toDomain(BusLocationJpa busLocationJpa){
+        return new BusLocation(
+            busLocationJpa.getBusId(),
+            new GpsCoordinate(busLocationJpa.getLat(), busLocationJpa.getLng()),
+            busLocationJpa.getUpdatedAt()
+        );
+
+    }
+}
+</file>
+
+<file path="src/main/java/com/bustracking/tracking/infrastructure/web/controller/BusLocationController.java">
+package com.bustracking.tracking.infrastructure.web.controller;
+
+import java.util.UUID;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.bustracking.tracking.application.usecase.GetBusLocationUseCase;
+import com.bustracking.tracking.application.usecase.UpdateBusLocationUseCase;
+import com.bustracking.tracking.domain.model.BusLocation;
+import com.bustracking.tracking.infrastructure.web.dto.request.UpdateBusLocationRequest;
+import com.bustracking.tracking.infrastructure.web.dto.response.BusLocationResponse;
+
+@RestController
+@RequestMapping("/tracking/buses")
+public class BusLocationController {
+ 
+    private final UpdateBusLocationUseCase updateBusLocationUseCase;
+
+    private final GetBusLocationUseCase getBusLocationUseCase;
+
+
+    public BusLocationController(UpdateBusLocationUseCase updateBusLocationUseCase, GetBusLocationUseCase getBusLocationUseCase) {
+        this.updateBusLocationUseCase = updateBusLocationUseCase;
+        this.getBusLocationUseCase = getBusLocationUseCase;
+    }
+
+    @PostMapping("/{busId}/location")
+    public ResponseEntity<Void> updateBusLocation(
+            @PathVariable UUID busId,
+            @RequestBody UpdateBusLocationRequest request) {
+
+        updateBusLocationUseCase.execute(busId, request.lat(), request.lng());
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{busId}/location")
+    public ResponseEntity<BusLocationResponse> getBusLocation(
+            @PathVariable UUID busId) {
+
+        BusLocation location = getBusLocationUseCase.execute(busId);
+
+        BusLocationResponse response = new BusLocationResponse(
+            location.getBusId(),
+            location.getGpsCoordinate().getLat(),
+            location.getGpsCoordinate().getLng(),
+            location.getUpdatedAt()
+        );
+        return ResponseEntity.ok(response);
+    }
+}
+</file>
+
+<file path="src/main/java/com/bustracking/tracking/infrastructure/web/controller/DriverTripCommandController.java">
+package com.bustracking.tracking.infrastructure.web.controller;
+
+import java.util.UUID;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.bustracking.tracking.application.usecase.StartTripUseCase;
+
+@RestController
+@RequestMapping("/tracking/trips")
+public class DriverTripCommandController {
+
+    private final StartTripUseCase startTripUseCase;
+
+    public DriverTripCommandController(StartTripUseCase startTripUseCase) {
+        this.startTripUseCase = startTripUseCase;
+    }
+
+    @PostMapping("/{tripId}/start")
+    public  ResponseEntity<Void> startTrip(@PathVariable UUID tripId){
+
+        // TODO: extraer busId del JWI a futuro
+        UUID busId = UUID.fromString("650e8400-e29b-41d4-a716-446655440001");
+        startTripUseCase.execute(tripId, busId);
+        //return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
+
+    }
+}
+</file>
+
+<file path="src/main/java/com/bustracking/tracking/infrastructure/web/controller/DriverTripQueryController.java">
+package com.bustracking.tracking.infrastructure.web.controller;
+
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.bustracking.tracking.application.usecase.GetTodayPlannedTripsUseCase;
+import com.bustracking.tracking.domain.model.TripView;
+import com.bustracking.tracking.infrastructure.web.dto.response.TripResponse;
+
+@RestController
+@RequestMapping("/tracking/trips")
+public class DriverTripQueryController {
+
+    private final GetTodayPlannedTripsUseCase getTodayPlannedTripsUseCase;
+
+    public DriverTripQueryController(GetTodayPlannedTripsUseCase getTodayPlannedTripsUseCase) {
+        this.getTodayPlannedTripsUseCase = getTodayPlannedTripsUseCase;
+    }
+
+        @GetMapping("/today")
+    public ResponseEntity<List<TripResponse>> getTodayPlannedTripsForDriver() {
+        // TODO: extraer busId del JWT cuando HU-18 esté implementada
+        
+        UUID busId = UUID.fromString("650e8400-e29b-41d4-a716-446655440001");
+        List<TripView> trips = getTodayPlannedTripsUseCase.execute(busId);
+
+        List<TripResponse> response = trips.stream()
+            .map(trip -> new TripResponse(
+                trip.getId(),
+                trip.getRouteName(),
+                trip.getOrigin(),
+                trip.getDestination(),
+                trip.getDepartureTime(),
+                trip.getStatus()
+            ))
+            .toList();
+
+        return ResponseEntity.ok(response);
+    }
+}
+</file>
+
+<file path="src/main/java/com/bustracking/tracking/infrastructure/web/dto/request/UpdateBusLocationRequest.java">
+package com.bustracking.tracking.infrastructure.web.dto.request;
+
+import java.math.BigDecimal;
+
+public record UpdateBusLocationRequest (
+    BigDecimal lat,
+    BigDecimal lng
+) {}
+</file>
+
+<file path="src/main/java/com/bustracking/tracking/infrastructure/web/dto/response/BusLocationResponse.java">
+package com.bustracking.tracking.infrastructure.web.dto.response;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+public record BusLocationResponse(
+    UUID busId,
+    BigDecimal lat,
+    BigDecimal lng,
+    LocalDateTime updatedAt
+) {}
+</file>
+
+<file path="src/main/java/com/bustracking/tracking/infrastructure/web/dto/response/Placeholder.java">
+// Response DTOs - HTTP response mapping objects go here
+</file>
+
+<file path="src/main/java/com/bustracking/tracking/infrastructure/web/dto/response/TripResponse.java">
+package com.bustracking.tracking.infrastructure.web.dto.response;
+
+import java.time.LocalTime;
+import java.util.UUID;
+
+public record TripResponse(
+    UUID id,
+    String routeName,
+    String origin,
+    String destination,
+    LocalTime departureTime,
+    String status
+) {}
+</file>
+
+</files>

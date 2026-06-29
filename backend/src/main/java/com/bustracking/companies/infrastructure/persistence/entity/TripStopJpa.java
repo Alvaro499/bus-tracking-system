@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "route_trip", schema = "companies")
+@Table(name = "trip_stop", schema = "companies")
 @Getter
 @Setter
 @NoArgsConstructor

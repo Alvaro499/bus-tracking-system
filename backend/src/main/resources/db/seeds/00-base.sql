@@ -1,14 +1,26 @@
 -- ============================================================================
--- BASE SEEDS: Empresa y Bus
+-- Tracking Base Fixtures: Company + Buses
 -- ============================================================================
--- Datos base que todo HU necesitará: empresa y vehículo principal
--- Dependencias: ninguna (son datos base)
--- ============================================================================
-
--- Insert base company
 INSERT INTO companies.company (id, tax_id, name, email, phone, status, created_at, updated_at)
-VALUES ('550e8400-e29b-41d4-a716-446655440000', '3101000000', 'Empresa Test', 'test@test.com', '22000000', 'ACTIVE', NOW(), NOW());
+VALUES (
+    '550e8400-e29b-41d4-a716-446655440000'::uuid,
+    '12-345-678901',
+    'Test Shared Company',
+    'shared@test.com',
+    '88888888',
+    'ACTIVE',
+    NOW(),
+    NOW()
+) ON CONFLICT DO NOTHING;
 
--- Insert base bus for testing
-INSERT INTO companies.bus (id, company_id, plate, internal_number, has_ramp, status, created_at, updated_at)
-VALUES ('650e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440000', 'CRC001', '001', false, 'ACTIVE', NOW(), NOW());
+INSERT INTO companies.bus (id, company_id, plate, status, created_at, updated_at)
+VALUES 
+    ('650e8400-e29b-41d4-a716-446655440001'::uuid, '550e8400-e29b-41d4-a716-446655440000'::uuid, 'TEST001', 'ACTIVE', NOW(), NOW()),
+    ('650e8400-e29b-41d4-a716-446655440002'::uuid, '550e8400-e29b-41d4-a716-446655440000'::uuid, 'TEST002', 'ACTIVE', NOW(), NOW())
+ON CONFLICT DO NOTHING;
+
+INSERT INTO tracking.bus_location (bus_id, lat, lng, updated_at)
+VALUES 
+    ('650e8400-e29b-41d4-a716-446655440001'::uuid, 9.8612, -83.9180, NOW()),
+    ('650e8400-e29b-41d4-a716-446655440002'::uuid, 9.8615, -83.9145, NOW())
+ON CONFLICT DO NOTHING;

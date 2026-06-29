@@ -7,22 +7,22 @@ import org.springframework.stereotype.Service;
 import com.bustracking.shared.exception.ErrorCode;
 import com.bustracking.shared.exception.NotFoundException;
 import com.bustracking.tracking.domain.contract.BusExistsById;
-import com.bustracking.tracking.domain.contract.StartTrip;
+import com.bustracking.tracking.domain.contract.GetTripDetail;
+import com.bustracking.tracking.domain.model.TripDetailView;
+
 
 @Service
-public class StartTripUseCase {
+public class GetTripDetailUseCase {
 
-    private final StartTrip startTrip;
-    private BusExistsById busExistsById;
-    
-    public StartTripUseCase(StartTrip startTrip, BusExistsById busExistsById) {
-        this.startTrip = startTrip;
+    private final BusExistsById busExistsById;
+    private final GetTripDetail getTripDetail;
+
+    public GetTripDetailUseCase(BusExistsById busExistsById, GetTripDetail getTripDetail) {
         this.busExistsById = busExistsById;
+        this.getTripDetail = getTripDetail;
     }
 
-    public void execute(UUID tripId, UUID busId){
-
-        // We validate if the bus exists before starting the trip.
+    public TripDetailView execute(UUID busId, UUID tripId) {
         if (!busExistsById.check(busId)) {
             throw new NotFoundException(
                 ErrorCode.BUS_NOT_FOUND,
@@ -31,8 +31,7 @@ public class StartTripUseCase {
             );
         }
 
-        // We delegate the logic of starting the trip to company module
-        startTrip.execute(tripId, busId);
+        return getTripDetail.execute(tripId);
     }
-    
+
 }
