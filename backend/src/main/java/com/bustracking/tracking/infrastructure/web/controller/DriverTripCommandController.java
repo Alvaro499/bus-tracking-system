@@ -41,12 +41,12 @@ public class DriverTripCommandController {
 
     }
 
-    @PostMapping("/{tripId}/confirm/{stopId}/stop")
-    public ResponseEntity<TripDetailResponse> confirmStop(@PathVariable UUID tripId, @PathVariable UUID stopId){
+    @PostMapping("/{tripId}/stops/{routeStopId}/confirm")
+    public ResponseEntity<TripDetailResponse> confirmStop(@PathVariable UUID tripId, @PathVariable UUID routeStopId){
 
         UUID busId = UUID.fromString("650e8400-e29b-41d4-a716-446655440001");
         // We need the busId so we can know which bus is confirming the stop
-        TripDetailView response = confirmStopUseCase.execute(tripId, stopId, busId);
+        TripDetailView response = confirmStopUseCase.execute(tripId, routeStopId, busId);
         TripDetailResponse tripDetailResponse = tripDetailMapper.toResponse(response);
         return ResponseEntity.ok(tripDetailResponse);
     }

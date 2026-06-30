@@ -30,7 +30,7 @@ public class ConfirmStopUseCase {
     }
 
     @Transactional
-    public TripDetailView execute(UUID tripId, UUID stopId, UUID busId) {
+    public TripDetailView execute(UUID tripId, UUID routeStopId, UUID busId) {
 
         if (!busExistsById.check(busId)) {
             throw new NotFoundException(
@@ -40,7 +40,7 @@ public class ConfirmStopUseCase {
             );
         }
         //para mañana: Finalizar viaje apenas completa la ultima o dejarlo manual
-        confirmStop.execute(tripId, stopId);
+        confirmStop.execute(tripId, routeStopId);
         
         //We return the updated trip to the frontend (driver)
         return getTripDetail.execute(tripId);

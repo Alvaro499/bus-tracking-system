@@ -66,7 +66,7 @@ public class ConfirmStopDelegate implements ConfirmStop {
                                                 "All stops already completed",
                                                 "Cannot confirm a stop because all stops are already completed"));
 
-                // 5. Verificar que el stopId coincide con la primera no completada
+                // We verify that the stopId being confirmed is the first uncompleted stop
                 if (!firstUncompleted.routeStopId().equals(stopId)) {
                         throw new BusinessRuleException(
                                         ErrorCode.INVALID_STATE,
