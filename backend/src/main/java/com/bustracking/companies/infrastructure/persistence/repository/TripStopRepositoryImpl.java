@@ -3,10 +3,13 @@ package com.bustracking.companies.infrastructure.persistence.repository;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.stereotype.Repository;
+
 import com.bustracking.companies.domain.model.TripStop;
 import com.bustracking.companies.domain.repository.TripStopRepository;
 import com.bustracking.companies.infrastructure.persistence.entity.TripStopJpa;
 
+@Repository
 public class TripStopRepositoryImpl implements TripStopRepository {
 
     private final TripStopJpaRepository jpaRepository;
