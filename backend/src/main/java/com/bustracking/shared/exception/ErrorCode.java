@@ -12,6 +12,7 @@ public enum ErrorCode {
     RESOURCE_NOT_FOUND,
     ADMIN_NOT_FOUND,
     BUS_NOT_FOUND,
+    STOP_NOT_FOUND,
 
     // BUSINESS RULES
     ADMIN_NOT_ACTIVE,

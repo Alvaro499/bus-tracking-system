@@ -7,10 +7,12 @@ import org.springframework.context.annotation.Configuration;
 import com.bustracking.companies.domain.model.Trip;
 import com.bustracking.companies.domain.repository.BusRepository;
 import com.bustracking.companies.domain.repository.TripRepository;
+import com.bustracking.companies.infrastructure.delegate.ConfirmStopDelegate;
 import com.bustracking.companies.infrastructure.delegate.TripDetailDelegate;
 import com.bustracking.shared.exception.ErrorCode;
 import com.bustracking.shared.exception.NotFoundException;
 import com.bustracking.tracking.domain.contract.BusExistsById;
+import com.bustracking.tracking.domain.contract.ConfirmStop;
 import com.bustracking.tracking.domain.contract.GetTodayPlannedTripsByBusRoutes;
 import com.bustracking.tracking.domain.contract.GetTripDetail;
 import com.bustracking.tracking.domain.contract.StartTrip;
@@ -38,11 +40,10 @@ public class TrackingDelegatesConfig {
     private final BusRepository busRepository;
     private final TripRepository tripRepository;
 
-
     public TrackingDelegatesConfig(BusRepository busRepository, TripRepository tripRepository) {
         this.busRepository = busRepository;
         this.tripRepository = tripRepository;
-    }   
+    }
 
     /**
      * Provides a delegate for checking if a bus exists
@@ -57,40 +58,41 @@ public class TrackingDelegatesConfig {
     @Bean
     public BusExistsById busExistsById() {
         // Method reference: delegates to the repository's existsById method
-        // 
+        //
         // This is equivalent to:
         // BusExistsById delegate = (UUID busId) -> busRepository.existsById(busId);
         return busRepository::existsById;
     }
 
-    // Importing TripView is not a problem because it's a simple DTO used for data transfer between modules.
-    // The tracking module only knows about TripView, not the internal Trip entity or JPA
+    // Importing TripView is not a problem because it's a simple DTO used for data
+    // transfer between modules.
+    // The tracking module only knows about TripView, not the internal Trip entity
+    // or JPA
     @Bean
     public GetTodayPlannedTripsByBusRoutes getTodayPlannedTripsByBusRoutes() {
         return busId -> tripRepository.findTodayPlannedTripsByBusRoutes(busId)
-            .stream()
-            .map(result -> new TripView(
-                result.id(),
-                result.routeName(),
-                result.origin(),
-                result.destination(),
-                result.departureTime(),
-                result.status().name()
-            ))
-            .toList();
+                .stream()
+                .map(result -> new TripView(
+                        result.id(),
+                        result.routeName(),
+                        result.origin(),
+                        result.destination(),
+                        result.departureTime(),
+                        result.status().name()))
+                .toList();
     }
 
-    @Bean 
+    @Bean
     public StartTrip startTrip() {
         // We use lambda expression avoiding creating an unneessary class.
         return (tripId, busId) -> {
             Optional<Trip> optionalTrip = tripRepository.findById(tripId);
 
-            if(optionalTrip.isEmpty()) {
+            if (optionalTrip.isEmpty()) {
                 throw new NotFoundException(
-                    ErrorCode.TRIP_NOT_FOUND,
-                    "Trip not found",
-                    "Trip with ID " + tripId + " not found for Bus ID " + busId);
+                        ErrorCode.TRIP_NOT_FOUND,
+                        "Trip not found",
+                        "Trip with ID " + tripId + " not found for Bus ID " + busId);
             }
             // We extract the Trip entity
             Trip trip = optionalTrip.get();
@@ -101,9 +103,15 @@ public class TrackingDelegatesConfig {
         };
     }
 
-    // When someone ask for GetTripDetail, we return an instance of TripDetailDelegate, which implements GetTripDetail interface.
+    // When someone ask for GetTripDetail, we return an instance of
+    // TripDetailDelegate, which implements GetTripDetail interface.
     @Bean
     public GetTripDetail getTripDetail(TripDetailDelegate delegate) {
+        return delegate;
+    }
+
+    @Bean
+    public ConfirmStop confirmStop(ConfirmStopDelegate delegate) {
         return delegate;
     }
 }
