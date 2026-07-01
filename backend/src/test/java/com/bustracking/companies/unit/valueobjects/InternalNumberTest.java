@@ -1,4 +1,4 @@
-package com.bustracking.companies.unit.domain.valueobjects;
+package com.bustracking.companies.unit.valueobjects;
 
 import static org.junit.jupiter.api.Assertions.*;
 
