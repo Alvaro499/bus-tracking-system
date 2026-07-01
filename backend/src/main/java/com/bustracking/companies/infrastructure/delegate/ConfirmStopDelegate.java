@@ -74,7 +74,7 @@ public class ConfirmStopDelegate implements ConfirmStop {
                                         "Only the first uncompleted stop can be confirmed");
                 }
 
-                // 6. Actualizar el TripStop
+                // We update the TripStop to mark it as completed
                 Optional<TripStop> optionalTripStop = tripStopRepository.findByTripIdAndRouteStopId(tripId, stopId);
                 if (optionalTripStop.isEmpty()) {
                         throw new NotFoundException(

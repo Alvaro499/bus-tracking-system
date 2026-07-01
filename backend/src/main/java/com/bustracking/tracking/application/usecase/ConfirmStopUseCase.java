@@ -39,7 +39,6 @@ public class ConfirmStopUseCase {
                     "Bus with ID " + busId + " does not exist"
             );
         }
-        //para mañana: Finalizar viaje apenas completa la ultima o dejarlo manual
         confirmStop.execute(tripId, routeStopId);
         
         //We return the updated trip to the frontend (driver)
