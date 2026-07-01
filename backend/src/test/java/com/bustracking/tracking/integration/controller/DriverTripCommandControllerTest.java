@@ -113,21 +113,22 @@ class DriverTripCommandControllerTest extends ControllerIntegrationTest {
                     .andExpect(jsonPath("$.trip.status").value("IN_PROGRESS"))
                     .andExpect(jsonPath("$.stops").isArray());
 
-            verify(confirmStopUseCase).execute(eq(VALID_TRIP_ID), eq(VALID_ROUTE_STOP_ID), any());
-            verify(tripDetailMapper).toResponse(mockView);
+            verify(confirmStopUseCase, times(1)).execute(eq(VALID_TRIP_ID), eq(VALID_ROUTE_STOP_ID), any());
+            verify(tripDetailMapper, times(1)).toResponse(mockView);
         }
 
         // =========================================================
         // POST /tracking/trips/{tripId}/stops/{routeStopId}/confirm - Invalid UUIDs
+        // this method tests that if either tripId or routeStopId is not a valid UUID
         // =========================================================
 
         @Test
-        public void shouldReturn400_WhenTripIdIsNotValidUUID() throws Exception {
+        public void shouldReturn400_WhenAnyIdIsNotValidUUID() throws Exception {
             mockMvc.perform(post("/tracking/trips/{tripId}/stops/{routeStopId}/confirm",
                             "not-a-valid-uuid", VALID_ROUTE_STOP_ID))
                     .andExpect(status().isBadRequest());
 
-            verifyNoInteractions(confirmStopUseCase);
+                verify(confirmStopUseCase, times(0)).execute(any(), any(), any());
         }
     }
 }
