@@ -139,8 +139,33 @@ public class ConfirmStopDelegateTest {
         verify(tripStopRepository, never()).save(any());
     }
 
-    // ========================================================
-    // exectue - Trip Has No Stops
-    // ========================================================
+    // =========================================================
+    // execute - Trip Has No Stops
+    // =========================================================
+    @Test
+    public void shouldThrowBusinessRuleException_WhenTripHasNoStops() {
+        // Arrange
+        Trip realTrip = new Trip(UUID.randomUUID());
+        realTrip.start(UUID.randomUUID());
+        when(tripRepository.findById(TRIP_ID)).thenReturn(Optional.of(realTrip));
+
+        // Empty list of stops to simulate a trip with no stops
+        when(tripRepository.findStopsByTripId(TRIP_ID)).thenReturn(List.of());
+
+        // Act & Assert
+        BusinessRuleException exception = assertThrows(BusinessRuleException.class, () -> {
+            confirmStopDelegate.execute(TRIP_ID, STOP_ID);
+        });
+
+        assertEquals(ErrorCode.INVALID_STATE, exception.getErrorCode());
+
+        
+        verify(tripRepository, times(1)).findById(TRIP_ID);
+        verify(tripRepository, times(1)).findStopsByTripId(TRIP_ID);
+
+        // never
+        verify(tripStopRepository, never()).findByTripIdAndRouteStopId(any(), any());
+        verify(tripStopRepository, never()).save(any());
+    }
 
 }
