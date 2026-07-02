@@ -112,7 +112,32 @@ public class ConfirmStopDelegateTest {
         verify(tripStopRepository, never()).save(any());
     }
 
-    
+    // =========================================================
+    // execute - Trip Not In Progress
+    // =========================================================
+    @Test
+    public void shouldThrowBusinessRuleException_WhenTripIsNotInProgress() {
+        // Arrange: we never call the start() method, so the trip is not in IN_PROGRESS
+        Trip realTrip = new Trip(UUID.randomUUID());
+
+        // We make sure that is not in IN_PROGRESS (in case constructor changes in the
+        // future)
+        assertNotEquals(TripStatus.IN_PROGRESS, realTrip.getStatus());
+        when(tripRepository.findById(TRIP_ID)).thenReturn(Optional.of(realTrip));
+
+        // Act & Assert
+        BusinessRuleException exception = assertThrows(BusinessRuleException.class, () -> {
+            confirmStopDelegate.execute(TRIP_ID, STOP_ID);
+        });
+
+        assertEquals(ErrorCode.INVALID_STATE, exception.getErrorCode());
+
+        // Verificamos que solo se llamó a findById y que el resto NO se ejecuta
+        verify(tripRepository, times(1)).findById(TRIP_ID);
+        verify(tripRepository, never()).findStopsByTripId(any());
+        verify(tripStopRepository, never()).findByTripIdAndRouteStopId(any(), any());
+        verify(tripStopRepository, never()).save(any());
+    }
 
     // ========================================================
     // exectue - Trip Has No Stops
