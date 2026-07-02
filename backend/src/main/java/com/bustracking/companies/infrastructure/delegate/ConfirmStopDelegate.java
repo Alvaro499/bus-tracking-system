@@ -28,7 +28,7 @@ public class ConfirmStopDelegate implements ConfirmStop {
         }
 
         @Override
-        public void execute(UUID tripId, UUID stopId) {
+        public void execute(UUID tripId, UUID routeStopId) {
 
                 // We find our trip
                 Optional<Trip> optionalTrip = tripRepository.findById(tripId);
@@ -67,7 +67,7 @@ public class ConfirmStopDelegate implements ConfirmStop {
                                                 "Cannot confirm a stop because all stops are already completed"));
 
                 // We verify that the stopId being confirmed is the first uncompleted stop
-                if (!firstUncompleted.routeStopId().equals(stopId)) {
+                if (!firstUncompleted.routeStopId().equals(routeStopId)) {
                         throw new BusinessRuleException(
                                         ErrorCode.INVALID_STATE,
                                         "Stop out of order",
@@ -75,12 +75,12 @@ public class ConfirmStopDelegate implements ConfirmStop {
                 }
 
                 // We update the TripStop to mark it as completed
-                Optional<TripStop> optionalTripStop = tripStopRepository.findByTripIdAndRouteStopId(tripId, stopId);
+                Optional<TripStop> optionalTripStop = tripStopRepository.findByTripIdAndRouteStopId(tripId, routeStopId);
                 if (optionalTripStop.isEmpty()) {
                         throw new NotFoundException(
                                         ErrorCode.STOP_NOT_FOUND,
                                         "Stop not found for this trip",
-                                        "No TripStop found for tripId " + tripId + " and routeStopId " + stopId);
+                                        "No TripStop found for tripId " + tripId + " and routeStopId " + routeStopId);
                 }
                 TripStop tripStop = optionalTripStop.get();
 

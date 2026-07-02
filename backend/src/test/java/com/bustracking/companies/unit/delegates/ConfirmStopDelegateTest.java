@@ -41,7 +41,7 @@ public class ConfirmStopDelegateTest {
     // Test Common Data
     // Arrange
     private final UUID TRIP_ID = UUID.fromString("b70e8400-e29b-41d4-a716-446655440001");
-    private final UUID STOP_ID = UUID.fromString("c80e8400-e29b-41d4-a716-446655440001");
+    private final UUID ROUTE_STOP_ID = UUID.fromString("c80e8400-e29b-41d4-a716-446655440001");
     private final UUID SCHEDULE_ID = UUID.fromString("d90e8400-e29b-41d4-a716-446655440001");
 
     @BeforeEach
@@ -62,7 +62,7 @@ public class ConfirmStopDelegateTest {
 
         // We create the real projection of the first incomplete stop
         TripStopDetailProjection firstStop = new TripStopDetailProjection(
-                STOP_ID, // routeStopId
+                ROUTE_STOP_ID, // routeStopId
                 UUID.randomUUID(), // stopId
                 "Stop Name", // stopName
                 BigDecimal.valueOf(9.0), // stopLat
@@ -76,17 +76,17 @@ public class ConfirmStopDelegateTest {
         when(tripRepository.findStopsByTripId(TRIP_ID)).thenReturn(List.of(firstStop));
 
         // 3. Crear TripStop real y configurar repositorio para devolverlo
-        TripStop realTripStop = new TripStop(TRIP_ID, STOP_ID);
-        when(tripStopRepository.findByTripIdAndRouteStopId(TRIP_ID, STOP_ID))
+        TripStop realTripStop = new TripStop(TRIP_ID, ROUTE_STOP_ID);
+        when(tripStopRepository.findByTripIdAndRouteStopId(TRIP_ID, ROUTE_STOP_ID))
                 .thenReturn(Optional.of(realTripStop));
 
         // Act
-        confirmStopDelegate.execute(TRIP_ID, STOP_ID);
+        confirmStopDelegate.execute(TRIP_ID, ROUTE_STOP_ID);
 
         // Assert
         verify(tripRepository, times(1)).findById(TRIP_ID);
         verify(tripRepository, times(1)).findStopsByTripId(TRIP_ID);
-        verify(tripStopRepository, times(1)).findByTripIdAndRouteStopId(TRIP_ID, STOP_ID);
+        verify(tripStopRepository, times(1)).findByTripIdAndRouteStopId(TRIP_ID, ROUTE_STOP_ID);
         verify(tripStopRepository, times(1)).save(realTripStop);
         assertNotNull(realTripStop.getCompletedAt());
     }
@@ -102,7 +102,7 @@ public class ConfirmStopDelegateTest {
 
         // Act & Assert
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            confirmStopDelegate.execute(TRIP_ID, STOP_ID);
+            confirmStopDelegate.execute(TRIP_ID, ROUTE_STOP_ID);
         });
 
         assertEquals(ErrorCode.TRIP_NOT_FOUND, exception.getErrorCode());
@@ -129,7 +129,7 @@ public class ConfirmStopDelegateTest {
 
         // Act & Assert
         BusinessRuleException exception = assertThrows(BusinessRuleException.class, () -> {
-            confirmStopDelegate.execute(TRIP_ID, STOP_ID);
+            confirmStopDelegate.execute(TRIP_ID, ROUTE_STOP_ID);
         });
 
         assertEquals(ErrorCode.INVALID_STATE, exception.getErrorCode());
@@ -156,7 +156,7 @@ public class ConfirmStopDelegateTest {
 
         // Act & Assert
         BusinessRuleException exception = assertThrows(BusinessRuleException.class, () -> {
-            confirmStopDelegate.execute(TRIP_ID, STOP_ID);
+            confirmStopDelegate.execute(TRIP_ID, ROUTE_STOP_ID);
         });
 
         assertEquals(ErrorCode.INVALID_STATE, exception.getErrorCode());
@@ -190,7 +190,7 @@ public class ConfirmStopDelegateTest {
         );
 
         TripStopDetailProjection secondStop = new TripStopDetailProjection(
-                STOP_ID, // routeStopId (the one we will try to confirm)
+                ROUTE_STOP_ID, // routeStopId (the one we will try to confirm)
                 UUID.randomUUID(), // stopId
                 "Second Stop", // stopName
                 BigDecimal.valueOf(9.1), // stopLat
@@ -205,7 +205,7 @@ public class ConfirmStopDelegateTest {
 
         // Act & Assert
         BusinessRuleException exception = assertThrows(BusinessRuleException.class, () -> {
-            confirmStopDelegate.execute(TRIP_ID, STOP_ID);
+            confirmStopDelegate.execute(TRIP_ID, ROUTE_STOP_ID);
         });
 
         assertEquals(ErrorCode.INVALID_STATE, exception.getErrorCode());
@@ -237,7 +237,7 @@ public class ConfirmStopDelegateTest {
         );
 
         TripStopDetailProjection secondStop = new TripStopDetailProjection(
-                STOP_ID, // routeStopId (the one we will try to confirm)
+                ROUTE_STOP_ID, // routeStopId (the one we will try to confirm)
                 UUID.randomUUID(), // stopId
                 "Second Stop", // stopName
                 BigDecimal.valueOf(9.1), // stopLat
@@ -252,7 +252,7 @@ public class ConfirmStopDelegateTest {
 
         // Act & Assert
         BusinessRuleException exception = assertThrows(BusinessRuleException.class, () -> {
-            confirmStopDelegate.execute(TRIP_ID, STOP_ID);
+            confirmStopDelegate.execute(TRIP_ID, ROUTE_STOP_ID);
         });
 
         assertEquals(ErrorCode.INVALID_STATE, exception.getErrorCode());
@@ -260,6 +260,42 @@ public class ConfirmStopDelegateTest {
         verify(tripRepository, times(1)).findById(TRIP_ID);
         verify(tripRepository, times(1)).findStopsByTripId(TRIP_ID);
         verify(tripStopRepository, never()).findByTripIdAndRouteStopId(any(), any());
+        verify(tripStopRepository, never()).save(any());
+    }
+
+
+     @Test
+    public void shouldThrowNotFoundException_WhenStopIsNotFound() {
+        // Arrange
+        Trip realTrip = new Trip(UUID.randomUUID());
+        realTrip.start(UUID.randomUUID());
+        when(tripRepository.findById(TRIP_ID)).thenReturn(Optional.of(realTrip));
+
+        TripStopDetailProjection firstStop = new TripStopDetailProjection(
+                ROUTE_STOP_ID, // routeStopId
+                UUID.randomUUID(), // stopId
+                "First Stop", // stopName
+                BigDecimal.valueOf(9.0), // stopLat
+                BigDecimal.valueOf(-84.0), // stopLng
+                "Reference", // stopReference
+                1, // orderIndex
+                0, // estimatedTimeOffset
+                null // completedAt
+        );
+
+        when(tripRepository.findStopsByTripId(TRIP_ID)).thenReturn(List.of(firstStop));
+        when(tripStopRepository.findByTripIdAndRouteStopId(TRIP_ID, ROUTE_STOP_ID)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
+            confirmStopDelegate.execute(TRIP_ID, ROUTE_STOP_ID);
+        });
+
+        assertEquals(ErrorCode.STOP_NOT_FOUND, exception.getErrorCode());
+
+        verify(tripRepository, times(1)).findById(TRIP_ID);
+        verify(tripRepository, times(1)).findStopsByTripId(TRIP_ID);
+        verify(tripStopRepository, times(1)).findByTripIdAndRouteStopId(TRIP_ID, ROUTE_STOP_ID);
         verify(tripStopRepository, never()).save(any());
     }
 
