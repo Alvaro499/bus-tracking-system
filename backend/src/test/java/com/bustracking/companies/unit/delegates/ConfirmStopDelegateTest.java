@@ -161,7 +161,6 @@ public class ConfirmStopDelegateTest {
 
         assertEquals(ErrorCode.INVALID_STATE, exception.getErrorCode());
 
-
         verify(tripRepository, times(1)).findById(TRIP_ID);
         verify(tripRepository, times(1)).findStopsByTripId(TRIP_ID);
 
@@ -169,7 +168,6 @@ public class ConfirmStopDelegateTest {
         verify(tripStopRepository, never()).findByTripIdAndRouteStopId(any(), any());
         verify(tripStopRepository, never()).save(any());
     }
-
 
     @Test
     public void shouldThrowBusinessRuleException_WhenAllStopsAreCompleted() {
@@ -201,6 +199,53 @@ public class ConfirmStopDelegateTest {
                 2, // orderIndex
                 5, // estimatedTimeOffset
                 LocalDateTime.now() // completedAt
+        );
+
+        when(tripRepository.findStopsByTripId(TRIP_ID)).thenReturn(List.of(firstStop, secondStop));
+
+        // Act & Assert
+        BusinessRuleException exception = assertThrows(BusinessRuleException.class, () -> {
+            confirmStopDelegate.execute(TRIP_ID, STOP_ID);
+        });
+
+        assertEquals(ErrorCode.INVALID_STATE, exception.getErrorCode());
+
+        verify(tripRepository, times(1)).findById(TRIP_ID);
+        verify(tripRepository, times(1)).findStopsByTripId(TRIP_ID);
+        verify(tripStopRepository, never()).findByTripIdAndRouteStopId(any(), any());
+        verify(tripStopRepository, never()).save(any());
+    }
+
+    @Test
+    public void shouldThrowBusinessRuleException_WhenStopAreOutOfOrder() {
+        // Arrange
+        Trip realTrip = new Trip(UUID.randomUUID());
+        realTrip.start(UUID.randomUUID());
+        when(tripRepository.findById(TRIP_ID)).thenReturn(Optional.of(realTrip));
+
+        // Create two completed stops
+        TripStopDetailProjection firstStop = new TripStopDetailProjection(
+                UUID.randomUUID(), // routeStopId
+                UUID.randomUUID(), // stopId
+                "First Stop", // stopName
+                BigDecimal.valueOf(9.0), // stopLat
+                BigDecimal.valueOf(-84.0), // stopLng
+                "Reference", // stopReference
+                1, // orderIndex
+                0, // estimatedTimeOffset
+                null // completedAt
+        );
+
+        TripStopDetailProjection secondStop = new TripStopDetailProjection(
+                STOP_ID, // routeStopId (the one we will try to confirm)
+                UUID.randomUUID(), // stopId
+                "Second Stop", // stopName
+                BigDecimal.valueOf(9.1), // stopLat
+                BigDecimal.valueOf(-84.1), // stopLng
+                "Reference", // stopReference
+                2, // orderIndex
+                5, // estimatedTimeOffset
+                null // completedAt
         );
 
         when(tripRepository.findStopsByTripId(TRIP_ID)).thenReturn(List.of(firstStop, secondStop));
