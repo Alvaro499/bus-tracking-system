@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -41,6 +42,7 @@ public class ConfirmStopDelegateTest {
     // Arrange
     private final UUID TRIP_ID = UUID.fromString("b70e8400-e29b-41d4-a716-446655440001");
     private final UUID STOP_ID = UUID.fromString("c80e8400-e29b-41d4-a716-446655440001");
+    private final UUID SCHEDULE_ID = UUID.fromString("d90e8400-e29b-41d4-a716-446655440001");
 
     @BeforeEach
     void setUp() {
@@ -159,11 +161,59 @@ public class ConfirmStopDelegateTest {
 
         assertEquals(ErrorCode.INVALID_STATE, exception.getErrorCode());
 
-        
+
         verify(tripRepository, times(1)).findById(TRIP_ID);
         verify(tripRepository, times(1)).findStopsByTripId(TRIP_ID);
 
         // never
+        verify(tripStopRepository, never()).findByTripIdAndRouteStopId(any(), any());
+        verify(tripStopRepository, never()).save(any());
+    }
+
+
+    @Test
+    public void shouldThrowBusinessRuleException_WhenAllStopsAreCompleted() {
+        // Arrange
+        Trip realTrip = new Trip(UUID.randomUUID());
+        realTrip.start(UUID.randomUUID());
+        when(tripRepository.findById(TRIP_ID)).thenReturn(Optional.of(realTrip));
+
+        // Create two stops, the first one is uncompleted, the second one is completed
+        TripStopDetailProjection firstStop = new TripStopDetailProjection(
+                UUID.randomUUID(), // routeStopId
+                UUID.randomUUID(), // stopId
+                "First Stop", // stopName
+                BigDecimal.valueOf(9.0), // stopLat
+                BigDecimal.valueOf(-84.0), // stopLng
+                "Reference", // stopReference
+                1, // orderIndex
+                0, // estimatedTimeOffset
+                LocalDateTime.now() // completedAt
+        );
+
+        TripStopDetailProjection secondStop = new TripStopDetailProjection(
+                STOP_ID, // routeStopId (the one we will try to confirm)
+                UUID.randomUUID(), // stopId
+                "Second Stop", // stopName
+                BigDecimal.valueOf(9.1), // stopLat
+                BigDecimal.valueOf(-84.1), // stopLng
+                "Reference", // stopReference
+                2, // orderIndex
+                5, // estimatedTimeOffset
+                LocalDateTime.now() // completedAt
+        );
+
+        when(tripRepository.findStopsByTripId(TRIP_ID)).thenReturn(List.of(firstStop, secondStop));
+
+        // Act & Assert
+        BusinessRuleException exception = assertThrows(BusinessRuleException.class, () -> {
+            confirmStopDelegate.execute(TRIP_ID, STOP_ID);
+        });
+
+        assertEquals(ErrorCode.INVALID_STATE, exception.getErrorCode());
+
+        verify(tripRepository, times(1)).findById(TRIP_ID);
+        verify(tripRepository, times(1)).findStopsByTripId(TRIP_ID);
         verify(tripStopRepository, never()).findByTripIdAndRouteStopId(any(), any());
         verify(tripStopRepository, never()).save(any());
     }
