@@ -14,11 +14,11 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
-public class AuthDriverController {
+public class AuthenticateDriverController {
 
     private final AuthenticateBusUseCase authenticateBusUseCase;
 
-    public AuthDriverController(AuthenticateBusUseCase authenticateBusUseCase) {
+    public AuthenticateDriverController(AuthenticateBusUseCase authenticateBusUseCase) {
         this.authenticateBusUseCase = authenticateBusUseCase;
     }
 
@@ -27,15 +27,15 @@ public class AuthDriverController {
         TokensDTO tokens = authenticateBusUseCase.execute(UUID.fromString(request.busId()), request.password());
 
         ResponseCookie accessCookie = ResponseCookie.from("access_token", tokens.accessToken())
-                .httpOnly(true)
+                .httpOnly(true) // Prevents JavaScript access to the cookie
                 .secure(false) // Only in dev could be false, in production true with HTTPS
-                .sameSite("Strict")
-                .path("/")
+                .sameSite("Strict") // Prevents CSRF attacks by avoiding other sites call the API and get/send the cookie
+                .path("/") // cookie can be sent to any endpoint of the API
                 .maxAge(900) // 15 min in seconds
                 .build();
 
         ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", tokens.refreshToken())
-                .httpOnly(true)
+                .httpOnly(true) // Prevents JavaScript access to the cookie
                 .secure(false) // Only in dev could be false, in production true with HTTPS
                 .sameSite("Strict")
                 .path("/auth/refresh") // Only sent when refreshing

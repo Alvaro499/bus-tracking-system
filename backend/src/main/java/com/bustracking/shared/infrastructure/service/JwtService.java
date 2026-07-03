@@ -40,18 +40,38 @@ public class JwtService {
     }
 
     public UUID extractBusId(String token) {
-        return UUID.fromString(extractClaim(token, Claims::getSubject));
+        return UUID.fromString(extractClaim(token, claim -> claim.getSubject()));
     }
 
     public Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
+        return extractClaim(token, claim -> claim.getExpiration());
     }
+
+    /**
+     * Extract a specific claim from the JWT token
+     *
+     * @param token          the JWT token to parse
+     * @param claimsResolver a function to extract the desired claim from the claims
+     * @param <T>            the type of the claim to extract
+     * @return the extracted claim
+     * 
+     * @visualization:
+     *      Claims claims = parseToken(token);
+     *      String subject = claims.getSubject();
+     *      return subject;
+     */
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         Claims claims = parseToken(token);
         return claimsResolver.apply(claims);
     }
 
+    /**
+     * Read and verify the JWT token
+     *
+     * @param token the JWT token to parse
+     * @return the claims contained in the token (expiration, subject, etc.)
+     */
     public Claims parseToken(String token) {
         return Jwts.parser()
                 .verifyWith(secretKey)
