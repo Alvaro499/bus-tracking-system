@@ -27,6 +27,7 @@ public enum ErrorCode {
     // AUTHENTICATION
     UNAUTHORIZED,
     FORBIDDEN,
+    INVALID_CREDENTIALS,
 
     // GENERIC
     EXTERNAL_ERROR,
