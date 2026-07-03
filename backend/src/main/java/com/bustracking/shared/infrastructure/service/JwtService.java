@@ -21,9 +21,9 @@ public class JwtService {
     public JwtService(JwtProperties properties) {
         
         this.secretKey = Keys.hmacShaKeyFor(
-                properties.getSecret().getBytes(StandardCharsets.UTF_8)
+                properties.secret().getBytes(StandardCharsets.UTF_8)
         );
-        this.accessTokenExpiration = properties.getAccessTokenExpiration();
+        this.accessTokenExpiration = properties.accessTokenExpiration();
     }
 
     public String generateAccessToken(UUID busId) {
