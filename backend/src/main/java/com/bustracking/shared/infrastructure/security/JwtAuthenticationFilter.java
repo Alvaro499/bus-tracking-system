@@ -66,8 +66,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             var authorities = Collections.singletonList(
                     new SimpleGrantedAuthority("ROLE_" + role));
 
-            // Create an authentication object with the busId and role, and set it in the
-            // security context
+            // It executes every time a cooke with a valid JWT is received, creating a new authentication object and setting it in the security context.
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                     busId, // controllers can get the busId from the authentication object
                     null, // password is not needed for JWT authentication
