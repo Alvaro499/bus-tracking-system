@@ -15,6 +15,8 @@ import com.bustracking.shared.exception.ValidationException;
 
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -82,6 +84,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(500).body(response);
     }
 
+    // Own exceptions
+
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ErrorResponse> handleNotFound(NotFoundException ex) {
         log.warn("Not found: {}", ex.getDevMessage());
@@ -103,9 +107,12 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Failed Authentication is an business rule violation. This because the user is trying to access a resource without valid credentials.
-     * Handles business rule violations, such as invalid credentials or other domain-specific rules.
-     * Returns 401 for invalid credentials and 422 for other business rule violations.
+     * Failed Authentication is an business rule violation. This because the user is
+     * trying to access a resource without valid credentials.
+     * Handles business rule violations, such as invalid credentials or other
+     * domain-specific rules.
+     * Returns 401 for invalid credentials and 422 for other business rule
+     * violations.
      */
 
     @ExceptionHandler(BusinessRuleException.class)
@@ -113,8 +120,8 @@ public class GlobalExceptionHandler {
         log.warn("Business rule violation: {}", ex.getDevMessage());
 
         int status = ex.getErrorCode() == ErrorCode.INVALID_CREDENTIALS
-                ? 401 // Unauthorized - invalid credentials
-                : 422; // Unprocessable Entity - other business rule violations
+                ? 401 // Unauthorized - invalid credentials (username/password)
+                : 422; // Unprocessable Entity or Logic - other business rule violations
 
         ErrorResponse response = new ErrorResponse(
                 ex.getErrorCode().name(),
@@ -130,6 +137,33 @@ public class GlobalExceptionHandler {
                 ex.getUserMessage());
         // 502 = HttpStatusCode.BAD_GATEWAY
         return ResponseEntity.status(502).body(response);
+    }
+
+    /**
+     * Spring Security exceptions
+     * Handles authentication and authorization errors.
+     * Returns 401 for unauthenticated requests and 403 for unauthorized requests.
+     * These new exceptions are thrown by Spring Security under the hood when authentication or authorization fails.
+     */
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleAuthentication(AuthenticationException ex) {
+        log.warn("Authentication error: {}", ex.getMessage());
+        ErrorResponse response = new ErrorResponse(
+                "UNAUTHORIZED", // invalid token
+                "Autenticación requerida");
+        // 401 = HttpStatusCode.UNAUTHORIZED
+        return ResponseEntity.status(401).body(response);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex) {
+        log.warn("Access denied: {}", ex.getMessage());
+        ErrorResponse response = new ErrorResponse(
+                "FORBIDDEN", // no rol matching 
+                "Acceso denegado");
+        // 403 = HttpStatusCode.FORBIDDEN
+        return ResponseEntity.status(403).body(response);
     }
 
 }
