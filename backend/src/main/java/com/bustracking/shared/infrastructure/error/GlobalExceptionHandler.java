@@ -118,7 +118,7 @@ public class GlobalExceptionHandler {
 
         ErrorResponse response = new ErrorResponse(
                 ex.getErrorCode().name(),
-                ex.getUserMessage());
+                ex.getDevMessage());
         return ResponseEntity.status(status).body(response);
     }
 
