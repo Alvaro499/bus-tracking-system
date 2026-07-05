@@ -4,6 +4,8 @@ import static com.bustracking.shared.testinfrastructure.TestSqlScripts.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import java.util.UUID;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
@@ -33,8 +35,9 @@ public class GetTodayPlannedTripsFlowTest extends FlowIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
-    // Fixed UUID from tracking-trips.sql — bus with 6 planned trips today
-    //private static final UUID BUS_ID = UUID.fromString("650e8400-e29b-41d4-a716-446655440001");
+
+    private static final UUID BUS_ID = UUID.fromString("650e8400-e29b-41d4-a716-446655440001");
+
 
     // =========================================================
     // GET /tracking/trips/today - Driver sees planned trips
@@ -42,7 +45,8 @@ public class GetTodayPlannedTripsFlowTest extends FlowIntegrationTest {
 
     @Test
     void shouldReturnTodayPlannedTrips_WhenBusHasRoutesAssigned() throws Exception {
-        mockMvc.perform(get("/tracking/trips/today"))
+        mockMvc.perform(get("/tracking/trips/today")
+                .with(withDriverCookie(BUS_ID)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$").isArray())
             .andExpect(jsonPath("$[0].routeName").value("Cartago-Orosi"))
