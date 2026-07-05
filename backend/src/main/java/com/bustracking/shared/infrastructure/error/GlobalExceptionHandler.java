@@ -125,7 +125,7 @@ public class GlobalExceptionHandler {
 
         ErrorResponse response = new ErrorResponse(
                 ex.getErrorCode().name(),
-                ex.getDevMessage());
+                ex.getUserMessage());
         return ResponseEntity.status(status).body(response);
     }
 
@@ -151,7 +151,7 @@ public class GlobalExceptionHandler {
         log.warn("Authentication error: {}", ex.getMessage());
         ErrorResponse response = new ErrorResponse(
                 "UNAUTHORIZED", // invalid token
-                "Autenticación requerida");
+                "Requires authentication");
         // 401 = HttpStatusCode.UNAUTHORIZED
         return ResponseEntity.status(401).body(response);
     }
@@ -161,7 +161,7 @@ public class GlobalExceptionHandler {
         log.warn("Access denied: {}", ex.getMessage());
         ErrorResponse response = new ErrorResponse(
                 "FORBIDDEN", // no rol matching 
-                "Acceso denegado");
+                "Access denied");
         // 403 = HttpStatusCode.FORBIDDEN
         return ResponseEntity.status(403).body(response);
     }
