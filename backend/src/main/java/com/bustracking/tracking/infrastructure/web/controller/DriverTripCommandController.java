@@ -52,6 +52,8 @@ public class DriverTripCommandController {
     }
 
     private UUID getCurrentBusId() {
-        return (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return (UUID) SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getPrincipal();
     }
 }
