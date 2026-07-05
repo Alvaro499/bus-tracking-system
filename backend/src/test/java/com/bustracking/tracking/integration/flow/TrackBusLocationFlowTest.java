@@ -17,7 +17,6 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.bustracking.shared.testinfrastructure.FlowIntegrationTest;
 
-
 /**
  * E2E Test: Bus Location Flow
  *
@@ -25,16 +24,15 @@ import com.bustracking.shared.testinfrastructure.FlowIntegrationTest;
  * "A bus sends its location and a user can query it"
  *
  * Flow:
- * POST /tracking/buses/{busId}/location  → device sends location
- * GET  /tracking/buses/{busId}/location  → user queries location
+ * POST /tracking/buses/{busId}/location → device sends location
+ * GET /tracking/buses/{busId}/location → user queries location
  *
  * Covers: HU-01 (ver buses en el mapa) + HU-16 (enviar ubicación desde el bus)
  */
 
-@Sql(scripts = {CLEANUP, BASE},
-     executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-public class TrackBusLocationFlowTest extends FlowIntegrationTest{
-    
+@Sql(scripts = { CLEANUP, BASE }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+public class TrackBusLocationFlowTest extends FlowIntegrationTest {
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -43,72 +41,75 @@ public class TrackBusLocationFlowTest extends FlowIntegrationTest{
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    // TextBlock instead of ObjectMapper for simplicity, since the request body is simple and we don't need to reuse it
-    //private static final String VALID_LOCATION_BODY = """
-    //    {"lat": 9.934739, "lng": -84.087502}
-    //    """;
+    // TextBlock instead of ObjectMapper for simplicity, since the request body is
+    // simple and we don't need to reuse it
+    // private static final String VALID_LOCATION_BODY = """
+    // {"lat": 9.934739, "lng": -84.087502}
+    // """;
 
     @Test
-    void shouldSendAndRetrieveBusLocation() throws Exception{
+    void shouldSendAndRetrieveBusLocation() throws Exception {
 
         String VALID_LOCATION_BODY = objectMapper.writeValueAsString(
-            new Object() {
-                public final BigDecimal lat = new BigDecimal("9.934739");
-                public final BigDecimal lng = new BigDecimal("-84.087502");
-            }
-        );
+                new Object() {
+                    public final BigDecimal lat = new BigDecimal("9.934739");
+                    public final BigDecimal lng = new BigDecimal("-84.087502");
+                });
 
         // Step 1: Device sends bus location (HU-16)
         mockMvc.perform(post("/tracking/buses/{busId}/location", BUS_ID)
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(VALID_LOCATION_BODY))
-            .andExpect(status().isOk());
+                .with(withDriverCookie(BUS_ID))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(VALID_LOCATION_BODY))
+                .andExpect(status().isOk());
 
-            // Step 2: User queries bus location (HU-01)
-        mockMvc.perform(get("/tracking/buses/{busId}/location", BUS_ID))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.busId").value(BUS_ID.toString()))
-            .andExpect(jsonPath("$.lat").value(9.934739))
-            .andExpect(jsonPath("$.lng").value(-84.087502))
-            .andExpect(jsonPath("$.updatedAt").exists());
+        // Step 2: User queries bus location (HU-01)
+        mockMvc.perform(get("/tracking/buses/{busId}/location", BUS_ID)
+                .with(withDriverCookie(BUS_ID)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.busId").value(BUS_ID.toString()))
+                .andExpect(jsonPath("$.lat").value(9.934739))
+                .andExpect(jsonPath("$.lng").value(-84.087502))
+                .andExpect(jsonPath("$.updatedAt").exists());
     }
 
     @Test
-    void shouldUpdateBusLocationWhenDeviceSendsNewPosition() throws Exception{
+    void shouldUpdateBusLocationWhenDeviceSendsNewPosition() throws Exception {
 
         // First, send an initial location
 
         String OLD_VALID_LOCATION_BODY = objectMapper.writeValueAsString(
-            new Object() {
-                public final BigDecimal lat = new BigDecimal("9.934739");
-                public final BigDecimal lng = new BigDecimal("-84.087502");
-            }
-        );
+                new Object() {
+                    public final BigDecimal lat = new BigDecimal("9.934739");
+                    public final BigDecimal lng = new BigDecimal("-84.087502");
+                });
 
         mockMvc.perform(post("/tracking/buses/{busId}/location", BUS_ID)
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(OLD_VALID_LOCATION_BODY))
-            .andExpect(status().isOk());
+                .with(withDriverCookie(BUS_ID))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(OLD_VALID_LOCATION_BODY))
+                .andExpect(status().isOk());
 
         // Then, send a new location and verify that it updates
         String NEW_VALID_LOCATION_BODY = objectMapper.writeValueAsString(
-            new Object() {
-                public final BigDecimal lat = new BigDecimal("10.934739");
-                public final BigDecimal lng = new BigDecimal("-90.087502");
-            }
-        );
+                new Object() {
+                    public final BigDecimal lat = new BigDecimal("10.934739");
+                    public final BigDecimal lng = new BigDecimal("-90.087502");
+                });
 
         mockMvc.perform(post("/tracking/buses/{busId}/location", BUS_ID)
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(NEW_VALID_LOCATION_BODY))
-            .andExpect(status().isOk());
+                .with(withDriverCookie(BUS_ID))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(NEW_VALID_LOCATION_BODY))
+                .andExpect(status().isOk());
 
-        mockMvc.perform(get("/tracking/buses/{busId}/location", BUS_ID))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.busId").value(BUS_ID.toString()))
-            .andExpect(jsonPath("$.lat").value(10.934739))
-            .andExpect(jsonPath("$.lng").value(-90.087502))
-            .andExpect(jsonPath("$.updatedAt").exists());
+        mockMvc.perform(get("/tracking/buses/{busId}/location", BUS_ID)
+                .with(withDriverCookie(BUS_ID)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.busId").value(BUS_ID.toString()))
+                .andExpect(jsonPath("$.lat").value(10.934739))
+                .andExpect(jsonPath("$.lng").value(-90.087502))
+                .andExpect(jsonPath("$.updatedAt").exists());
 
     }
 }
