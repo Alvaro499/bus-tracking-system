@@ -20,6 +20,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.bustracking.shared.testinfrastructure.ControllerIntegrationTest;
+import com.bustracking.shared.testinfrastructure.WithMockDriver;
 import com.bustracking.shared.valueobjects.GpsCoordinate;
 import com.bustracking.tracking.application.usecase.GetBusLocationUseCase;
 import com.bustracking.tracking.application.usecase.UpdateBusLocationUseCase;
@@ -59,6 +60,7 @@ class BusLocationControllerTest extends ControllerIntegrationTest {
     // =========================================================
 
     @Test
+    @WithMockDriver
     void shouldReturn200AndBusLocationWhenBusExists() throws Exception {
         // Arrange
         when(getBusLocationUseCase.execute(validBusId))
@@ -79,6 +81,7 @@ class BusLocationControllerTest extends ControllerIntegrationTest {
     // =========================================================
 
     @Test
+    @WithMockDriver
     void shouldReturn400WhenBusIdIsNotValidUUID() throws Exception {
         mockMvc.perform(get("/tracking/buses/{busId}/location", "not-a-valid-uuid"))
             .andExpect(status().isBadRequest());
@@ -89,6 +92,7 @@ class BusLocationControllerTest extends ControllerIntegrationTest {
     // =========================================================
 
     @Test
+    @WithMockDriver
     void shouldReturn200WhenBusLocationIsUpdated() throws Exception {
         // Arrange
         String requestBody = objectMapper.writeValueAsString(
@@ -115,6 +119,7 @@ class BusLocationControllerTest extends ControllerIntegrationTest {
     // =========================================================
 
     @Test
+    @WithMockDriver
     void shouldReturn400WhenPostingWithInvalidUUID() throws Exception {
         // Arrange
         String requestBody = objectMapper.writeValueAsString(
@@ -135,6 +140,7 @@ class BusLocationControllerTest extends ControllerIntegrationTest {
     }
 
     @Test
+    @WithMockDriver
     void shouldReturn400WhenPostingWithoutContentType() throws Exception {
         // Arrange
         String requestBody = objectMapper.writeValueAsString(
