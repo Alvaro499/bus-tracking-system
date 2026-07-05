@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -40,9 +41,8 @@ public class DriverTripQueryController {
 
     @GetMapping("/today")
     public ResponseEntity<List<TripResponse>> getTodayPlannedTripsForDriver() {
-        // TODO: extraer busId del JWT cuando HU-18 esté implementada
 
-        UUID busId = UUID.fromString("650e8400-e29b-41d4-a716-446655440001");
+        UUID busId = getCurrentBusId();
         List<TripView> trips = getTodayPlannedTripsUseCase.execute(busId);
 
         List<TripResponse> response = trips.stream()
@@ -60,9 +60,14 @@ public class DriverTripQueryController {
 
     @GetMapping("/{tripId}/detail")
     public ResponseEntity<TripDetailResponse> getTripDetail(@PathVariable UUID tripId) {
-        UUID busId = UUID.fromString("650e8400-e29b-41d4-a716-446655440001");
+        
+        UUID busId = getCurrentBusId();
         TripDetailView detailView = getTripDetailUseCase.execute(busId, tripId);
         TripDetailResponse response = tripDetailMapper.toResponse(detailView);
         return ResponseEntity.ok(response);
+    }
+
+    private UUID getCurrentBusId() {
+        return (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 }
