@@ -25,3 +25,6 @@ pnpm dlx repomix . --output frontend-completo.xml
 
 ## Carpeta `src` únicamente
 pnpm dlx repomix . --include "src/**/*" --output solo-src.xml
+
+## Carpeta test
+pnpm dlx repomix --include "src/test/java/com/bustracking/**" --output test-module.xml
