@@ -85,7 +85,8 @@ public class SecurityConfig {
     /**
      * Password encoder bean for hashing passwords.
      * Using BCryptPasswordEncoder for secure password hashing.
-     */
+       It´s registered with @Bean and used by AuthenticateBusUseCase
+    */
 
     @Bean
     public PasswordEncoder passwordEncoder() {
