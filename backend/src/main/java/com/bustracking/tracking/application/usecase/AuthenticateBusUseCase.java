@@ -8,6 +8,7 @@ import java.util.UUID;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.bustracking.shared.domain.RoleAuth;
 import com.bustracking.shared.exception.BusinessRuleException;
 import com.bustracking.shared.exception.ErrorCode;
 import com.bustracking.shared.infrastructure.service.JwtService;
@@ -57,7 +58,7 @@ public class AuthenticateBusUseCase {
                     "The password does not match");
         }
 
-        String accessToken = jwtService.generateAccessToken(busId);
+        String accessToken = jwtService.generateAccessToken(busId, RoleAuth.DRIVER);
         String refreshToken = generateRefreshToken();
 
         return new TokensDTO(accessToken, refreshToken);

@@ -11,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
+import com.bustracking.shared.domain.RoleAuth;
 import com.bustracking.shared.infrastructure.service.JwtService;
 
 // Standard Jakarta EE API (Servlet 5/6) used by Spring Boot 3.x/4.x.
@@ -35,8 +36,8 @@ public abstract class FlowIntegrationTest extends PostgresTestContainer {
 
     // Helper method that creates a cookie with a token for a specific busId 
     // given in a test method.
-    protected RequestPostProcessor withDriverCookie(UUID busId) {
-        String token = jwtService.generateAccessToken(busId);
+    protected RequestPostProcessor withDriverCookie(UUID busId, RoleAuth role) {
+        String token = jwtService.generateAccessToken(busId, role);
         return new RequestPostProcessor() {
             @Override
             public MockHttpServletRequest postProcessRequest(MockHttpServletRequest request) {
@@ -44,6 +45,10 @@ public abstract class FlowIntegrationTest extends PostgresTestContainer {
                 return request;
             }
         };
+    }
+
+    protected RequestPostProcessor withDriverCookie(UUID busId) {
+        return withDriverCookie(busId, RoleAuth.DRIVER);
     }
 
     protected RequestPostProcessor withDriverCookie() {

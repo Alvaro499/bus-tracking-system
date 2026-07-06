@@ -1,5 +1,6 @@
 package com.bustracking.shared.infrastructure.service;
 
+import com.bustracking.shared.domain.RoleAuth;
 import com.bustracking.shared.infrastructure.config.JwtProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -26,13 +27,13 @@ public class JwtService {
         this.accessTokenExpiration = properties.accessTokenExpiration();
     }
 
-    public String generateAccessToken(UUID busId) {
+    public String generateAccessToken(UUID busId, RoleAuth role) {
         Date now = new Date();
         Date expiration = new Date(now.getTime() + accessTokenExpiration);
 
         return Jwts.builder()
                 .subject(busId.toString())
-                .claim("role", "DRIVER")
+                .claim("role", role.name())
                 .issuedAt(now)
                 .expiration(expiration)
                 .signWith(secretKey)

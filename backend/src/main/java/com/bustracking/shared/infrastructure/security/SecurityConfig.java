@@ -12,6 +12,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import com.bustracking.shared.domain.RoleAuth;
+
 import java.util.List;
 
 /**
@@ -45,7 +48,7 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/auth/**").permitAll()
-                .requestMatchers("/tracking/**").hasRole("DRIVER")
+                .requestMatchers("/tracking/**").hasRole(RoleAuth.DRIVER.name())
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter,
