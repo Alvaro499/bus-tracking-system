@@ -25,9 +25,7 @@ public class BusCredentialRepositoryImpl implements BusCredentialRepository {
         return new BusCredential(
             jpa.getId(),
             jpa.getBusId(),
-            jpa.getPasswordHash(),
-            jpa.getIssuedAt(),
-            jpa.getRevokedAt()
+            jpa.getPasswordHash()
         );
     }
 }
