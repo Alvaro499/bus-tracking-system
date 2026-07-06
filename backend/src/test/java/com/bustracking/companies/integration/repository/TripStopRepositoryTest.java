@@ -1,7 +1,6 @@
 package com.bustracking.companies.integration.repository;
 
 import static com.bustracking.shared.testinfrastructure.TestSqlScripts.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
