@@ -49,7 +49,7 @@ public class AuthenticateDriverControllerTest extends ControllerIntegrationTest 
     public void shouldReturnTokenDTO_WhenCredentialAreValid() throws Exception {
 
         // Arrange
-        LoginRequest request = new LoginRequest(BUS_ID.toString(), "wrong_password");
+        LoginRequest request = new LoginRequest(BUS_ID.toString(), VALID_PASSWORD);
         when(authBusUseCaseMock.execute(eq(BUS_ID), eq(VALID_PASSWORD)))
                 .thenReturn(VALID_TOKENS);
 
