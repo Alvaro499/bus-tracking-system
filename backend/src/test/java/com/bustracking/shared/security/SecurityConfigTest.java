@@ -25,6 +25,31 @@ import com.bustracking.shared.infrastructure.security.SecurityConfig;
 import com.bustracking.shared.testinfrastructure.WithMockDriver;
 import com.bustracking.shared.testinfrastructure.WithMockCompanyAdmin;
 
+/**
+ * Integration test for the real security chain: {@link JwtAuthenticationFilter}
+ * + SecurityConfig working together, as Spring would run them in production.
+ *
+ * Scope: verifies authorization rules — which routes are public, which
+ * require authentication, and which require a specific role.
+ *
+ * Unlike JwtAuthenticationFilterTest, nothing here is mocked: the real
+ * SecurityConfig is imported (@Import), and the real filter chain runs.
+ * This is intentional — in this test, the filter and the security config
+ * ARE the subject under test, not a dependency to isolate.
+ *
+ * A dummy TestController is used instead of any real business controller,
+ * so that changes to production controllers can never accidentally break
+ * this test (and vice versa).
+ *
+ * @WithMockDriver / @WithMockAdmin inject a SecurityContext directly to
+ * simulate an already-authenticated request; they do not exercise
+ * JwtAuthenticationFilter's token-parsing logic (that's JwtAuthenticationFilterTest's job).
+ *
+ * If you add a new role or a new protected/public route pattern to
+ * SecurityConfig, add a corresponding case here — coverage should map
+ * 1:1 to the rules declared in the SecurityFilterChain.
+ */
+
 @WebMvcTest(controllers = SecurityTestController.class)
 @Import({ SecurityConfig.class, GlobalExceptionHandler.class })
 class SecurityConfigTest {
@@ -42,6 +67,10 @@ class SecurityConfigTest {
     void setUp() throws Exception {
         // We force the breach between  TestSecurityContextHolder -> SecurityContextHolder,
         // instead of dependin on implícit auto-configuration from @WebMvcTest
+        mockMvc = MockMvcBuilders.webAppContextSetup(context)
+                .apply(SecurityMockMvcConfigurers.springSecurity())
+                .build();
+
         Mockito.doAnswer(invocation -> {
             FilterChain chain = invocation.getArgument(2);
             chain.doFilter(invocation.getArgument(0), invocation.getArgument(1));
