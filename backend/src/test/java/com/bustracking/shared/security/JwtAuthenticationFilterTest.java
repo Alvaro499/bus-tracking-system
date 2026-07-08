@@ -26,6 +26,28 @@ import org.springframework.test.util.ReflectionTestUtils;
 import com.bustracking.shared.infrastructure.security.JwtAuthenticationFilter;
 import com.bustracking.shared.infrastructure.service.JwtService;
 
+
+/**
+ * Unit test for {@link JwtAuthenticationFilter}.
+ *
+ * Scope: verifies that the filter correctly orchestrates calls to
+ * {@link JwtService} to build (or not build) a SecurityContext
+ * Authentication, based on the presence/validity of the token.
+ *
+ * JwtService is mocked here. This test does NOT care whether a token is
+ * "really" valid cryptographically — that's already covered in
+ * {@link JwtServiceTest}. Here we only care about the filter's own logic:
+ * extracting the cookie, deciding whether to authenticate, and never
+ * touching JwtService when there's no token (verifyNoInteractions).
+ *
+ * Conceptually equivalent to a UseCase test: SUT orchestrates a mocked
+ * dependency; only branching and interaction are verified, not the
+ * dependency's internal correctness.
+ *
+ * Does NOT test: authorization rules (which roles can access which routes).
+ * See SecurityConfigTest for that.
+ */
+
 @ExtendWith(MockitoExtension.class)
 class JwtAuthenticationFilterTest {
 
@@ -71,6 +93,7 @@ class JwtAuthenticationFilterTest {
         when(jwtService.extractBusId(VALID_TOKEN)).thenReturn(VALID_BUS_ID);
         when(jwtService.extractClaim(eq(VALID_TOKEN), any())).thenReturn("DRIVER");
 
+        // We invoke "doFilterInternal" from JwtAuthenticationFilter by using Reflection
         invokeFilter(request, response, filterChain);
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
