@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.time.LocalTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,10 +15,13 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.bustracking.shared.testinfrastructure.ControllerIntegrationTest;
+import com.bustracking.shared.testinfrastructure.WithMockDriver;
 import com.bustracking.tracking.application.usecase.ConfirmStopUseCase;
 import com.bustracking.tracking.application.usecase.StartTripUseCase;
 import com.bustracking.tracking.domain.model.TripDetailView;
@@ -41,9 +45,26 @@ class DriverTripCommandControllerTest extends ControllerIntegrationTest {
     @MockitoBean
     private TripDetailMapper tripDetailMapper;
 
+
     // Shared Test Data
     private static final UUID VALID_TRIP_ID = UUID.fromString("b70e8400-e29b-41d4-a716-446655440001");
     private static final UUID VALID_ROUTE_STOP_ID = UUID.fromString("c80e8400-e29b-41d4-a716-446655440001");
+    private static final UUID DRIVER_BUS_ID = UUID.fromString("650e8400-e29b-41d4-a716-446655440001");
+
+    /*
+     * Test Cases for DriverTripCommandController
+     * 
+     * This method sets up a mock authentication token for a driver with a specific bus ID. 
+     * It is used to simulate an authenticated driver in the test cases.
+     */
+
+    private UsernamePasswordAuthenticationToken authenticatedDriver() {
+        return new UsernamePasswordAuthenticationToken(
+                DRIVER_BUS_ID,
+                null,
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_DRIVER"))
+        );
+    }
 
     // =========================================================
     // POST /tracking/trips/{tripId}/start
@@ -56,6 +77,7 @@ class DriverTripCommandControllerTest extends ControllerIntegrationTest {
         // =========================================================
 
         @Test
+        @WithMockDriver
         public void shouldReturn204WhenTripIsStartedSuccessfully() throws Exception {
             // Arrange
             doNothing().when(startTripUseCase).execute(eq(VALID_TRIP_ID), any());
@@ -72,9 +94,10 @@ class DriverTripCommandControllerTest extends ControllerIntegrationTest {
         // =========================================================
 
         @Test
+        @WithMockDriver
         public void shouldReturn400WhenTripIdIsNotValidUUID() throws Exception {
             mockMvc.perform(post("/tracking/trips/{tripId}/start", "not-a-valid-uuid"))
-                    .andExpect(status().isBadRequest());
+                                .andExpect(status().isBadRequest());
 
             verifyNoInteractions(startTripUseCase);
         }
@@ -91,6 +114,7 @@ class DriverTripCommandControllerTest extends ControllerIntegrationTest {
         // =========================================================
 
         @Test
+        @WithMockDriver
         public void shouldReturn200AndTripDetail_WhenStopIsConfirmed() throws Exception {
             // Arrange
             TripDetailView mockView = mock(TripDetailView.class);
@@ -123,6 +147,7 @@ class DriverTripCommandControllerTest extends ControllerIntegrationTest {
         // =========================================================
 
         @Test
+        @WithMockDriver
         public void shouldReturn400_WhenAnyIdIsNotValidUUID() throws Exception {
             mockMvc.perform(post("/tracking/trips/{tripId}/stops/{routeStopId}/confirm",
                             "not-a-valid-uuid", VALID_ROUTE_STOP_ID))

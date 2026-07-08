@@ -44,7 +44,8 @@ class ConfirmStopFlowTest extends FlowIntegrationTest {
 
         // Arrange and Act
         MvcResult result = mockMvc.perform(post("/tracking/trips/{tripId}/stops/{routeStopId}/confirm",
-                TRIP_ID, ROUTE_STOP_ID))
+                TRIP_ID, ROUTE_STOP_ID)
+                .with(withDriverCookie(BUS_ID)))
                 .andExpect(status().isOk())
                 .andReturn();
 

@@ -3,6 +3,8 @@ package com.bustracking.tracking.infrastructure.web.controller;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,13 +21,13 @@ import com.bustracking.tracking.infrastructure.web.dto.response.BusLocationRespo
 @RestController
 @RequestMapping("/tracking/buses")
 public class BusLocationController {
- 
+
     private final UpdateBusLocationUseCase updateBusLocationUseCase;
 
     private final GetBusLocationUseCase getBusLocationUseCase;
 
-
-    public BusLocationController(UpdateBusLocationUseCase updateBusLocationUseCase, GetBusLocationUseCase getBusLocationUseCase) {
+    public BusLocationController(UpdateBusLocationUseCase updateBusLocationUseCase,
+            GetBusLocationUseCase getBusLocationUseCase) {
         this.updateBusLocationUseCase = updateBusLocationUseCase;
         this.getBusLocationUseCase = getBusLocationUseCase;
     }
@@ -35,6 +37,11 @@ public class BusLocationController {
             @PathVariable UUID busId,
             @RequestBody UpdateBusLocationRequest request) {
 
+        UUID currentBusId = getCurrentBusId();
+        if (!currentBusId.equals(busId)) {
+            throw new AccessDeniedException("Bus cannot update the location of another bus");
+        }
+
         updateBusLocationUseCase.execute(busId, request.lat(), request.lng());
         return ResponseEntity.ok().build();
     }
@@ -43,14 +50,28 @@ public class BusLocationController {
     public ResponseEntity<BusLocationResponse> getBusLocation(
             @PathVariable UUID busId) {
 
+        UUID currentBusId = getCurrentBusId();
+        if (!currentBusId.equals(busId)) {
+            throw new AccessDeniedException("Bus cannot view the location of another bus");
+        }
+
         BusLocation location = getBusLocationUseCase.execute(busId);
 
         BusLocationResponse response = new BusLocationResponse(
-            location.getBusId(),
-            location.getGpsCoordinate().getLat(),
-            location.getGpsCoordinate().getLng(),
-            location.getUpdatedAt()
-        );
+                location.getBusId(),
+                location.getGpsCoordinate().getLat(),
+                location.getGpsCoordinate().getLng(),
+                location.getUpdatedAt());
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Even though the busId is passed in the request, we need to ensure the busId
+     * matches the busId from the token.
+     * This will prevent a driver from confirming a stop for a trip that is not
+     * assigned to their bus.
+     */
+    private UUID getCurrentBusId() {
+        return (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 }
