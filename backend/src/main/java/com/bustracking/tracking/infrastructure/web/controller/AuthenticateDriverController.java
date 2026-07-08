@@ -29,7 +29,8 @@ public class AuthenticateDriverController {
         ResponseCookie accessCookie = ResponseCookie.from("access_token", tokens.accessToken())
                 .httpOnly(true) // Prevents JavaScript access to the cookie
                 .secure(false) // Only in dev could be false, in production true with HTTPS
-                .sameSite("Strict") // Prevents CSRF attacks by avoiding other sites call the API and get/send the cookie
+                .sameSite("Strict") // Prevents CSRF attacks by avoiding other sites call the API and get/send the
+                                    // cookie
                 .path("/") // cookie can be sent to any endpoint of the API
                 .maxAge(900) // 15 min in seconds
                 .build();
@@ -46,5 +47,11 @@ public class AuthenticateDriverController {
                 .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
                 .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
                 .build();
+    }
+
+    // Pending logout with Reddits
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@CookieValue("refresh_token") String refreshToken) {
+        return null;
     }
 }
