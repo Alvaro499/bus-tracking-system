@@ -16,6 +16,7 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.UUID;
 
+
 @Service
 public class RefreshTokenService {
 
@@ -26,10 +27,9 @@ public class RefreshTokenService {
 
     public RefreshTokenService(
             StringRedisTemplate redis,
-            ObjectMapper objectMapper,
             @Value("${jwt.refresh-token-expiration}") long ttlMillis) {
         this.redis = redis;
-        this.objectMapper = objectMapper;
+        this.objectMapper = new ObjectMapper(); 
         this.ttl = Duration.ofMillis(ttlMillis);
     }
 

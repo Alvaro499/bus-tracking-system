@@ -22,7 +22,8 @@ import org.testcontainers.utility.DockerImageName;
 public interface RedisTestContainer {
 
     GenericContainer<?> REDIS = new GenericContainer<>(
-        DockerImageName.parse("redis:8-alpine"))
+            DockerImageName.parse("redis:8-alpine"))
+            .withExposedPorts(6379)
             .withReuse(true);
 
     // Interface Initialization Static Block : it does execute only once
@@ -32,9 +33,29 @@ public interface RedisTestContainer {
         }
     }
 
-    // We tell Spring to call this method before initializing the
-    // ApplicationContext, so it is possible to register this docker properties
-    // whose values are unknown until runtime.
+    /*
+     * Workflow execution flow:
+     * * 1. Testcontainers starts the container: At test startup, Testcontainers
+     * requests Docker
+     * to create the Redis container. Docker creates it and assigns a random free
+     * port
+     * from the host machine (e.g., 54231).
+     * * 2. The dynamic method triggers: This method (typically annotated
+     * with @DynamicPropertySource)
+     * execves immediately after the container is up and running, but before Spring
+     * Boot
+     * finishes its configuration.
+     * * 3. Injection into Spring's memory: The method captures that random port
+     * (54231) and
+     * registers it directly into the Spring Environment in memory, temporarily
+     * overriding
+     * the 'spring.data.redis.port' property.
+     * * 4. Spring Boot connects successfully: When Spring Boot looks for the Redis
+     * port to establish
+     * the connection, it reads the value registered in memory (54231) instead of
+     * looking for
+     * a physical .properties file.
+     */
     @DynamicPropertySource
     static void registerRedisProperties(DynamicPropertyRegistry registry) {
         start();

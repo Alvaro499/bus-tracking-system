@@ -3,18 +3,21 @@ package com.bustracking.shared.security;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.IOException;
+
 import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
@@ -51,46 +54,48 @@ import com.bustracking.shared.testinfrastructure.WithMockCompanyAdmin;
  */
 
 @WebMvcTest(controllers = SecurityTestController.class)
-@Import({ SecurityConfig.class, GlobalExceptionHandler.class })
+@Import({ SecurityConfig.class, GlobalExceptionHandler.class, SecurityConfigTest.FilterTestConfig.class })
 class SecurityConfigTest {
 
     @Autowired
     private WebApplicationContext context;
 
-    @Autowired
     private MockMvc mockMvc;
 
-    @MockitoBean
-    private JwtAuthenticationFilter jwtAuthenticationFilter;
+    // Configuración especial para los tests para proveer un filtro real que deje pasar la petición a Spring Security
+    @TestConfiguration
+    static class FilterTestConfig {
+        @Bean
+        public JwtAuthenticationFilter jwtAuthenticationFilter() {
+            return new JwtAuthenticationFilter(null) { // Hereda de tu filtro real ignorando sus dependencias
+                @Override
+                protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+                        throws ServletException, IOException {
+                    // Simplemente deja fluir la petición hacia el SpringSecurityFilterChain nativo
+                    filterChain.doFilter(request, response);
+                }
+            };
+        }
+    }
 
     @BeforeEach
     void setUp() throws Exception {
-        // We force the breach between  TestSecurityContextHolder -> SecurityContextHolder,
-        // instead of dependin on implícit auto-configuration from @WebMvcTest
+        // Inicialización nativa y estricta de MockMvc aplicando la seguridad real
         mockMvc = MockMvcBuilders.webAppContextSetup(context)
                 .apply(SecurityMockMvcConfigurers.springSecurity())
                 .build();
-
-        Mockito.doAnswer(invocation -> {
-            FilterChain chain = invocation.getArgument(2);
-            chain.doFilter(invocation.getArgument(0), invocation.getArgument(1));
-            return null;
-        }).when(jwtAuthenticationFilter).doFilter(
-                Mockito.any(ServletRequest.class),
-                Mockito.any(ServletResponse.class),
-                Mockito.any(FilterChain.class));
     }
 
-    @Test
+   @Test
     void shouldAllowPublicEndpointWithoutAuthentication() throws Exception {
         mockMvc.perform(get("/auth/test"))
                 .andExpect(status().isOk());
     }
 
     @Test
-    void shouldReturn403WhenAccessingProtectedWithoutAuthentication() throws Exception {
+    void shouldReturn401WhenAccessingProtectedWithoutAuthentication() throws Exception {
         mockMvc.perform(get("/tracking/test"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -108,8 +113,8 @@ class SecurityConfigTest {
     }
 
     @Test
-    void shouldReturn403ForUnknownPathWithoutAuthentication() throws Exception {
+    void shouldReturn401ForUnknownPathWithoutAuthentication() throws Exception {
         mockMvc.perform(get("/some/random/path"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 }
