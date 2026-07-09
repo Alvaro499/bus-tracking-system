@@ -25,7 +25,7 @@ import jakarta.servlet.http.Cookie;
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-public abstract class FlowIntegrationTest extends PostgresTestContainer {
+public abstract class FlowIntegrationTest extends PostgresTestContainer implements RedisTestContainer {
 
     /*
     * Logic Implemented at 7/4/2026, much later from implementartion of test 
