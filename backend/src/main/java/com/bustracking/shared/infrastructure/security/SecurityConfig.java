@@ -39,20 +39,31 @@ public class SecurityConfig {
      * This configuration disables CSRF, enables CORS, sets session management to
      * stateless, and defines authorization rules for different endpoints.
      */
- @Bean
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/**").permitAll()
-                .requestMatchers("/tracking/**").hasRole(RoleAuth.DRIVER.name())
-                .anyRequest().authenticated()
-            )
-            .addFilterBefore(jwtAuthenticationFilter,
-                UsernamePasswordAuthenticationFilter.class);
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/tracking/**").hasRole(RoleAuth.DRIVER.name())
+                        .anyRequest().authenticated())
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(401);
+                            response.setContentType("application/json");
+                            response.getWriter().write(
+                                    "{\"errorCode\":\"UNAUTHORIZED\",\"userMessage\":\"Requires authentication\"}");
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(403);
+                            response.setContentType("application/json");
+                            response.getWriter()
+                                    .write("{\"errorCode\":\"FORBIDDEN\",\"userMessage\":\"Access denied\"}");
+                        }))
+                .addFilterBefore(jwtAuthenticationFilter,
+                        UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -85,8 +96,8 @@ public class SecurityConfig {
     /**
      * Password encoder bean for hashing passwords.
      * Using BCryptPasswordEncoder for secure password hashing.
-       It´s registered with @Bean and used by AuthenticateBusUseCase
-    */
+     * It´s registered with @Bean and used by AuthenticateBusUseCase
+     */
 
     @Bean
     public PasswordEncoder passwordEncoder() {
