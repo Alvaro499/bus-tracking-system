@@ -53,6 +53,17 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+  
+  redis:
+      image: redis:8-alpine
+      container_name: redis-dev
+      env_file:
+        - .env
+      ports:
+        - "6379:6379"
+      command: redis-server --requirepass ${REDIS_PASSWORD}
+      networks:
+        - bustracking-network
 
 
 

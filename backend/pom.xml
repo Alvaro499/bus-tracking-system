@@ -94,6 +94,12 @@
 			<scope>test</scope>
 		</dependency>
 
+		<!-- Redis client (Lettuce autoconfigurado por Spring Boot) -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-redis</artifactId>
+		</dependency>
+
 		<!-- WebMvcTest - Spring Boot 4.0 lo separó en su propio módulo -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -135,6 +141,14 @@
 			<groupId>org.testcontainers</groupId>
 			<artifactId>junit-jupiter</artifactId>
 			<version>1.20.6</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- TestContainers: Redis real en Docker para tests de integración -->
+		<dependency>
+			<groupId>com.redis</groupId>
+			<artifactId>testcontainers-redis</artifactId>
+			<version>2.2.2</version>
 			<scope>test</scope>
 		</dependency>
 
