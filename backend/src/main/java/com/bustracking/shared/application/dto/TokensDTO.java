@@ -1,4 +1,4 @@
-package com.bustracking.tracking.application.dto;
+package com.bustracking.shared.application.dto;
 
 
 /*
