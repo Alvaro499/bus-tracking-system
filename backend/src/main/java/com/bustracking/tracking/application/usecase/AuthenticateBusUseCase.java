@@ -66,7 +66,7 @@ public class AuthenticateBusUseCase {
         String accessToken = jwtService.generateAccessToken(busId, RoleAuth.DRIVER);
         String refreshToken = generateRefreshToken();
 
-        refreshTokenService.saveRefreshToken(busId, refreshToken);
+        refreshTokenService.saveRefreshToken(busId, RoleAuth.DRIVER.name(), refreshToken);
 
         return new TokensDTO(accessToken, refreshToken);
     }

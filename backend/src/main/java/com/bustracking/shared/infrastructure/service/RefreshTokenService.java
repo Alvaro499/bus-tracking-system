@@ -34,16 +34,16 @@ public class RefreshTokenService {
     }
 
     /**
-     * Saves a refresh token associated with a bus.
+     * Saves a refresh token associated with a user.
      *
-     * @param busId    bus ID
+     * @param busId    user ID
      * @param rawToken unhashed token (to return to the client)
      * @return the same rawToken (for the cookie)
      */
-    public void saveRefreshToken(UUID busId, String rawToken) {
+    public void saveRefreshToken(UUID userId, String role, String rawToken) {
         String hash = hashToken(rawToken);
         String key = PREFIX + hash;
-        TokenData data = new TokenData(busId.toString(), Instant.now().toString(), "ACTIVE");
+        TokenData data = new TokenData(userId.toString(), role, Instant.now().toString(), "ACTIVE");
         try {
             String json = objectMapper.writeValueAsString(data);
             redis.opsForValue().set(key, json, ttl);
@@ -62,22 +62,22 @@ public class RefreshTokenService {
      * @throws BusinessRuleException if the token does not exist, is revoked, or was
      *                               already used
      */
-    public String validateAndRotateRefreshToken(String rawToken) {
+    public RefreshTokenResult validateAndRotateRefreshToken(String rawToken) {
         String hash = hashToken(rawToken);
         String key = PREFIX + hash;
         String json = redis.opsForValue().get(key);
         if (json == null) {
             throw new BusinessRuleException(
                     ErrorCode.UNAUTHORIZED,
-                    "Refresh token inválido o expirado");
+                    "Refresh token invalid or expired");
         }
-        TokenData data;
+        TokenData tokenDatadata;
         try {
-            data = objectMapper.readValue(json, TokenData.class);
+            tokenDatadata = objectMapper.readValue(json, TokenData.class);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Error deserializando token", e);
+            throw new RuntimeException("Error during serialization token", e);
         }
-        if (!"ACTIVE".equals(data.status)) {
+        if (!"ACTIVE".equals(tokenDatadata.status)) {
             // Reused token: revoke the entire family (security best practice)
             // For now we simply throw an exception, later we can implement family
             // revocation
@@ -87,18 +87,20 @@ public class RefreshTokenService {
         }
 
         // Rotation: mark current as USED and generate a new one data.status = "USED";
+        tokenDatadata.status = "USED";
         try {
-            redis.opsForValue().set(key, objectMapper.writeValueAsString(data), ttl);
+            redis.opsForValue().set(key, objectMapper.writeValueAsString(tokenDatadata), ttl);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Error al actualizar token", e);
         }
 
         // Generate a new token (with the same busId) and save it
-        UUID busId = UUID.fromString(data.busId);
+        UUID userId = UUID.fromString(tokenDatadata.userId);
+        String role = tokenDatadata.role;
         String newRawToken = generateRawToken();
-        saveRefreshToken(busId, newRawToken);
+        saveRefreshToken(userId, role, newRawToken);
 
-        return newRawToken;
+        return new RefreshTokenResult(userId, role, newRawToken);
     }
 
     /**
@@ -148,17 +150,22 @@ public class RefreshTokenService {
         }
     }
 
+    public record RefreshTokenResult(UUID busId, String role, String newRawToken) {}
+
+
     // Inner class to serialize/deserialize token data in Redis
     private static class TokenData {
-        public String busId;
+        public String userId;
+        public String role;
         public String issuedAt;
         public String status;
 
         public TokenData() {
         }
 
-        public TokenData(String busId, String issuedAt, String status) {
-            this.busId = busId;
+        public TokenData(String userId, String role, String issuedAt, String status) {
+            this.userId = userId;
+            this.role = role;
             this.issuedAt = issuedAt;
             this.status = status;
         }

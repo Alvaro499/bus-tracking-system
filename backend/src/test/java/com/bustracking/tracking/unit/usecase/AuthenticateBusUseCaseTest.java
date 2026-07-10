@@ -94,7 +94,7 @@ public class AuthenticateBusUseCaseTest {
                 verify(credentialRepositoryMock, times(1)).findByBusId(VALID_BUS_ID);
                 verify(passwordEncoderMock, times(1)).matches(VALID_PASSWORD, VALID_HASH);
                 verify(jwtServiceMock, times(1)).generateAccessToken(VALID_BUS_ID, RoleAuth.DRIVER);
-                verify(refreshTokenServiceMock, times(1)).saveRefreshToken(eq(VALID_BUS_ID), anyString());
+                verify(refreshTokenServiceMock, times(1)).saveRefreshToken(eq(VALID_BUS_ID), anyString(), anyString());
         }
 
         @Test
