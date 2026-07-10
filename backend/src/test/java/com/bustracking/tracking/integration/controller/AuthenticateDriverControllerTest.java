@@ -16,10 +16,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.bustracking.shared.application.dto.TokensDTO;
 import com.bustracking.shared.exception.BusinessRuleException;
 import com.bustracking.shared.exception.ErrorCode;
 import com.bustracking.shared.testinfrastructure.ControllerIntegrationTest;
-import com.bustracking.tracking.application.dto.TokensDTO;
 import com.bustracking.tracking.application.usecase.AuthenticateBusUseCase;
 import com.bustracking.tracking.infrastructure.web.controller.AuthenticateDriverController;
 import com.bustracking.tracking.infrastructure.web.dto.request.LoginRequest;

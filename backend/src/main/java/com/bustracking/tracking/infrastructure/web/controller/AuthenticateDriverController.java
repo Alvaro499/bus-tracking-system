@@ -1,6 +1,6 @@
 package com.bustracking.tracking.infrastructure.web.controller;
 
-import com.bustracking.tracking.application.dto.TokensDTO;
+import com.bustracking.shared.application.dto.TokensDTO;
 import com.bustracking.tracking.application.usecase.AuthenticateBusUseCase;
 import com.bustracking.tracking.infrastructure.web.dto.request.LoginRequest;
 import jakarta.validation.Valid;

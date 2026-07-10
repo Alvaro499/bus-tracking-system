@@ -16,12 +16,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.bustracking.shared.application.dto.TokensDTO;
 import com.bustracking.shared.domain.RoleAuth;
 import com.bustracking.shared.exception.BusinessRuleException;
 import com.bustracking.shared.exception.ErrorCode;
 import com.bustracking.shared.infrastructure.service.JwtService;
 import com.bustracking.shared.infrastructure.service.RefreshTokenService;
-import com.bustracking.tracking.application.dto.TokensDTO;
 import com.bustracking.tracking.application.usecase.AuthenticateBusUseCase;
 import com.bustracking.tracking.domain.model.BusCredential;
 import com.bustracking.tracking.domain.repository.BusCredentialRepository;
