@@ -12,6 +12,7 @@ import com.bustracking.shared.domain.RoleAuth;
 import com.bustracking.shared.exception.BusinessRuleException;
 import com.bustracking.shared.exception.ErrorCode;
 import com.bustracking.shared.infrastructure.service.JwtService;
+import com.bustracking.shared.infrastructure.service.RefreshTokenService;
 import com.bustracking.tracking.application.dto.TokensDTO;
 import com.bustracking.tracking.domain.model.BusCredential;
 import com.bustracking.tracking.domain.repository.BusCredentialRepository;
@@ -21,14 +22,18 @@ public class AuthenticateBusUseCase {
 
     private final BusCredentialRepository credentialRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtService jwtService;
 
-    public AuthenticateBusUseCase(BusCredentialRepository credentialRepository,
-            PasswordEncoder passwordEncoder,
-            JwtService jwtService) {
+    //Services
+    private final JwtService jwtService;
+    private final RefreshTokenService refreshTokenService;
+
+    public AuthenticateBusUseCase(BusCredentialRepository credentialRepository,PasswordEncoder passwordEncoder,
+                                    JwtService jwtService,
+                                    RefreshTokenService refreshTokenService) {
         this.credentialRepository = credentialRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.refreshTokenService = refreshTokenService;
     }
 
     public TokensDTO execute(UUID busId, String rawPassword) {
@@ -60,6 +65,8 @@ public class AuthenticateBusUseCase {
 
         String accessToken = jwtService.generateAccessToken(busId, RoleAuth.DRIVER);
         String refreshToken = generateRefreshToken();
+
+        refreshTokenService.saveRefreshToken(busId, refreshToken);
 
         return new TokensDTO(accessToken, refreshToken);
     }

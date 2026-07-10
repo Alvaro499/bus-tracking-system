@@ -49,7 +49,7 @@ import com.bustracking.shared.testinfrastructure.WithMockCompanyAdmin;
  * JwtAuthenticationFilter's token-parsing logic (that's JwtAuthenticationFilterTest's job).
  *
  * If you add a new role or a new protected/public route pattern to
- * SecurityConfig, add a corresponding case here — coverage should map
+ * SecurityConfig, add a corresponding case here, coverage should map
  * 1:1 to the rules declared in the SecurityFilterChain.
  */
 
