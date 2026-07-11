@@ -1,5 +1,7 @@
 package com.bustracking.tracking.infrastructure.web.controller;
 
+import com.bustracking.shared.application.LogoutUseCase;
+import com.bustracking.shared.application.RefreshTokenUseCase;
 import com.bustracking.shared.application.dto.TokensDTO;
 import com.bustracking.tracking.application.usecase.AuthenticateBusUseCase;
 import com.bustracking.tracking.infrastructure.web.dto.request.LoginRequest;
@@ -17,14 +19,30 @@ import org.springframework.web.bind.annotation.*;
 public class AuthenticateDriverController {
 
     private final AuthenticateBusUseCase authenticateBusUseCase;
+    private final RefreshTokenUseCase refreshTokenUseCase;
+    private final LogoutUseCase logoutUseCase;
 
-    public AuthenticateDriverController(AuthenticateBusUseCase authenticateBusUseCase) {
+    public AuthenticateDriverController(AuthenticateBusUseCase authenticateBusUseCase,
+            RefreshTokenUseCase refreshTokenUseCase,
+            LogoutUseCase logoutUseCase) {
         this.authenticateBusUseCase = authenticateBusUseCase;
+        this.refreshTokenUseCase = refreshTokenUseCase;
+        this.logoutUseCase = logoutUseCase;
     }
 
     @PostMapping("/login")
     public ResponseEntity<Void> login(@Valid @RequestBody LoginRequest request) {
         TokensDTO tokens = authenticateBusUseCase.execute(UUID.fromString(request.busId()), request.password());
+        return buildTokenResponse(tokens);
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<Void> refresh(@CookieValue("refresh_token") String refreshToken) {
+        TokensDTO tokens = refreshTokenUseCase.execute(refreshToken);
+        return buildTokenResponse(tokens);
+    }
+
+    private ResponseEntity<Void> buildTokenResponse(TokensDTO tokens) {
 
         ResponseCookie accessCookie = ResponseCookie.from("access_token", tokens.accessToken())
                 .httpOnly(true) // Prevents JavaScript access to the cookie
@@ -49,9 +67,26 @@ public class AuthenticateDriverController {
                 .build();
     }
 
-    // Pending logout with Reddits
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@CookieValue("refresh_token") String refreshToken) {
-        return null;
+        logoutUseCase.execute(refreshToken);
+        ResponseCookie deleteAccessCookie = ResponseCookie.from("access_token", "")
+                .httpOnly(true)
+                .secure(false)
+                .sameSite("Strict")
+                .path("/")
+                .maxAge(0)
+                .build();
+        ResponseCookie deleteRefreshCookie = ResponseCookie.from("refresh_token", "")
+                .httpOnly(true)
+                .secure(false)
+                .sameSite("Strict")
+                .path("/auth/refresh")
+                .maxAge(0)
+                .build();
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, deleteAccessCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, deleteRefreshCookie.toString())
+                .build();
     }
 }

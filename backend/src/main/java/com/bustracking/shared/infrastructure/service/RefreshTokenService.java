@@ -150,9 +150,6 @@ public class RefreshTokenService {
         }
     }
 
-    public record RefreshTokenResult(UUID busId, String role, String newRawToken) {}
-
-
     // Inner class to serialize/deserialize token data in Redis
     private static class TokenData {
         public String userId;
@@ -170,4 +167,8 @@ public class RefreshTokenService {
             this.status = status;
         }
     }
+
+    // Internal DTO that returns the refreshToken
+    public record RefreshTokenResult(UUID busId, String role, String newRawToken) {}
+
 }
