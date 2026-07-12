@@ -1,4 +1,4 @@
-package com.bustracking.shared.security;
+package com.bustracking.shared.unit;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;

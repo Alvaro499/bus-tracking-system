@@ -1,5 +1,5 @@
 // src/test/java/com/bustracking/shared/security/SecurityTestController.java
-package com.bustracking.shared.security;
+package com.bustracking.shared.integration;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
