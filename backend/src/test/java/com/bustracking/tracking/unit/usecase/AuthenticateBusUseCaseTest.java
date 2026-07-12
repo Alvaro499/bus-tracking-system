@@ -2,6 +2,7 @@ package com.bustracking.tracking.unit.usecase;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -15,11 +16,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.bustracking.shared.application.dto.TokensDTO;
 import com.bustracking.shared.domain.RoleAuth;
 import com.bustracking.shared.exception.BusinessRuleException;
 import com.bustracking.shared.exception.ErrorCode;
 import com.bustracking.shared.infrastructure.service.JwtService;
-import com.bustracking.tracking.application.dto.TokensDTO;
+import com.bustracking.shared.infrastructure.service.RefreshTokenService;
 import com.bustracking.tracking.application.usecase.AuthenticateBusUseCase;
 import com.bustracking.tracking.domain.model.BusCredential;
 import com.bustracking.tracking.domain.repository.BusCredentialRepository;
@@ -35,6 +37,9 @@ public class AuthenticateBusUseCaseTest {
 
         @Mock
         private JwtService jwtServiceMock;
+
+        @Mock
+        private RefreshTokenService refreshTokenServiceMock;
 
         private AuthenticateBusUseCase authenticateBusUseCase;
 
@@ -60,7 +65,8 @@ public class AuthenticateBusUseCaseTest {
                 authenticateBusUseCase = new AuthenticateBusUseCase(
                                 credentialRepositoryMock,
                                 passwordEncoderMock,
-                                jwtServiceMock);
+                                jwtServiceMock,
+                                refreshTokenServiceMock);
 
                 revokedCredential.revokeCredentials();
         }
@@ -88,6 +94,7 @@ public class AuthenticateBusUseCaseTest {
                 verify(credentialRepositoryMock, times(1)).findByBusId(VALID_BUS_ID);
                 verify(passwordEncoderMock, times(1)).matches(VALID_PASSWORD, VALID_HASH);
                 verify(jwtServiceMock, times(1)).generateAccessToken(VALID_BUS_ID, RoleAuth.DRIVER);
+                verify(refreshTokenServiceMock, times(1)).saveRefreshToken(eq(VALID_BUS_ID), anyString(), anyString());
         }
 
         @Test
@@ -108,6 +115,7 @@ public class AuthenticateBusUseCaseTest {
                 verify(credentialRepositoryMock, times(1)).findByBusId(VALID_BUS_ID);
                 verifyNoInteractions(passwordEncoderMock);
                 verifyNoInteractions(jwtServiceMock);
+                verifyNoInteractions(refreshTokenServiceMock);
         }
 
         @Test
@@ -128,6 +136,7 @@ public class AuthenticateBusUseCaseTest {
                 verify(credentialRepositoryMock, times(1)).findByBusId(VALID_BUS_ID);
                 verifyNoInteractions(passwordEncoderMock);
                 verifyNoInteractions(jwtServiceMock);
+                verifyNoInteractions(refreshTokenServiceMock);
         }
 
         @Test
@@ -150,5 +159,6 @@ public class AuthenticateBusUseCaseTest {
                 verify(credentialRepositoryMock, times(1)).findByBusId(VALID_BUS_ID);
                 verify(passwordEncoderMock, times(1)).matches(VALID_PASSWORD, VALID_HASH);
                 verifyNoInteractions(jwtServiceMock);
+                verifyNoInteractions(refreshTokenServiceMock);
         }
 }
