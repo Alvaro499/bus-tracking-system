@@ -88,4 +88,15 @@ public class RefreshTokenServiceTest {
                 any());
     }
 
+    // =========================================================
+    // generateRawToken() — Not tested directly
+    // =========================================================
+
+    /**
+     * generateRawToken() is a private helper that only uses SecureRandom
+     * and Base64. It contains no business logic worth testing directly —
+     * its correctness is already verified indirectly through any test
+     * that calls saveRefreshToken or validateAndRotateRefreshToken.
+     */
+
 }
