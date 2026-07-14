@@ -96,7 +96,3 @@ public class RefreshTokenUseCaseTest {
         verifyNoInteractions(jwtServiceMock);
     }
 }
-
-// y flow test
-// y refresh token service
-// no se necesita un repository para redis
