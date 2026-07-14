@@ -94,9 +94,21 @@ public class RefreshTokenServiceTest {
 
     /**
      * generateRawToken() is a private helper that only uses SecureRandom
-     * and Base64. It contains no business logic worth testing directly —
+     * and Base64. It contains no business logic worth testing directly,
      * its correctness is already verified indirectly through any test
      * that calls saveRefreshToken or validateAndRotateRefreshToken.
+     */
+
+    // =========================================================
+    // hashToken() — Not tested directly
+    // =========================================================
+
+    /**
+     * hashToken() is a private helper that only applies SHA-256 and
+     * Base64 encoding. It contains no business logic worth testing
+     * directly, its correctness is already verified indirectly
+     * through any test that calls saveRefreshToken or
+     * validateAndRotateRefreshToken.
      */
 
 }
