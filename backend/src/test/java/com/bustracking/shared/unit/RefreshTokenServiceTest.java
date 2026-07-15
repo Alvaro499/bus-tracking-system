@@ -130,7 +130,7 @@ public class RefreshTokenServiceTest {
         // Act
         RefreshTokenResult result = refreshTokenService.validateAndRotateRefreshToken(RAW_TOKEN);
 
-        // Assert: check returned values
+        // Assert
         assertEquals(USER_ID, result.busId());
         assertEquals(ROLE, result.role());
         assertNotNull(result.newRawToken());
@@ -195,6 +195,34 @@ public class RefreshTokenServiceTest {
 
         // Verify Redis was only queried, never updated
         verify(valueOperationsMock, times(1)).get(anyString());
+        verify(valueOperationsMock, never()).set(anyString(), anyString(), any());
+    }
+
+    @Test
+    public void shouldRevokeRefreshToken_WhenTokenExists() {
+
+        // Arrange
+        String activeToken = """
+                {"userId":"%s","role":"%s","issuedAt":"2025-01-01T00:00:00Z","status":"ACTIVE"}
+                """.formatted(USER_ID, ROLE);
+        when(valueOperationsMock.get(anyString())).thenReturn(activeToken);
+
+        // Act
+        refreshTokenService.revokeRefreshToken(RAW_TOKEN);
+
+        // Assert
+        verify(valueOperationsMock).set(anyString(), contains("\"REVOKED\""), any());
+    }
+
+    @Test
+    public void shouldNotRevokeRefreshToken_WhenTokenDoesNotExist() {
+        // Arrange
+        when(valueOperationsMock.get(anyString())).thenReturn(null);
+
+        // Act
+        refreshTokenService.revokeRefreshToken(RAW_TOKEN);
+
+        // Assert
         verify(valueOperationsMock, never()).set(anyString(), anyString(), any());
     }
 
