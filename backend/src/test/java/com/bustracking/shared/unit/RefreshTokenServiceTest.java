@@ -198,6 +198,10 @@ public class RefreshTokenServiceTest {
         verify(valueOperationsMock, never()).set(anyString(), anyString(), any());
     }
 
+    // =========================================================
+    // Happy Path — Revoke Refresh Token
+    // =========================================================
+
     @Test
     public void shouldRevokeRefreshToken_WhenTokenExists() {
 
@@ -213,6 +217,10 @@ public class RefreshTokenServiceTest {
         // Assert
         verify(valueOperationsMock).set(anyString(), contains("\"REVOKED\""), any());
     }
+
+    // =========================================================
+    // Refresh Token Does Not Exist or Already Revoked
+    // =========================================================
 
     @Test
     public void shouldNotRevokeRefreshToken_WhenTokenDoesNotExist() {
