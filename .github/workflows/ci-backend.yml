@@ -27,8 +27,8 @@ jobs:
   # No DB, no Docker. Runs in ~30-60 seconds.
   # Runs on every push and PR.
   # ============================================================
-  fast-tests:
-    name: Fast Tests (Unit + Controller)
+  core-tests:
+    name: Core Tests (Unit, Controller, Shared Integration)
     runs-on: ubuntu-latest
 
     steps:
@@ -46,35 +46,36 @@ jobs:
 
       - name: Grant execute permission for Maven Wrapper
         run: chmod +x ./mvnw
-
-      - name: Compile project
-        run: ./mvnw clean compile -B -q
-
-      # Run only unit tests (domain + usecase) - no database required
-      - name: Execute Unit Tests (Domain + UseCase)
+        
+      # Unit Tests: domain, use cases, value objects, delegates
+      - name: Execute Unit Tests
         run: ./mvnw test -B -Dtest="**/unit/**" -DfailIfNoTests=false
 
-      # Run only controller tests (@WebMvcTest) - no database required
-      - name: Execute Controller Tests (WebMvcTest)
+      # Controller Tests (@WebMvcTest) – no database needed
+      - name: Execute Controller Tests
         run: ./mvnw test -B -Dtest="**/integration/controller/**" -DfailIfNoTests=false
+
+      # Shared Integration Tests (SecurityConfigTest, etc.)
+      - name: Execute Shared Integration Tests
+        run: ./mvnw test -B -Dtest="**/shared/integration/**" -DfailIfNoTests=false
 
       - name: Upload test reports
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: fast-test-reports
+          name: core-test-reports
           path: backend/target/surefire-reports/
 
 
   # ============================================================
   # JOB 2: INTEGRATION TESTS (Repository + Flow)
-  # Uses TestContainers with real PostgreSQL in Docker.
-  # Runs in ~5-15 minutes. Requires Job 1 to pass.
+  # Utiliza Testcontainers con PostgreSQL y Redis reales en Docker.
+  # Requiere que el Job 1 pase correctamente.
   # ============================================================
   integration-tests:
     name: Integration Tests (Repository + E2E)
     runs-on: ubuntu-latest
-    needs: fast-tests
+    needs: core-tests
 
     steps:
       - name: Checkout repository code
@@ -91,11 +92,11 @@ jobs:
       - name: Grant execute permission for Maven Wrapper
         run: chmod +x ./mvnw
 
-      # ubuntu-latest already has Docker installed.
-      # TestContainers detects it automatically and starts PostgreSQL.
-      - name: Execute Repository Tests (TestContainers + PostgreSQL)
+      # Repository Tests: @DataJpaTest with Testcontainers PostgreSQL
+      - name: Execute Repository Tests
         run: ./mvnw test -B -Dtest="**/integration/repository/**" -DfailIfNoTests=false
 
+      # Flow Tests: @SpringBootTest with Testcontainers (PostgreSQL + Redis)
       - name: Execute Flow Integration Tests
         run: ./mvnw test -B -Dtest="**/integration/flow/**" -DfailIfNoTests=false
 
@@ -111,14 +112,11 @@ jobs:
   # JOB 3: BUILD DOCKER IMAGE
   # Compiles production artifacts and builds the Docker image.
   # Requires all previous test jobs to pass.
-  #
-  # NOTE: If you don't use Docker, delete this entire job and
-  # remove 'integration-tests' from the needs list above.
   # ============================================================
   build-docker:
     name: Build Docker Image
     runs-on: ubuntu-latest
-    needs: [ fast-tests, integration-tests ]
+    needs: [ core-tests, integration-tests ]
 
     steps:
       - name: Checkout repository code
