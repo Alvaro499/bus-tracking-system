@@ -1,0 +1,13 @@
+$env:POSTGRES_HOST =
+$env:POSTGRES_HOST_PORT =
+$env:POSTGRES_DB =
+$env:POSTGRES_USER =
+$env:POSTGRES_PASSWORD =
+$env:REDIS_HOST =
+$env:REDIS_PORT =
+$env:REDIS_PASSWORD =
+$env:JWT_SECRET =
+$env:JWT_ACCESS_EXPIRATION =
+$env:JWT_REFRESH_EXPIRATION =
+
+mvn clean spring-boot:run

@@ -1,6 +1,8 @@
 package com.bustracking.tracking.integration.controller;
 
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
@@ -27,6 +29,8 @@ import com.bustracking.tracking.infrastructure.web.controller.AuthenticateDriver
 import com.bustracking.tracking.infrastructure.web.dto.request.LoginRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import jakarta.servlet.http.Cookie;
+
 @WebMvcTest(AuthenticateDriverController.class)
 public class AuthenticateDriverControllerTest extends ControllerIntegrationTest {
 
@@ -38,7 +42,7 @@ public class AuthenticateDriverControllerTest extends ControllerIntegrationTest 
 
         @MockitoBean
         RefreshTokenUseCase refreshTokenUseCase;
-        
+
         @MockitoBean
         LogoutUseCase logoutUseCase;
 
@@ -95,5 +99,76 @@ public class AuthenticateDriverControllerTest extends ControllerIntegrationTest 
                                 .content(objectMapper.writeValueAsString(request)))
                                 .andExpect(status().isUnauthorized()) // 401
                                 .andExpect(jsonPath("$.code").value("INVALID_CREDENTIALS"));
+        }
+
+        // =========================================================
+        // POST /auth/refresh - Happy Path - Refresh Token
+        // =========================================================
+
+        @Test
+        public void shouldReturn200AndSetCookies_WhenRefreshTokenIsValid() throws Exception {
+                // Arrange
+                String validRefreshToken = "valid_refresh_token_value";
+                TokensDTO newTokens = new TokensDTO("new_access_token", "new_refresh_token");
+
+                when(refreshTokenUseCase.execute(eq(validRefreshToken)))
+                                .thenReturn(newTokens);
+
+                // Act & Assert
+                mockMvc.perform(post("/auth/refresh")
+                                .cookie(new Cookie("refresh_token", validRefreshToken)))
+                                .andExpect(status().isOk())
+                                .andExpect(cookie().exists("access_token"))
+                                .andExpect(cookie().httpOnly("access_token", true))
+                                .andExpect(cookie().path("access_token", "/"))
+                                .andExpect(cookie().maxAge("access_token", 900))
+                                .andExpect(cookie().exists("refresh_token"))
+                                .andExpect(cookie().httpOnly("refresh_token", true))
+                                .andExpect(cookie().path("refresh_token", "/auth/refresh"))
+                                .andExpect(cookie().maxAge("refresh_token", 604800));
+        }
+
+        // =========================================================
+        // POST /auth/refresh - Invalid Refresh Token
+        // =========================================================
+
+        @Test
+        public void shouldReturn401_WhenRefreshTokenIsInvalid() throws Exception {
+                // Arrange
+                String invalidRefreshToken = "invalid_or_reused_token";
+
+                when(refreshTokenUseCase.execute(eq(invalidRefreshToken)))
+                                .thenThrow(new BusinessRuleException(
+                                                ErrorCode.INVALID_CREDENTIALS,
+                                                "Invalid refresh token",
+                                                "Refresh token not found or already used"));
+
+                // Act & Assert
+                mockMvc.perform(post("/auth/refresh")
+                                .cookie(new Cookie("refresh_token", invalidRefreshToken)))
+                                .andExpect(status().isUnauthorized()) // 401
+                                .andExpect(jsonPath("$.code").value("INVALID_CREDENTIALS"));
+        }
+
+        // =========================================================
+        // POST /auth/logout - Happy Path - Logout
+        // =========================================================
+
+        @Test
+        public void shouldReturn200AndClearCookies_WhenLogoutIsSuccessful() throws Exception {
+                // Arrange
+                String refreshToken = "some_refresh_token";
+
+                // Act & Assert
+                mockMvc.perform(post("/auth/logout")
+                                .cookie(new Cookie("refresh_token", refreshToken)))
+                                .andExpect(status().isOk())
+                                .andExpect(cookie().exists("access_token"))
+                                .andExpect(cookie().maxAge("access_token", 0))
+                                .andExpect(cookie().exists("refresh_token"))
+                                .andExpect(cookie().maxAge("refresh_token", 0));
+
+                // Verificar que se llamó al caso de uso
+                verify(logoutUseCase, times(1)).execute(eq(refreshToken));
         }
 }

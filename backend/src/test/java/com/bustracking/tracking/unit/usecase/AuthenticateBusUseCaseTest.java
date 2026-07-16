@@ -57,8 +57,7 @@ public class AuthenticateBusUseCaseTest {
                         UUID.randomUUID(),
                         VALID_BUS_ID,
                         VALID_HASH);
-        
-        
+
         @BeforeEach
         void setUp() {
 
@@ -70,6 +69,10 @@ public class AuthenticateBusUseCaseTest {
 
                 revokedCredential.revokeCredentials();
         }
+
+        // =========================================================
+        // Happy Path — Valid Credentials
+        // =========================================================
 
         @Test
         void shouldReturnTokensDTO_WhenCredentialsAreValid() {
@@ -97,6 +100,10 @@ public class AuthenticateBusUseCaseTest {
                 verify(refreshTokenServiceMock, times(1)).saveRefreshToken(eq(VALID_BUS_ID), anyString(), anyString());
         }
 
+        // =========================================================
+        // Credentials Not Found (bus inexistente)
+        // =========================================================
+
         @Test
         void shouldThrowBusinessRuleException_WhenCredentialsEmpty() {
 
@@ -118,6 +125,10 @@ public class AuthenticateBusUseCaseTest {
                 verifyNoInteractions(refreshTokenServiceMock);
         }
 
+        // =========================================================
+        // Credential Revoked
+        // =========================================================
+
         @Test
         void shouldThrowBusinessRuleException_WhenCredentialIsRevoked() {
 
@@ -138,6 +149,10 @@ public class AuthenticateBusUseCaseTest {
                 verifyNoInteractions(jwtServiceMock);
                 verifyNoInteractions(refreshTokenServiceMock);
         }
+
+        // =========================================================
+        // Invalid Password
+        // =========================================================
 
         @Test
         void shouldThrowBusinessRuleException_WhenPasswordNoMatching() {

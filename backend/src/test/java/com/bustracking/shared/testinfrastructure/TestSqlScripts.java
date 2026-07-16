@@ -27,4 +27,6 @@ public final class TestSqlScripts {
     public static final String PLANNED_TRIPS = "/test-data/repository/trip/planned-trips.sql";
     public static final String TRIP_FILTER_DATA = "/test-data/repository/trip/trip-filter-data.sql";
     public static final String TRIP_DETAIL = "/test-data/repository/trip/trip-detail.sql";
+    public static final String BUS_CREDENTIALS = "/test-data/repository/trip/bus-credentials.sql";
+
 }

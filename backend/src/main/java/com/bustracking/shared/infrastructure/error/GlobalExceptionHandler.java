@@ -119,9 +119,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleBusinessRule(BusinessRuleException ex) {
         log.warn("Business rule violation: {}", ex.getDevMessage());
 
-        int status = ex.getErrorCode() == ErrorCode.INVALID_CREDENTIALS
-                ? 401 // Unauthorized - invalid credentials (username/password)
-                : 422; // Unprocessable Entity or Logic - other business rule violations
+        int status = (ex.getErrorCode() == ErrorCode.INVALID_CREDENTIALS
+                || ex.getErrorCode() == ErrorCode.UNAUTHORIZED)
+                        ? 401 // Unauthorized - invalid credentials (username/password)
+                        : 422; // Unprocessable Entity or Logic - other business rule violations
 
         ErrorResponse response = new ErrorResponse(
                 ex.getErrorCode().name(),
@@ -143,7 +144,8 @@ public class GlobalExceptionHandler {
      * Spring Security exceptions
      * Handles authentication and authorization errors.
      * Returns 401 for unauthenticated requests and 403 for unauthorized requests.
-     * These new exceptions are thrown by Spring Security under the hood when authentication or authorization fails.
+     * These new exceptions are thrown by Spring Security under the hood when
+     * authentication or authorization fails.
      */
 
     @ExceptionHandler(AuthenticationException.class)
@@ -160,7 +162,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex) {
         log.warn("Access denied: {}", ex.getMessage());
         ErrorResponse response = new ErrorResponse(
-                "FORBIDDEN", // no rol matching 
+                "FORBIDDEN", // no rol matching
                 "Access denied");
         // 403 = HttpStatusCode.FORBIDDEN
         return ResponseEntity.status(403).body(response);
