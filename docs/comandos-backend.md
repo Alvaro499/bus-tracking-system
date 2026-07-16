@@ -49,6 +49,13 @@ docker restart bustracking-postgres-dev
 # 5. Ver logs para verificar que se ejecutó el script
 docker-compose logs postgres-dev
 
+# 6. Ver logs específicos de un contenedor
+docker logs container_name
+
+# 7. Historial de Contenedores
+docker ps -a 
+
+
 # ============================================================================
 # PUERTOS - VER QIÉN USA QUÉ
 # ============================================================================
