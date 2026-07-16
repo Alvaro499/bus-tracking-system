@@ -23,6 +23,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.bustracking.shared.testinfrastructure.ControllerIntegrationTest;
 import com.bustracking.shared.testinfrastructure.WithMockDriver;
 import com.bustracking.tracking.application.usecase.ConfirmStopUseCase;
+import com.bustracking.tracking.application.usecase.FinishTripUseCase;
 import com.bustracking.tracking.application.usecase.StartTripUseCase;
 import com.bustracking.tracking.domain.model.TripDetailView;
 import com.bustracking.tracking.infrastructure.mappers.TripDetailMapper;
@@ -41,6 +42,10 @@ class DriverTripCommandControllerTest extends ControllerIntegrationTest {
 
     @MockitoBean
     private ConfirmStopUseCase confirmStopUseCase;
+
+    @MockitoBean
+    private FinishTripUseCase finishTripUseCase;
+
 
     @MockitoBean
     private TripDetailMapper tripDetailMapper;
