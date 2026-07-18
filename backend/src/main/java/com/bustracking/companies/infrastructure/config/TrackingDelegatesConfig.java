@@ -8,11 +8,13 @@ import com.bustracking.companies.domain.model.Trip;
 import com.bustracking.companies.domain.repository.BusRepository;
 import com.bustracking.companies.domain.repository.TripRepository;
 import com.bustracking.companies.infrastructure.delegate.ConfirmStopDelegate;
+import com.bustracking.companies.infrastructure.delegate.FinishTripDelegate;
 import com.bustracking.companies.infrastructure.delegate.TripDetailDelegate;
 import com.bustracking.shared.exception.ErrorCode;
 import com.bustracking.shared.exception.NotFoundException;
 import com.bustracking.tracking.domain.contract.BusExistsById;
 import com.bustracking.tracking.domain.contract.ConfirmStop;
+import com.bustracking.tracking.domain.contract.FinishTrip;
 import com.bustracking.tracking.domain.contract.GetTodayPlannedTripsByBusRoutes;
 import com.bustracking.tracking.domain.contract.GetTripDetail;
 import com.bustracking.tracking.domain.contract.StartTrip;
@@ -112,6 +114,11 @@ public class TrackingDelegatesConfig {
 
     @Bean
     public ConfirmStop confirmStop(ConfirmStopDelegate delegate) {
+        return delegate;
+    }
+
+    @Bean
+    public FinishTrip finishTrip(FinishTripDelegate delegate) {
         return delegate;
     }
 }
