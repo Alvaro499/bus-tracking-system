@@ -13,6 +13,7 @@ import com.bustracking.tracking.application.usecase.ConfirmStopUseCase;
 import com.bustracking.tracking.application.usecase.FinishTripUseCase;
 import com.bustracking.tracking.application.usecase.StartTripUseCase;
 import com.bustracking.tracking.domain.model.TripDetailView;
+import com.bustracking.tracking.domain.model.TripFinishView;
 import com.bustracking.tracking.infrastructure.mappers.TripDetailMapper;
 import com.bustracking.tracking.infrastructure.web.dto.response.TripDetailResponse;
 
@@ -56,10 +57,17 @@ public class DriverTripCommandController {
     }
 
     @PostMapping("/{tripId}/finish")
-    public ResponseEntity<TripDetailResponse> finishTrip(@PathVariable UUID tripId){
-        TripDetailView response = finishTripUseCase.execute(tripId);
-        TripDetailResponse tripDetailResponse = tripDetailMapper.toResponse(response);
-        return ResponseEntity.ok(tripDetailResponse);
+    public ResponseEntity<TripFinishResponse> finishTrip(@PathVariable UUID tripId) {
+        UUID busId = getCurrentBusId();
+        TripFinishView view = finishTripUseCase.execute(tripId, busId);
+        TripFinishResponse response = new TripFinishResponse(
+            view.tripId(),
+            view.status(),
+            view.actualStartTime(),
+            view.actualEndTime(),
+            view.delayMinutes()
+        );
+        return ResponseEntity.ok(response);
     }
 
     private UUID getCurrentBusId() {
