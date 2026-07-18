@@ -16,6 +16,7 @@ import com.bustracking.tracking.domain.model.TripDetailView;
 import com.bustracking.tracking.domain.model.TripFinishView;
 import com.bustracking.tracking.infrastructure.mappers.TripDetailMapper;
 import com.bustracking.tracking.infrastructure.web.dto.response.TripDetailResponse;
+import com.bustracking.tracking.infrastructure.web.dto.response.TripFinishResponse;
 
 @RestController
 @RequestMapping("/tracking/trips")
