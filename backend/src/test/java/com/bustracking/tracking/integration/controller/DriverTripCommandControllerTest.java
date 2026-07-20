@@ -20,12 +20,15 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.bustracking.shared.exception.ErrorCode;
+import com.bustracking.shared.exception.NotFoundException;
 import com.bustracking.shared.testinfrastructure.ControllerIntegrationTest;
 import com.bustracking.shared.testinfrastructure.WithMockDriver;
 import com.bustracking.tracking.application.usecase.ConfirmStopUseCase;
 import com.bustracking.tracking.application.usecase.FinishTripUseCase;
 import com.bustracking.tracking.application.usecase.StartTripUseCase;
 import com.bustracking.tracking.domain.model.TripDetailView;
+import com.bustracking.tracking.domain.model.TripFinishView;
 import com.bustracking.tracking.infrastructure.mappers.TripDetailMapper;
 import com.bustracking.tracking.infrastructure.web.controller.DriverTripCommandController;
 import com.bustracking.tracking.infrastructure.web.dto.response.TripDetailResponse;
@@ -46,10 +49,8 @@ class DriverTripCommandControllerTest extends ControllerIntegrationTest {
     @MockitoBean
     private FinishTripUseCase finishTripUseCase;
 
-
     @MockitoBean
     private TripDetailMapper tripDetailMapper;
-
 
     // Shared Test Data
     private static final UUID VALID_TRIP_ID = UUID.fromString("b70e8400-e29b-41d4-a716-446655440001");
@@ -59,7 +60,8 @@ class DriverTripCommandControllerTest extends ControllerIntegrationTest {
     /*
      * Test Cases for DriverTripCommandController
      * 
-     * This method sets up a mock authentication token for a driver with a specific bus ID. 
+     * This method sets up a mock authentication token for a driver with a specific
+     * bus ID.
      * It is used to simulate an authenticated driver in the test cases.
      */
 
@@ -67,8 +69,7 @@ class DriverTripCommandControllerTest extends ControllerIntegrationTest {
         return new UsernamePasswordAuthenticationToken(
                 DRIVER_BUS_ID,
                 null,
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_DRIVER"))
-        );
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_DRIVER")));
     }
 
     // =========================================================
@@ -102,7 +103,7 @@ class DriverTripCommandControllerTest extends ControllerIntegrationTest {
         @WithMockDriver
         public void shouldReturn400WhenTripIdIsNotValidUUID() throws Exception {
             mockMvc.perform(post("/tracking/trips/{tripId}/start", "not-a-valid-uuid"))
-                                .andExpect(status().isBadRequest());
+                    .andExpect(status().isBadRequest());
 
             verifyNoInteractions(startTripUseCase);
         }
@@ -134,7 +135,7 @@ class DriverTripCommandControllerTest extends ControllerIntegrationTest {
 
             // Act & Assert
             mockMvc.perform(post("/tracking/trips/{tripId}/stops/{routeStopId}/confirm",
-                            VALID_TRIP_ID, VALID_ROUTE_STOP_ID))
+                    VALID_TRIP_ID, VALID_ROUTE_STOP_ID))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.trip.id").value(VALID_TRIP_ID.toString()))
                     .andExpect(jsonPath("$.trip.routeName").value("Ruta 300"))
@@ -155,10 +156,56 @@ class DriverTripCommandControllerTest extends ControllerIntegrationTest {
         @WithMockDriver
         public void shouldReturn400_WhenAnyIdIsNotValidUUID() throws Exception {
             mockMvc.perform(post("/tracking/trips/{tripId}/stops/{routeStopId}/confirm",
-                            "not-a-valid-uuid", VALID_ROUTE_STOP_ID))
+                    "not-a-valid-uuid", VALID_ROUTE_STOP_ID))
                     .andExpect(status().isBadRequest());
 
-                verify(confirmStopUseCase, times(0)).execute(any(), any(), any());
+            verify(confirmStopUseCase, times(0)).execute(any(), any(), any());
         }
+    }
+
+    // =========================================================
+    // POST /tracking/trips/{tripId}/finish
+    // =========================================================
+    @Nested
+    class FinishTrip {
+
+        @Test
+        @WithMockDriver
+        void shouldReturn200AndFinishData_WhenTripIsFinishedSuccessfully() throws Exception {
+            // Arrange
+            TripFinishView finishView = new TripFinishView(
+                    VALID_TRIP_ID,
+                    "COMPLETED",
+                    LocalTime.of(8, 0),
+                    LocalTime.of(10, 0),
+                    5);
+            when(finishTripUseCase.execute(eq(VALID_TRIP_ID), any()))
+                    .thenReturn(finishView);
+
+            // Act & Assert
+            mockMvc.perform(post("/tracking/trips/{tripId}/finish", VALID_TRIP_ID))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.tripId").value(VALID_TRIP_ID.toString()))
+                    .andExpect(jsonPath("$.status").value("COMPLETED"))
+                    .andExpect(jsonPath("$.actualStartTime").value("08:00:00"))
+                    .andExpect(jsonPath("$.actualEndTime").value("10:00:00"))
+                    .andExpect(jsonPath("$.delayMinutes").value(5));
+
+            verify(finishTripUseCase).execute(eq(VALID_TRIP_ID), any());
+        }
+
+        // Optional Method: GlobalExceptionHandlerTest is already testin this mapping
+        @Test
+        @WithMockDriver
+        void shouldReturn404_WhenTripNotFound() throws Exception {
+            when(finishTripUseCase.execute(eq(VALID_TRIP_ID), any()))
+                    .thenThrow(new NotFoundException(ErrorCode.TRIP_NOT_FOUND,
+                            "Trip not found"));
+
+            mockMvc.perform(post("/tracking/trips/{tripId}/finish", VALID_TRIP_ID))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.code").value("TRIP_NOT_FOUND"));
+        }
+
     }
 }
