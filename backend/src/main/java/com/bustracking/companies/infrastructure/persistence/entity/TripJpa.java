@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.UUID;
 
-
 @Entity
 @Table(name = "trip", schema = "companies")
 @Getter
@@ -27,7 +26,7 @@ public class TripJpa {
     @Column(name = "schedule_id", nullable = false)
     private UUID scheduleId;
 
-    @Column(name = "bus_id")
+    @Column(name = "bus_id", nullable = true)
     private UUID busId;
 
     @Column(name = "trip_date", nullable = false)
@@ -36,20 +35,21 @@ public class TripJpa {
     @Column(name = "cancellation_reason", columnDefinition = "TEXT", nullable = true)
     private String cancellationReason;
 
+    // We tell JPA to save this value as a text
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private TripStatus status;
 
-    @Column(name = "actual_start_time")
+    @Column(name = "actual_start_time", nullable = true)
     private LocalTime actualStartTime;
 
-    @Column(name = "actual_end_time")
+    @Column(name = "actual_end_time", nullable = true)
     private LocalTime actualEndTime;
 
-    @Column(name = "delay_minutes")
+    @Column(name = "delay_minutes", nullable = true)
     private Integer delayMinutes;
 
-    @Column(name = "assigned_at")
+    @Column(name = "assigned_at", nullable = true)
     private LocalDateTime assignedAt;
 
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -60,8 +60,10 @@ public class TripJpa {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof TripJpa)) return false;
+        if (this == o)
+            return true;
+        if (!(o instanceof TripJpa))
+            return false;
         return id != null && id.equals(((TripJpa) o).getId());
     }
 

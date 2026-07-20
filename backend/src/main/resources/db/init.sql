@@ -144,9 +144,9 @@ CREATE TABLE IF NOT EXISTS companies.trip (
     actual_start_time TIME NULL,
     actual_end_time TIME NULL,
     delay_minutes INT NULL,
-    assigned_at TIMESTAMP,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    assigned_at TIMESTAMP NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (schedule_id, trip_date)
 );
 
