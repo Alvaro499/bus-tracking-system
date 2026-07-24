@@ -5,11 +5,14 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
 import com.bustracking.companies.domain.enums.TripStatus;
+import com.bustracking.companies.domain.model.Schedule;
 import com.bustracking.companies.domain.model.Trip;
 import com.bustracking.shared.exception.BusinessRuleException;
 import com.bustracking.shared.exception.ValidationException;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.UUID;
 
 public class TripTest {
@@ -77,9 +80,7 @@ public class TripTest {
     @Test
     void shouldThrowValidationExceptionWhenScheduleIdIsNull() {
         // Act & Assert
-        assertThrows(ValidationException.class, () ->
-            new Trip(null)
-        );
+        assertThrows(ValidationException.class, () -> new Trip(null));
     }
 
     // =========================================================
@@ -109,9 +110,7 @@ public class TripTest {
         Trip trip = anInProgressTrip();
 
         // Act & Assert
-        assertThrows(BusinessRuleException.class, () ->
-            trip.start(UUID.randomUUID())
-        );
+        assertThrows(BusinessRuleException.class, () -> trip.start(UUID.randomUUID()));
     }
 
     @Test
@@ -120,9 +119,7 @@ public class TripTest {
         Trip trip = aCancelledTrip();
 
         // Act & Assert
-        assertThrows(BusinessRuleException.class, () ->
-            trip.start(UUID.randomUUID())
-        );
+        assertThrows(BusinessRuleException.class, () -> trip.start(UUID.randomUUID()));
     }
 
     @Test
@@ -131,9 +128,7 @@ public class TripTest {
         Trip trip = aCompletedTrip();
 
         // Act & Assert
-        assertThrows(BusinessRuleException.class, () ->
-            trip.start(UUID.randomUUID())
-        );
+        assertThrows(BusinessRuleException.class, () -> trip.start(UUID.randomUUID()));
     }
 
     @Test
@@ -142,9 +137,7 @@ public class TripTest {
         Trip trip = aPlannedTrip();
 
         // Act & Assert
-        assertThrows(ValidationException.class, () ->
-            trip.start(null)
-        );
+        assertThrows(ValidationException.class, () -> trip.start(null));
     }
 
     // =========================================================
@@ -187,9 +180,7 @@ public class TripTest {
         Trip trip = aCancelledTrip();
 
         // Act & Assert
-        assertThrows(BusinessRuleException.class, () ->
-            trip.cancel("Another reason")
-        );
+        assertThrows(BusinessRuleException.class, () -> trip.cancel("Another reason"));
     }
 
     @Test
@@ -198,9 +189,7 @@ public class TripTest {
         Trip trip = aCompletedTrip();
 
         // Act & Assert
-        assertThrows(BusinessRuleException.class, () ->
-            trip.cancel("Too late")
-        );
+        assertThrows(BusinessRuleException.class, () -> trip.cancel("Too late"));
     }
 
     @Test
@@ -209,9 +198,7 @@ public class TripTest {
         Trip trip = aPlannedTrip();
 
         // Act & Assert
-        assertThrows(ValidationException.class, () ->
-            trip.cancel(null)
-        );
+        assertThrows(ValidationException.class, () -> trip.cancel(null));
     }
 
     @Test
@@ -220,9 +207,7 @@ public class TripTest {
         Trip trip = aPlannedTrip();
 
         // Act & Assert
-        assertThrows(ValidationException.class, () ->
-            trip.cancel("   ")
-        );
+        assertThrows(ValidationException.class, () -> trip.cancel("   "));
     }
 
     // =========================================================
@@ -249,9 +234,7 @@ public class TripTest {
         Trip trip = aPlannedTrip();
 
         // Act & Assert
-        assertThrows(BusinessRuleException.class, () ->
-            trip.complete()
-        );
+        assertThrows(BusinessRuleException.class, () -> trip.complete());
     }
 
     @Test
@@ -260,8 +243,78 @@ public class TripTest {
         Trip trip = aCancelledTrip();
 
         // Act & Assert
-        assertThrows(BusinessRuleException.class, () ->
-            trip.complete()
+        assertThrows(BusinessRuleException.class, () -> trip.complete());
+    }
+
+    // =========================================================
+    // Happy Path & Edge Cases — complete(Schedule) & calculateDelayAgainst
+    // =========================================================
+
+    @Test
+    void shouldCompleteTripWithScheduleAndCalculateDelay() {
+        // Arrange
+        Trip trip = anInProgressTrip();
+        LocalTime pastDeparture = LocalTime.now().minusHours(2);
+        Schedule schedule = new Schedule(
+                trip.getScheduleId(),    // id
+                UUID.randomUUID(),      // routeId
+                pastDeparture,          // departureTime
+                30,  // estimatedDurationMin
+                1,              //dayOfWeek
+                LocalDate.now(),           // startDate
+                null,              //endDate
+                true,            //isActive
+                LocalDateTime.now(),       // 9. createdAt
+                LocalDateTime.now()        // 10. updatedAt
         );
+        // Act
+        trip.complete(schedule);
+
+        // Assert
+        assertEquals(TripStatus.COMPLETED, trip.getStatus());
+        assertNotNull(trip.getActualEndTime());
+        assertNotNull(trip.getDelayMinutes());
+        assertTrue(trip.getDelayMinutes() > 0, "Delay should be positive when arrival is late");
+    }
+
+    @Test
+    void shouldCalculateZeroDelay_WhenArrivingOnTimeOrEarly() {
+        // Arrange
+        Trip trip = new Trip(UUID.randomUUID());
+        trip.start(UUID.randomUUID());
+
+        // Salida esperada en el futuro / estimada suficientemente holgada
+        LocalTime futureDeparture = LocalTime.now().plusHours(1);
+        Schedule schedule = new Schedule(
+                trip.getScheduleId(), // 1. id
+                UUID.randomUUID(), // 2. routeId
+                futureDeparture, // 3. departureTime
+                60, // 4. estimatedDurationMin
+                1, // 5. dayOfWeek
+                LocalDate.now(), // 6. startDate
+                null, // 7. endDate
+                true, // 8. isActive
+                LocalDateTime.now(), // 9. createdAt
+                LocalDateTime.now() // 10. updatedAt
+        );
+
+        // Act
+        trip.complete(schedule);
+
+        // Assert
+        assertEquals(0, trip.getDelayMinutes(), "Delay should be 0 if the trip arrived early/on time");
+    }
+
+    @Test
+    void shouldReturnZeroDelay_WhenScheduleIsNull() {
+        // Arrange
+        Trip trip = anInProgressTrip();
+        trip.complete(); // completed without schedule
+
+        // Act
+        int delay = trip.calculateDelayAgainst(null);
+
+        // Assert
+        assertEquals(0, delay, "Delay calculation should be resilient and return 0 if Schedule is null");
     }
 }
