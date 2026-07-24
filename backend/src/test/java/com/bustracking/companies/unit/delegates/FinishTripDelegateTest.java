@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import java.time.LocalTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -13,7 +14,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.bustracking.companies.domain.model.Schedule;
 import com.bustracking.companies.domain.model.Trip;
+import com.bustracking.companies.domain.repository.ScheduleRepository;
 import com.bustracking.companies.domain.repository.TripRepository;
 import com.bustracking.companies.infrastructure.delegate.FinishTripDelegate;
 import com.bustracking.shared.exception.BusinessRuleException;
@@ -27,6 +30,9 @@ class FinishTripDelegateTest {
     @Mock
     private TripRepository tripRepositoryMock;
 
+    @Mock
+    private ScheduleRepository scheduleRepositoryMock;
+
     private FinishTripDelegate delegate;
 
     private static final UUID TRIP_ID = UUID.fromString("b70e8400-e29b-41d4-a716-446655440001");
@@ -35,7 +41,7 @@ class FinishTripDelegateTest {
 
     @BeforeEach
     void setUp() {
-        delegate = new FinishTripDelegate(tripRepositoryMock);
+        delegate = new FinishTripDelegate(tripRepositoryMock, scheduleRepositoryMock);
     }
 
     // =========================================================
@@ -44,10 +50,18 @@ class FinishTripDelegateTest {
 
     @Test
     void shouldCompleteTripAndReturnFinishView_WhenTripIsInProgress() {
+
         // Arrange
-        Trip trip = new Trip(SCHEDULE_ID);          // status PLANNED
-        trip.start(BUS_ID);                         // change to IN_PROGRESS, assing actualStartTime
+        Trip trip = new Trip(SCHEDULE_ID); // status PLANNED
+        trip.start(BUS_ID); // change to IN_PROGRESS, assing actualStartTime
+
+        LocalTime scheduledDeparture = trip.getActualStartTime().minusHours(1);
+        Schedule schedule = new Schedule(
+                SCHEDULE_ID, UUID.randomUUID(), scheduledDeparture,
+                1, null, null, true, null, null);
+
         when(tripRepositoryMock.findById(TRIP_ID)).thenReturn(Optional.of(trip));
+        when(scheduleRepositoryMock.findById(SCHEDULE_ID)).thenReturn(Optional.of(schedule));
 
         // Act
         TripFinishView result = delegate.execute(TRIP_ID);
@@ -57,9 +71,11 @@ class FinishTripDelegateTest {
         assertEquals("COMPLETED", result.status());
         assertNotNull(result.actualStartTime());
         assertNotNull(result.actualEndTime());
-        assertEquals(0, result.delayMinutes());      // delayMinutes was null -> se convierte a 0
+            assertTrue(result.delayMinutes() > 0, "Delay should be positive"); // positive delay
 
         verify(tripRepositoryMock, times(1)).findById(TRIP_ID);
+        verify(scheduleRepositoryMock).findById(SCHEDULE_ID);
+
         verify(tripRepositoryMock, times(1)).save(trip);
     }
 
