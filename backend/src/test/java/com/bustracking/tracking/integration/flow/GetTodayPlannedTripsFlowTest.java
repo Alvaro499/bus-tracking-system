@@ -56,20 +56,4 @@ public class GetTodayPlannedTripsFlowTest extends FlowIntegrationTest {
             .andExpect(jsonPath("$[0].departureTime").exists());
     }
 
-    /*
-        This test is commented out because the current implementation of the controller has a hardcoded busId, 
-        so it always returns the same trips regardless of the test data. Once we implement HU-18 
-        (authentication and extracting busId from JWT), we can re-enable this test to validate the empty list 
-        scenario for buses without assigned routes.
-    @Test
-    void shouldReturnEmptyList_WhenBusHasNoRoutesAssigned() throws Exception {
-        // BUS_ID_2 exists in tracking-base.sql but has no trips assigned
-        // The hardcoded UUID in the controller returns empty for this bus
-        // Note: this test validates the empty list response shape
-        mockMvc.perform(get("/tracking/trips/today"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$").isArray());
-    }
-    */
-
 }

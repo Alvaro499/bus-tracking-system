@@ -124,6 +124,7 @@ CREATE TABLE IF NOT EXISTS companies.schedule (
     id UUID PRIMARY KEY,
     route_id UUID NOT NULL REFERENCES companies.route(id) ON DELETE RESTRICT,
     departure_time TIME NOT NULL,
+    estimated_duration_minutes INTEGER NOT NULL,
     day_of_week INTEGER NOT NULL CHECK (day_of_week BETWEEN 1 AND 7),
     start_date DATE NOT NULL,
     end_date DATE NULL,
@@ -144,9 +145,9 @@ CREATE TABLE IF NOT EXISTS companies.trip (
     actual_start_time TIME NULL,
     actual_end_time TIME NULL,
     delay_minutes INT NULL,
-    assigned_at TIMESTAMP,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    assigned_at TIMESTAMP NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (schedule_id, trip_date)
 );
 

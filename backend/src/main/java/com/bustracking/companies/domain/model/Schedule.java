@@ -1,7 +1,7 @@
 package com.bustracking.companies.domain.model;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.UUID;
 
-@Data
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Schedule {
@@ -19,6 +19,8 @@ public class Schedule {
     private UUID routeId;
 
     private LocalTime departureTime;
+
+    private Integer estimatedDurationMin;
 
     // 1=Monday, 7=Sunday
     private Integer dayOfWeek;

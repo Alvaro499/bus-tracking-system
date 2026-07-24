@@ -10,10 +10,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.bustracking.tracking.application.usecase.ConfirmStopUseCase;
+import com.bustracking.tracking.application.usecase.FinishTripUseCase;
 import com.bustracking.tracking.application.usecase.StartTripUseCase;
 import com.bustracking.tracking.domain.model.TripDetailView;
+import com.bustracking.tracking.domain.model.TripFinishView;
 import com.bustracking.tracking.infrastructure.mappers.TripDetailMapper;
 import com.bustracking.tracking.infrastructure.web.dto.response.TripDetailResponse;
+import com.bustracking.tracking.infrastructure.web.dto.response.TripFinishResponse;
 
 @RestController
 @RequestMapping("/tracking/trips")
@@ -22,14 +25,17 @@ public class DriverTripCommandController {
     private final StartTripUseCase startTripUseCase;
     private final ConfirmStopUseCase confirmStopUseCase;
 
+    private final FinishTripUseCase finishTripUseCase;
+
     // Mappers
     private final TripDetailMapper tripDetailMapper;
 
     public DriverTripCommandController(StartTripUseCase startTripUseCase, ConfirmStopUseCase confirmStopUseCase,
-            TripDetailMapper tripDetailMapper) {
+            FinishTripUseCase finishTripUseCase,TripDetailMapper tripDetailMapper) {
         this.startTripUseCase = startTripUseCase;
         this.confirmStopUseCase = confirmStopUseCase;
         this.tripDetailMapper = tripDetailMapper;
+        this.finishTripUseCase = finishTripUseCase;
     }
 
     @PostMapping("/{tripId}/start")
@@ -49,6 +55,20 @@ public class DriverTripCommandController {
         TripDetailView response = confirmStopUseCase.execute(tripId, routeStopId, busId);
         TripDetailResponse tripDetailResponse = tripDetailMapper.toResponse(response);
         return ResponseEntity.ok(tripDetailResponse);
+    }
+
+    @PostMapping("/{tripId}/finish")
+    public ResponseEntity<TripFinishResponse> finishTrip(@PathVariable UUID tripId) {
+        UUID busId = getCurrentBusId();
+        TripFinishView view = finishTripUseCase.execute(tripId, busId);
+        TripFinishResponse response = new TripFinishResponse(
+            view.tripId(),
+            view.status(),
+            view.actualStartTime(),
+            view.actualEndTime(),
+            view.delayMinutes()
+        );
+        return ResponseEntity.ok(response);
     }
 
     private UUID getCurrentBusId() {

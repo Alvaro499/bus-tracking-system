@@ -19,40 +19,40 @@ mvn clean spring-boot:run
 # DOCKER - CONTENEDOR POSTGRESQL
 # ============================================================================
 
-# Levantar contenedor (crea si no existe)
+#### 1. Levantar contenedor (crea si no existe)
 docker-compose up -d
 
-# Levantar mostrando logs en vivo
+#### 2. Levantar mostrando logs en vivo
 docker-compose up
 
-# Ver logs en vivo
+#### 3. Ver logs en vivo
 docker-compose logs -f postgres-dev
 
-# Eliminar contenedor (borra datos)
+#### 4. Eliminar contenedor (borra datos)
 docker-compose down
 
-# Eliminar contenedor Y VOLUMEN (borra TODA la BD)
+#### 5. Eliminar contenedor Y VOLUMEN (borra TODA la BD)
 docker-compose down -v
 
-# 2. Eliminar también la imagen (para forzar recreación)
+#### 6. Eliminar también la imagen (para forzar recreación)
 docker image rm postgres:16-alpine
 
-# Revisar estado del contenedor
+#### 7. Revisar estado del contenedor
 docker ps
 
-# Detener solo el contenedor
+#### 8. Detener solo el contenedor
 docker stop bustracking-postgres-dev
 
-# Reiniciar contenedor
+#### 9. Reiniciar contenedor
 docker restart bustracking-postgres-dev
 
-# 5. Ver logs para verificar que se ejecutó el script
+#### 10. Ver logs para verificar que se ejecutó el script
 docker-compose logs postgres-dev
 
-# 6. Ver logs específicos de un contenedor
+#### 11. Ver logs específicos de un contenedor
 docker logs container_name
 
-# 7. Historial de Contenedores
+#### 12. Historial de Contenedores
 docker ps -a 
 
 
