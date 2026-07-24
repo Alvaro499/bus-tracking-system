@@ -28,6 +28,10 @@ public class ScheduleJpa {
     @Column(name = "departure_time", nullable = false)
     private LocalTime departureTime;
 
+    @Column(name = "estimated_duration_minutes", nullable = false)
+    private Integer estimatedDurationMin;
+
+
     @Column(name = "day_of_week", nullable = false)
     private Integer dayOfWeek;
 
