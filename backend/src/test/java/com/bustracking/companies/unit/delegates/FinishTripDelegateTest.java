@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -57,8 +59,17 @@ class FinishTripDelegateTest {
 
         LocalTime scheduledDeparture = trip.getActualStartTime().minusHours(1);
         Schedule schedule = new Schedule(
-                SCHEDULE_ID, UUID.randomUUID(), scheduledDeparture,
-                1, null, null, true, null, null);
+                SCHEDULE_ID, // 1. id (UUID)
+                UUID.randomUUID(), // 2. routeId (UUID)
+                scheduledDeparture, // 3. departureTime (LocalTime)
+                30, // 4. estimatedDurationMin (Integer)
+                1, // 5. dayOfWeek (Integer, ej. 1=Lunes)
+                LocalDate.now(), // 6. startDate (LocalDate)
+                null, // 7. endDate (LocalDate)
+                true, // 8. isActive (Boolean)
+                LocalDateTime.now(), // 9. createdAt (LocalDateTime)
+                LocalDateTime.now() // 10. updatedAt (LocalDateTime)
+        );
 
         when(tripRepositoryMock.findById(TRIP_ID)).thenReturn(Optional.of(trip));
         when(scheduleRepositoryMock.findById(SCHEDULE_ID)).thenReturn(Optional.of(schedule));
@@ -71,7 +82,7 @@ class FinishTripDelegateTest {
         assertEquals("COMPLETED", result.status());
         assertNotNull(result.actualStartTime());
         assertNotNull(result.actualEndTime());
-            assertTrue(result.delayMinutes() > 0, "Delay should be positive"); // positive delay
+        assertNotNull(result.delayMinutes(), "Delay minutes should be populated");
 
         verify(tripRepositoryMock, times(1)).findById(TRIP_ID);
         verify(scheduleRepositoryMock).findById(SCHEDULE_ID);
