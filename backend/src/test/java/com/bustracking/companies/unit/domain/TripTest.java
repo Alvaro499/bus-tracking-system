@@ -247,34 +247,41 @@ public class TripTest {
     }
 
     // =========================================================
-    // Happy Path & Edge Cases — complete(Schedule) & calculateDelayAgainst
+    // Happy Path & Edge Cases — complete(Schedule, LocalTime)
     // =========================================================
 
     @Test
-    void shouldCompleteTripWithScheduleAndCalculateDelay() {
+    void shouldCompleteTripWithScheduleAndCalculateExactDelay() {
         // Arrange
-        Trip trip = anInProgressTrip();
-        LocalTime pastDeparture = LocalTime.now().minusHours(2);
+        Trip trip = new Trip(UUID.randomUUID());
+        trip.start(UUID.randomUUID());
+
+        // Scheduled: Departure at 08:00 AM with 30 min duration -> Expected arrival:
+        // 08:30 AM
+        LocalTime scheduledDeparture = LocalTime.of(8, 0);
         Schedule schedule = new Schedule(
-                trip.getScheduleId(),    // id
-                UUID.randomUUID(),      // routeId
-                pastDeparture,          // departureTime
-                30,  // estimatedDurationMin
-                1,              //dayOfWeek
-                LocalDate.now(),           // startDate
-                null,              //endDate
-                true,            //isActive
-                LocalDateTime.now(),       // 9. createdAt
-                LocalDateTime.now()        // 10. updatedAt
-        );
-        // Act
-        trip.complete(schedule);
+                trip.getScheduleId(),
+                UUID.randomUUID(),
+                scheduledDeparture,
+                30, // 30 minutes estimated
+                1,
+                LocalDate.now(),
+                null,
+                true,
+                LocalDateTime.now(),
+                LocalDateTime.now());
+
+        // Act: Explicitly simulate that the trip finished at 09:00 AM
+        LocalTime actualEndTime = LocalTime.of(9, 0);
+        trip.complete(schedule, actualEndTime);
 
         // Assert
         assertEquals(TripStatus.COMPLETED, trip.getStatus());
-        assertNotNull(trip.getActualEndTime());
+        assertEquals(actualEndTime, trip.getActualEndTime());
         assertNotNull(trip.getDelayMinutes());
-        assertTrue(trip.getDelayMinutes() > 0, "Delay should be positive when arrival is late");
+        // Expected arrival: 08:30 AM | Actual arrival: 09:00 AM -> Exact delay: 30
+        // minutes
+        assertEquals(30, trip.getDelayMinutes(), "Calculated delay should be exactly 30 minutes");
     }
 
     @Test
@@ -283,26 +290,28 @@ public class TripTest {
         Trip trip = new Trip(UUID.randomUUID());
         trip.start(UUID.randomUUID());
 
-        // Salida esperada en el futuro / estimada suficientemente holgada
-        LocalTime futureDeparture = LocalTime.now().plusHours(1);
+        // Scheduled: Departure at 08:00 AM with 60 min duration -> Expected arrival:
+        // 09:00 AM
+        LocalTime scheduledDeparture = LocalTime.of(8, 0);
         Schedule schedule = new Schedule(
-                trip.getScheduleId(), // 1. id
-                UUID.randomUUID(), // 2. routeId
-                futureDeparture, // 3. departureTime
-                60, // 4. estimatedDurationMin
-                1, // 5. dayOfWeek
-                LocalDate.now(), // 6. startDate
-                null, // 7. endDate
-                true, // 8. isActive
-                LocalDateTime.now(), // 9. createdAt
-                LocalDateTime.now() // 10. updatedAt
-        );
+                trip.getScheduleId(),
+                UUID.randomUUID(),
+                scheduledDeparture,
+                60,
+                1,
+                LocalDate.now(),
+                null,
+                true,
+                LocalDateTime.now(),
+                LocalDateTime.now());
 
-        // Act
-        trip.complete(schedule);
+        // Act: Simulate that it arrived early, at 08:45 AM
+        LocalTime actualEndTime = LocalTime.of(8, 45);
+        trip.complete(schedule, actualEndTime);
 
         // Assert
-        assertEquals(0, trip.getDelayMinutes(), "Delay should be 0 if the trip arrived early/on time");
+        assertEquals(TripStatus.COMPLETED, trip.getStatus());
+        assertEquals(0, trip.getDelayMinutes(), "Delay should be 0 when the trip arrives on time or early");
     }
 
     @Test

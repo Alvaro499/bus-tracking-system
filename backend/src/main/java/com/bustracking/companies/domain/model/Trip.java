@@ -162,4 +162,18 @@ public class Trip {
         // Guardamos el retraso directamente en la entidad
         this.delayMinutes = calculateDelayAgainst(schedule);
     }
+
+    // Test Method
+    public void complete(Schedule schedule, LocalTime endTime) {
+        if (this.status != TripStatus.IN_PROGRESS) {
+            throw new BusinessRuleException(
+                    ErrorCode.INVALID_STATE,
+                    "Trip only can be completed from IN_PROGRESS status");
+        }
+
+        this.actualEndTime = endTime;
+        this.status = TripStatus.COMPLETED;
+        this.updatedAt = LocalDateTime.now();
+        this.delayMinutes = calculateDelayAgainst(schedule);
+    }
 }
